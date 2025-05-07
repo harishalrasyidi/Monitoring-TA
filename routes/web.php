@@ -70,7 +70,7 @@ Route::post('/kegiatan/store', [App\Http\Controllers\JadwalKegiatanController::c
 Route::put('/kegiatan/update/{id}', [App\Http\Controllers\JadwalKegiatanController::class, 'update'])->middleware(['auth', 'role:2,3'])->name('kegiatan.update');
 
 
-Route::get('/kegiatans', [App\Http\Controllers\KegiatanController::class, 'index'])->middleware(['auth', 'role:2,3'])->name('kegiatans.index');
+// Route::get('/kegiatans', [App\Http\Controllers\KegiatanController::class, 'index'])->middleware(['auth', 'role:2,3'])->name('kegiatans.index');
 
 
 
@@ -111,4 +111,7 @@ Route::post('/resume/search', [App\Http\Controllers\ResumeBimbinganController::c
 Route::delete('/resume/{id}', [App\Http\Controllers\ResumeBimbinganController::class, 'destroy'])->middleware(['auth', 'role:2,3'])->name('resume.destroy');
 Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\ResumeBimbinganController::class, 'generatePdf'])->middleware(['auth', 'role:3'])->name('resume.generatePdf');
 
+
+//Katalog
+Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
 

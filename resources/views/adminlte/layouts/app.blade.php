@@ -183,6 +183,14 @@
                 </p>
               </a>
             </li>
+            <li class="nav-item">
+              <a href="{{ route('katalog') }}" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>
+                  Katalog
+                </p>
+              </a>
+            </li>
             @endif
             @if (auth()->user()->role== "1")
             <li class="nav-item">
