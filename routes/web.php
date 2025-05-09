@@ -115,3 +115,71 @@ Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\Resume
 //Katalog
 Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
 
+// Katalog TA Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/katalog-ta', [App\Http\Controllers\KatalogTAController::class, 'index'])->name('katalog-ta.index');
+    Route::get('/katalog-ta/{id}', [App\Http\Controllers\KatalogTAController::class, 'show'])->name('katalog-ta.show');
+    Route::get('/katalog-ta/{id}/request', [App\Http\Controllers\KatalogTAController::class, 'showRequestForm'])->name('katalog-ta.request-form');
+    Route::post('/katalog-ta/{id}/request', [App\Http\Controllers\KatalogTAController::class, 'sendRequest'])->name('katalog-ta.send-request');
+    Route::get('/katalog-ta/create', [KatalogTAController::class, 'create'])->name('katalog-ta.create');
+    Route::post('/katalog-ta', [KatalogTAController::class, 'store'])->name('katalog-ta.store');
+});
+
+// Katalog TA routes
+Route::middleware(['auth'])->group(function () {
+    // List katalog TA
+    Route::get('/katalog-ta', [App\Http\Controllers\KatalogTAController::class, 'index'])
+        ->name('katalog-ta.index');
+    
+    // Detail katalog TA
+    Route::get('/katalog-ta/{id}', [App\Http\Controllers\KatalogTAController::class, 'show'])
+        ->name('katalog-ta.show');
+    
+    // Request form katalog TA
+    Route::get('/katalog-ta/{id}/request', [App\Http\Controllers\KatalogTAController::class, 'showRequestForm'])
+        ->name('katalog-ta.request-form');
+    
+    // Send request katalog TA
+    Route::post('/katalog-ta/{id}/request', [App\Http\Controllers\KatalogTAController::class, 'sendRequest'])
+        ->name('katalog-ta.send-request');
+    
+    // Download katalog TA (hanya untuk pemilik atau admin)
+    Route::get('/katalog-ta/{id}/download', [App\Http\Controllers\KatalogTAController::class, 'download'])
+        ->name('katalog-ta.download');
+    
+    // Form upload katalog TA
+    Route::get('/katalog-ta/create/form', [App\Http\Controllers\KatalogTAController::class, 'create'])
+        ->name('katalog-ta.create');
+    
+    // Store katalog TA
+    Route::post('/katalog-ta', [App\Http\Controllers\KatalogTAController::class, 'store'])
+        ->name('katalog-ta.store');
+    
+    // Edit katalog TA
+    Route::get('/katalog-ta/{id}/edit', [App\Http\Controllers\KatalogTAController::class, 'edit'])
+        ->name('katalog-ta.edit');
+    
+    // Update katalog TA
+    Route::put('/katalog-ta/{id}', [App\Http\Controllers\KatalogTAController::class, 'update'])
+        ->name('katalog-ta.update');
+
+
+    
+    // Delete katalog TA (opsional, dapat ditambahkan jika diperlukan)
+    // Route::delete('/katalog-ta/{id}', [App\Http\Controllers\KatalogTAController::class, 'destroy'])
+    //     ->name('katalog-ta.destroy');
+});
+
+// Tambahkan route ini di web.php untuk AJAX request
+// Add this route to your web.php routes file
+// Route untuk mendapatkan anggota berdasarkan kota
+Route::post('/katalog-ta/get-anggota', [KatalogTAController::class, 'getAnggotaByKota'])->name('katalog-ta.get-anggota');
+
+// Route untuk mendapatkan semua mahasiswa (fallback)
+Route::get('/katalog-ta/get-all-mahasiswa', function() {
+    $mahasiswaList = \App\Models\User::where('role', 'mahasiswa')
+                     ->orderBy('name', 'asc')
+                     ->select('id', 'name', 'nim')
+                     ->get();
+    return response()->json($mahasiswaList);
+})->name('katalog-ta.get-all-mahasiswa');

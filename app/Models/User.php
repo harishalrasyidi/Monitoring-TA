@@ -47,4 +47,29 @@ class User extends Authenticatable
     {
         return $this->belongsTo(KotaModel::class, 'id_kota');
     }
+
+// Ganti nama fungsi agar sesuai konvensi Laravel
+public function kotaUsers()
+{
+    return $this->hasMany(KotaHasUserModel::class, 'id_user', 'id');
+}
+
+    
+    // Helper method untuk mengecek apakah user adalah penulis dari katalog TA tertentu
+    public function isPenulisTA($katalogTAId)
+    {
+        return $this->anggotaTA()->where('id_katalog_ta', $katalogTAId)->exists();
+    }
+
+    public function anggotaTA()
+    {
+    return $this->hasMany(AnggotaTA::class, 'id_user', 'id');
+    }
+
+
+    public function katalogTA()
+    {
+        return $this->belongsToMany(KatalogTA::class, 'tbl_kota_has_user', 'id_user', 'id_katalog');
+    }
+    
 }
