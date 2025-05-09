@@ -37,7 +37,7 @@ class SubmissionController extends Controller
             KotaHasArtefakModel::create([
                 'id_kota' => $id_kota,
                 'id_artefak' => $artefak_id,
-                'file_pengumpulan' => $filePath,
+                'file_pengumpulan' => $originalFileName,
                 'waktu_pengumpulan' => now(),
             ]);
     
