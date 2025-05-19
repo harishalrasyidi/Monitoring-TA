@@ -191,14 +191,6 @@
                 </p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="{{ route('laporan.index') }}" class="nav-link">
-                <i class="nav-icon fas fa-boxes"></i>
-                <p>
-                  Katalog versi 2
-                </p>
-              </a>
-            </li>
             @endif
             @if (auth()->user()->role== "1")
             <li class="nav-item">
