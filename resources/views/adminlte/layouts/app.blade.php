@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Monitoring Tugas Akhir</title>
-  
+
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome Icons -->
@@ -39,7 +39,8 @@
   <link rel="stylesheet" href="{{ asset('assets/AdminLTE-3.2.0/plugins/daterangepicker/daterangepicker.css') }}">
   <!-- summernote -->
   <link rel="stylesheet" href="{{ asset('assets/AdminLTE-3.2.0/plugins/summernote/summernote-bs4.min.css') }}">
-
+{{-- apexchart --}}
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 <body class="hold-transition sidebar-mini">
   <div class="wrapper">
@@ -151,7 +152,7 @@
             </li>
           </ul>
         </li>
-        
+
         <li class="nav-item">
           <a class="nav-link" data-widget="fullscreen" data-slide="true" href="#" role="button">
             <i class="fas fa-expand-arrows-alt"></i>
@@ -359,6 +360,6 @@
           }
       });
   </script>
-
+@stack('scripts')
 </body>
 </html>
