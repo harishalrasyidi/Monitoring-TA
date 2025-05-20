@@ -133,7 +133,11 @@
               <img src="{{ asset('assets/dist/img/user.jpg') }}" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
-              <a href="#" class="d-block">{{ auth()->user()->name }}</a>
+              @if(auth()->check())
+                  <a href="#" class="d-block">{{ auth()->user()->name }}</a>
+              @else
+                  <a href="#" class="d-block">Guest</a>
+              @endif
             </div>
           </div>
           <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
