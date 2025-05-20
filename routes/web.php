@@ -111,4 +111,7 @@ Route::post('/resume/search', [App\Http\Controllers\ResumeBimbinganController::c
 Route::delete('/resume/{id}', [App\Http\Controllers\ResumeBimbinganController::class, 'destroy'])->middleware(['auth', 'role:2,3'])->name('resume.destroy');
 Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\ResumeBimbinganController::class, 'generatePdf'])->middleware(['auth', 'role:3'])->name('resume.generatePdf');
 
+// Pembimbing Routes
+
+
 
