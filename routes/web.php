@@ -114,4 +114,5 @@ Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\Resume
 
 //Katalog
 Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
+Route::get('/kota/show-file/{nama_artefak}', [App\Http\Controllers\KotaController::class, 'showFile'])->middleware(['auth', 'role:1,2,3'])->name('kota.showFile');
 

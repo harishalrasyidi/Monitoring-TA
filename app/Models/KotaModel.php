@@ -17,7 +17,13 @@ class KotaModel extends Model
         'nama_kota',
         'judul',
         'kelas', 
-        'periode', 
+        'periode',
+        'prodi',
+        'kbk',
+        'topik',
+        'tahun',
+        'jenis_ta',
+        'metodologi'
     ];
 
     public function users()
@@ -32,5 +38,22 @@ class KotaModel extends Model
         } else {
             return DB::table($this->table)->where('id_kota', $id)->first();
         }
+    }
+
+    public function dosen()
+    {
+        return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+                    ->where('role', 2);
+    }
+
+    public function mahasiswa()
+    {
+        return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+                    ->where('role', 3);
+    }
+    
+    public function artefak()
+    {
+        return $this->hasMany(KotaHasArtefakModel::class, 'id_kota', 'id_kota');
     }
 }
