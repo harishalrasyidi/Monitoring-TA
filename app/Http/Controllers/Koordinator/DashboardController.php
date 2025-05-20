@@ -22,16 +22,16 @@ class DashboardController extends Controller
         // Data untuk chart
         $chartData = [
             'seminar1' => Kota::whereHas('tahapanProgress', function($query) {
-                $query->where('id_tahapan', 1)->where('status', 'Tuntas');
+                $query->where('id_tahapan', 1)->where('status', 'tuntas');
             })->count(),
             'seminar2' => Kota::whereHas('tahapanProgress', function($query) {
-                $query->where('id_tahapan', 2)->where('status', 'Tuntas');
+                $query->where('id_tahapan', 2)->where('status', 'tuntas');
             })->count(),
             'seminar3' => Kota::whereHas('tahapanProgress', function($query) {
-                $query->where('id_tahapan', 3)->where('status', 'Tuntas');
+                $query->where('id_tahapan', 3)->where('status', 'tuntas');
             })->count(),
             'sidang' => Kota::whereHas('tahapanProgress', function($query) {
-                $query->where('id_tahapan', 4)->where('status', 'Tuntas');
+                $query->where('id_tahapan', 4)->where('status', 'tuntas');
             })->count(),
         ];
 

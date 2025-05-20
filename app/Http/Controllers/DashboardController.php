@@ -25,7 +25,7 @@ class DashboardController extends Controller
             foreach ($masterTahapan as $tahapan) {
                 $chartData[$tahapan->nama_progres] = Kota::whereHas('tahapanProgress', function($query) use ($tahapan) {
                     $query->where('id_master_tahapan_progres', $tahapan->id)
-                          ->where('status', 'Tuntas');
+                          ->where('status', 'tuntas');
                 })->count();
             }
 
@@ -40,9 +40,9 @@ class DashboardController extends Controller
                                    ->first();
                 
                 if ($lastProgress) {
-                    if ($lastProgress->status === 'Tuntas' && $lastProgress->masterTahapan->nama_progres === 'Sidang') {
+                    if ($lastProgress->status === 'tuntas' && $lastProgress->masterTahapan->nama_progres === 'Sidang') {
                         $selesai++;
-                    } elseif ($lastProgress->status === 'Belum Tuntas') {
+                    } elseif ($lastProgress->status === 'belum tuntas') {
                         $terlambat++;
                     } else {
                         $dalamProgres++;
