@@ -13,7 +13,7 @@
         <div class="card-body">
           <i class="fas fa-users fa-2x text-primary mb-2"></i>
           <h6>Total KoTA</h6>
-          <h3>120</h3>
+          <h3>{{ $totalKota }}</h3>
         </div>
       </div>
     </div>
@@ -22,7 +22,7 @@
         <div class="card-body">
           <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
           <h6>Selesai Semua Tahapan</h6>
-          <h3>73</h3>
+          <h3>{{ $selesai }}</h3>
         </div>
       </div>
     </div>
@@ -31,7 +31,7 @@
         <div class="card-body">
           <i class="fas fa-spinner fa-2x text-warning mb-2"></i>
           <h6>Dalam progres</h6>
-          <h3>26</h3>
+          <h3>{{ $dalamProgres }}</h3>
         </div>
       </div>
     </div>
@@ -40,7 +40,7 @@
         <div class="card-body">
           <i class="fas fa-exclamation-circle fa-2x text-danger mb-2"></i>
           <h6>Terlambat</h6>
-          <h3>20</h3>
+          <h3>{{ $terlambat }}</h3>
         </div>
       </div>
     </div>
@@ -78,29 +78,50 @@
             <th>Seminar 1</th>
             <th>Seminar 2</th>
             <th>Seminar 3</th>
-            <th>Revisi</th>
+            <th>Sidang</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>Kelompok 1</td>
-            <td>Tuntas</td>
-            <td>Tuntas</td>
-            <td>Tuntas</td>
-            <td>Tuntas</td>
-            <td><span class="badge badge-success">Selesai</span></td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td>Kelompok 2</td>
-            <td>Belum Tuntas</td>
-            <td>Belum Tuntas</td>
-            <td>Belum Tuntas</td>
-            <td>Belum Tuntas</td>
-            <td><span class="badge badge-danger">Terlambat</span></td>
-          </tr>
+          @forelse($kotaList as $no => $kota)
+            <tr>
+              <td>{{ $no+1 }}</td>
+              <td>
+                <strong>{{ $kota->nama_kota }}</strong><br>
+                <small>{{ $kota->judul }}</small>
+              </td>
+              @php
+                // Urutkan progres berdasarkan id_master_tahapan_progres
+                $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                $status = [];
+                foreach($tahapan as $tp) {
+                  $status[] = $tp->status;
+                }
+                // Jika tahapan kurang dari 4, tambahkan '-'
+                for($i = count($status); $i < 4; $i++) $status[] = '-';
+              @endphp
+              <td>{{ $status[0] ?? '-' }}</td>
+              <td>{{ $status[1] ?? '-' }}</td>
+              <td>{{ $status[2] ?? '-' }}</td>
+              <td>{{ $status[3] ?? '-' }}</td>
+              <td>
+                @php
+                  $last = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+                @endphp
+                @if($last && $last->status === 'tuntas' && optional($last->masterTahapan)->nama_progres === 'Sidang')
+                  <span class="badge badge-success">Selesai</span>
+                @elseif($last && $last->status === 'Belum tuntas')
+                  <span class="badge badge-danger">Terlambat</span>
+                @else
+                  <span class="badge badge-warning">Dalam Progres</span>
+                @endif
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="7" class="text-center">Data tidak ditemukan</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>
@@ -109,23 +130,20 @@
 
 @endsection
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     var options = {
-      chart: {
-        type: 'bar',
-        height: 350
-      },
+      chart: { type: 'bar', height: 350 },
       series: [{
         name: 'Jumlah Mahasiswa',
-        data: [95, 80, 50, 40]
+        data: {!! json_encode(array_values($chartData)) !!}
       }],
       xaxis: {
-        categories: ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang']
+        categories: {!! json_encode(array_keys($chartData)) !!}
       },
-      colors: ['#28a745', '#ffc107', '#dc3545']
+      colors: ['#28a745', '#ffc107', '#dc3545', '#007bff']
     };
-
     var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
     chart.render();
   });
