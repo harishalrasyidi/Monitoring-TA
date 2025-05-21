@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 
 
 //Home
-Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('home');
+Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
 
