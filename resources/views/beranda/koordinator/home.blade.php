@@ -110,7 +110,7 @@
                 @endphp
                 @if($last && $last->status === 'tuntas' && optional($last->masterTahapan)->nama_progres === 'Sidang')
                   <span class="badge badge-success">Selesai</span>
-                @elseif($last && $last->status === 'Belum tuntas')
+                @elseif($last && $last->status === 'belum tuntas')
                   <span class="badge badge-danger">Terlambat</span>
                 @else
                   <span class="badge badge-warning">Dalam Progres</span>
