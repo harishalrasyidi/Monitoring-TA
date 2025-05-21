@@ -182,40 +182,55 @@ class HomeController extends Controller
         $user = auth()->user();
     
         if ($user->role == 2) {
-            // Query KOTA berdasarkan user yang sedang terautentikasi dan role = 2
-            $query = KotaModel::whereHas('users', function ($q) use ($user) {
-                $q->where('id_user', $user->id);
-            });
-    
-            // Lakukan join dengan tabel tahapan_progres dan master_tahapan_progres
-            $query->leftJoin('tbl_kota_has_tahapan_progres', 'tbl_kota.id_kota', '=', 'tbl_kota_has_tahapan_progres.id_kota')
-                    ->leftJoin('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
-                    ->select('tbl_kota.*', 'tbl_master_tahapan_progres.nama_progres AS nama_tahapan', 'tbl_kota_has_tahapan_progres.status AS status')
-                    ->where(function ($query) {
-                        $query->where('tbl_kota_has_tahapan_progres.status', 'on_progres')
-                                ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
-                    })
-                    ->first();
+            // Query untuk KoTA yang dibimbing
+            $queryKota = KotaModel::query()
+                ->join('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+                ->leftJoin('tbl_kota_has_tahapan_progres', 'tbl_kota.id_kota', '=', 'tbl_kota_has_tahapan_progres.id_kota')
+                ->leftJoin('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
+                ->where('tbl_kota_has_user.id_user', $user->id)
+                ->select('tbl_kota.*', 'tbl_master_tahapan_progres.nama_progres AS nama_tahapan')
+                ->where(function ($query) {
+                    $query->where('tbl_kota_has_tahapan_progres.status', 'on_progres')
+                        ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
+                });
 
-        }
-    
-        if ($request->has('sort') && $request->has('value')) {
-            $sort = $request->input('sort');
-            $value = $request->input('value');
-    
-            // Tambahkan filter berdasarkan nilai yang dipilih
-            $query->where($sort, $value);
-        }
-    
-        // Tambahkan logika sorting berdasarkan parameter 'sort' dan 'direction'
-        if ($request->has('sort') && $request->has('direction')) {
-            $query->orderBy($request->input('sort'), $request->input('direction'));
-        }
-    
-        $kotas = $query->paginate(10);
-    
-        if ($user->role == 2) {
-            return view('beranda.pembimbing.home', compact('kotas'));
+            // Query untuk KoTA yang diuji
+            $queryKotaDiuji = KotaModel::query()
+                ->join('tbl_kota_has_penguji', 'tbl_kota.id_kota', '=', 'tbl_kota_has_penguji.id_kota')
+                ->leftJoin('tbl_kota_has_tahapan_progres', 'tbl_kota.id_kota', '=', 'tbl_kota_has_tahapan_progres.id_kota')
+                ->leftJoin('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
+                ->where('tbl_kota_has_penguji.id_user', $user->id)
+                ->select('tbl_kota.*', 'tbl_master_tahapan_progres.nama_progres AS nama_tahapan')
+                ->where(function ($query) {
+                    $query->where('tbl_kota_has_tahapan_progres.status', 'on_progres')
+                        ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
+                });
+
+            // Filter berdasarkan parameter
+            if ($request->has('sort') && $request->has('value')) {
+                $sort = $request->input('sort');
+                $value = $request->input('value');
+                $queryKota->where($sort, $value);
+                $queryKotaDiuji->where($sort, $value);
+            }
+
+            // Sorting
+            if ($request->has('sort') && $request->has('direction')) {
+                $queryKota->orderBy($request->input('sort'), $request->input('direction'));
+                $queryKotaDiuji->orderBy($request->input('sort'), $request->input('direction'));
+            }
+
+            $kotas = $queryKota->paginate(10);
+            $kotas_diuji = $queryKotaDiuji->paginate(10);
+
+            $availableYears = DB::table('tbl_kota')
+                ->join('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+                ->where('tbl_kota_has_user.id_user', Auth::id())
+                ->distinct()
+                ->orderBy('tbl_kota.periode', 'desc') // optional: agar urut
+                ->pluck('tbl_kota.periode');
+
+            return view('beranda.pembimbing.home', compact('kotas', 'kotas_diuji', 'availableYears'));
         } elseif ($user->role == 4) {
             return view('beranda.kaprodi.home');
         }

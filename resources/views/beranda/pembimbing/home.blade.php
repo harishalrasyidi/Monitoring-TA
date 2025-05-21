@@ -19,10 +19,10 @@
                                 Kelas
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 1]) }}" class="dropdown-item">D3-A</a></li>
-                                <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 2]) }}" class="dropdown-item">D3-B</a></li>
-                                <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 3]) }}" class="dropdown-item">D4-A</a></li>
-                                <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 4]) }}" class="dropdown-item">D4-B</a></li>
+                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 1]) }}" class="dropdown-item">D3-A</a></li>
+                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 2]) }}" class="dropdown-item">D3-B</a></li>
+                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 3]) }}" class="dropdown-item">D4-A</a></li>
+                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 4]) }}" class="dropdown-item">D4-B</a></li>
                             </ul>
                         </div>
                     </div>
@@ -47,8 +47,9 @@
                                 Periode
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item">2024</a></li>
-                                <li><a class="dropdown-item">2023</a></li>
+                                @foreach($availableYears as $year)
+                                    <li><a href="{{ route('home', ['sort' => 'periode', 'direction' => 'asc', 'value' => $year]) }}" class="dropdown-item">{{ $year }}</a></li>
+                                @endforeach
                             </ul>
                         </div>
                     </div>
@@ -65,6 +66,9 @@
 <div class="container-fluid">
 <!-- DataTables Example -->
 <div class="card shadow mb-4">
+<div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Di Bimbing</h6>
+    </div>
     <div class="card-body">
         <div class="table-responsive">
             <table id="example" class="table table-bordered data-table"  width="100%" cellspacing="0">
@@ -97,6 +101,44 @@
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-end">
                 {{ $kotas->links() }}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Tabel KoTA yang Diuji -->
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Diuji</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="example2" class="table table-bordered data-table" width="100%" cellspacing="0">
+                <thead class="text-center" style="background-color: gray; color: white;">
+                    <tr>
+                        <th>No</th>
+                        <th>Kode KoTA</th>
+                        <th>Judul KoTA</th>
+                        <th>Tahap Progres</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($kotas_diuji as $row)
+                        <tr>
+                            <td class="text-center">{{ $loop->iteration }}</td>
+                            <td class="text-center">{{ $row->nama_kota }}</td>
+                            <td>{{ $row->judul }}</td>
+                            <td class="text-center">{{ $row->nama_tahapan }}</td>
+                            
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-end">
+                {{ $kotas_diuji->links() }}
             </ul>
         </nav>
     </div>
