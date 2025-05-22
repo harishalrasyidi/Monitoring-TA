@@ -29,6 +29,8 @@ class DatabaseSeeder extends Seeder
             TimelineHasArtefakSeeder::class,
             MasterMetodologiSeeder::class,
             JadwalKesediaanPengujiSeeder::class,
+            YudisiumSeeder::class,
+            YudisiumLogSeeder::class,
 
         ]);
     }

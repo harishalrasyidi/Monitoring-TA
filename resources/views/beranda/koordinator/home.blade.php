@@ -51,7 +51,7 @@
                     <li><a href="#" class="dropdown-item">Sidang</a></li>
                 </ul>
             </div>
-                        </div>
+        </div>
         </div><!-- /.col -->
       </div><!-- /.row -->
       <hr>
@@ -59,105 +59,224 @@
   </div>
   <!-- /.content-header -->
 
+  <!-- Main content -->
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Quick Access Buttons -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Menu Cepat</h3>
+            </div>
+            <div class="card-body">
+              <div class="btn-group">
+                <a href="{{ route('kota') }}" class="btn btn-app">
+                  <i class="fas fa-book"></i> Data KoTA
+                </a>
+                <a href="{{ route('timeline') }}" class="btn btn-app">
+                  <i class="fas fa-calendar-alt"></i> Timeline
+                </a>
+                <a href="{{ route('artefak') }}" class="btn btn-app">
+                  <i class="fas fa-file-alt"></i> Artefak
+                </a>
+                <a href="{{ route('yudisium.index') }}" class="btn btn-app">
+                  <i class="fas fa-graduation-cap"></i> Yudisium
+                </a>
+                <a href="{{ route('yudisium.dashboard') }}" class="btn btn-app">
+                  <i class="fas fa-chart-pie"></i> Dashboard Yudisium
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics Row -->
+      <div class="row">
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{ $totalKoTA ?? '40' }}</h3>
+              <p>Total KoTA</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-book"></i>
+            </div>
+            <a href="{{ route('kota') }}" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-success">
+            <div class="inner">
+              <h3>{{ $totalSidang ?? '25' }}</h3>
+              <p>Sidang Selesai</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-check"></i>
+            </div>
+            <a href="#" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-warning">
+            <div class="inner">
+              <h3>{{ $totalYudisium ?? '30' }}</h3>
+              <p>Total Yudisium</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <a href="{{ route('yudisium.index') }}" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-danger">
+            <div class="inner">
+              <h3>{{ $belumYudisium ?? '10' }}</h3>
+              <p>Belum Yudisium</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <a href="#" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Distribusi Kategori Yudisium</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Distribusi Progres Seminar</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="pieChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Status Pengumpulan Artefak</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Status Yudisium</h3>
+            </div>
+            <div class="card-body">
+              <canvas id="stackedBarChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Updates -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Pembaruan Yudisium Terbaru</h3>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>KoTA</th>
+                      <th>Mahasiswa</th>
+                      <th>Kategori</th>
+                      <th>Status</th>
+                      <th>Tanggal Update</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Ini seharusnya diisi dari database -->
+                    <tr>
+                      <td>101</td>
+                      <td>Nama Mahasiswa</td>
+                      <td>Yudisium 1</td>
+                      <td><span class="badge badge-success">Approved</span></td>
+                      <td>{{ now()->format('d/m/Y') }}</td>
+                      <td><a href="#" class="btn btn-sm btn-info">Detail</a></td>
+                    </tr>
+                    <tr>
+                      <td>102</td>
+                      <td>Nama Mahasiswa</td>
+                      <td>Yudisium 2</td>
+                      <td><span class="badge badge-warning">Pending</span></td>
+                      <td>{{ now()->format('d/m/Y') }}</td>
+                      <td><a href="#" class="btn btn-sm btn-info">Detail</a></td>
+                    </tr>
+                    <tr>
+                      <td>103</td>
+                      <td>Nama Mahasiswa</td>
+                      <td>Yudisium 3</td>
+                      <td><span class="badge badge-danger">Rejected</span></td>
+                      <td>{{ now()->format('d/m/Y') }}</td>
+                      <td><a href="#" class="btn btn-sm btn-info">Detail</a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
 @push('scripts')
 <script>
   $(function () {
-    //--------------
-    //- AREA CHART -
-    //--------------
-    var areaChartCanvas = $('#areaChart').get(0).getContext('2d')
-    var areaChartData = {
-      labels  : ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-      datasets: [
-        {
-          label               : 'Digital Goods',
-          backgroundColor     : 'rgba(60,141,188,0.9)',
-          borderColor         : 'rgba(60,141,188,0.8)',
-          pointRadius         : false,
-          pointColor          : '#3b8bba',
-          pointStrokeColor    : 'rgba(60,141,188,1)',
-          pointHighlightFill  : '#fff',
-          pointHighlightStroke: 'rgba(60,141,188,1)',
-          data                : [28, 48, 40, 19, 86, 27, 90]
-        },
-        {
-          label               : 'Electronics',
-          backgroundColor     : 'rgba(210, 214, 222, 1)',
-          borderColor         : 'rgba(210, 214, 222, 1)',
-          pointRadius         : false,
-          pointColor          : 'rgba(210, 214, 222, 1)',
-          pointStrokeColor    : '#c1c7d1',
-          pointHighlightFill  : '#fff',
-          pointHighlightStroke: 'rgba(220,220,220,1)',
-          data                : [65, 59, 80, 81, 56, 55, 40]
-        },
-      ]
-    }
-
-    var areaChartOptions = {
-      maintainAspectRatio : false,
-      responsive : true,
-      legend: {
-        display: false
-      },
-      scales: {
-        xAxes: [{
-          gridLines : {
-            display : false,
-          }
-        }],
-        yAxes: [{
-          gridLines : {
-            display : false,
-          }
-        }]
-      }
-    }
-
-    new Chart(areaChartCanvas, {
-      type: 'line',
-      data: areaChartData,
-      options: areaChartOptions
-    })
-
-    //-------------
-    //- LINE CHART -
-    //--------------
-    var lineChartCanvas = $('#lineChart').get(0).getContext('2d')
-    var lineChartOptions = $.extend(true, {}, areaChartOptions)
-    var lineChartData = $.extend(true, {}, areaChartData)
-    lineChartData.datasets[0].fill = false;
-    lineChartData.datasets[1].fill = false;
-    lineChartOptions.datasetFill = false
-
-    var lineChart = new Chart(lineChartCanvas, {
-      type: 'line',
-      data: lineChartData,
-      options: lineChartOptions
-    })
-
-    //-------------
-    //- DONUT CHART -
-    //-------------
+    // Donut Chart untuk Distribusi Kategori Yudisium
     var donutChartCanvas = $('#donutChart').get(0).getContext('2d')
-    var donutData        = {
+    var donutData = {
       labels: [
-          'Chrome',
-          'IE',
-          'FireFox',
-          'Safari',
-          'Opera',
-          'Navigator',
+          'Yudisium 1',
+          'Yudisium 2',
+          'Yudisium 3',
       ],
       datasets: [
         {
-          data: [700,500,400,600,300,100],
-          backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
+          data: [12, 18, 10], // Disini seharusnya data dari database
+          backgroundColor : ['#00a65a', '#f39c12', '#f56954'],
         }
       ]
     }
-    var donutOptions     = {
+    var donutOptions = {
       maintainAspectRatio : false,
       responsive : true,
     }
@@ -167,12 +286,23 @@
       options: donutOptions
     })
 
-    //-------------
-    //- PIE CHART -
-    //-------------
+    // Pie Chart untuk Distribusi Progres Seminar
     var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
-    var pieData        = donutData;
-    var pieOptions     = {
+    var pieData = {
+      labels: [
+          'Seminar 1',
+          'Seminar 2',
+          'Seminar 3',
+          'Sidang',
+      ],
+      datasets: [
+        {
+          data: [15, 10, 10, 5], // Disini seharusnya data dari database
+          backgroundColor : ['#00c0ef', '#3c8dbc', '#d2d6de', '#f56954'],
+        }
+      ]
+    }
+    var pieOptions = {
       maintainAspectRatio : false,
       responsive : true,
     }
@@ -182,37 +312,59 @@
       options: pieOptions
     })
 
-    //-------------
-    //- BAR CHART -
-    //-------------
+    // Bar Chart untuk Status Pengumpulan Artefak
     var barChartCanvas = $('#barChart').get(0).getContext('2d')
-    var barChartData = $.extend(true, {}, areaChartData)
-    var temp0 = areaChartData.datasets[0]
-    var temp1 = areaChartData.datasets[1]
-    barChartData.datasets[0] = temp1
-    barChartData.datasets[1] = temp0
-
-    var barChartOptions = {
-      responsive              : true,
-      maintainAspectRatio     : false,
-      datasetFill             : false
+    var barChartData = {
+      labels: ['FTA 01', 'FTA 02', 'FTA 03', 'FTA 04', 'FTA 05'],
+      datasets: [
+        {
+          label: 'Sudah Mengumpulkan',
+          backgroundColor: '#00a65a',
+          data: [30, 28, 25, 20, 15] // Disini seharusnya data dari database
+        },
+        {
+          label: 'Belum Mengumpulkan',
+          backgroundColor: '#f56954',
+          data: [10, 12, 15, 20, 25] // Disini seharusnya data dari database
+        }
+      ]
     }
-
+    var barChartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      datasetFill: false
+    }
     new Chart(barChartCanvas, {
       type: 'bar',
       data: barChartData,
       options: barChartOptions
     })
 
-    //---------------------
-    //- STACKED BAR CHART -
-    //---------------------
+    // Stacked Bar Chart untuk Status Yudisium
     var stackedBarChartCanvas = $('#stackedBarChart').get(0).getContext('2d')
-    var stackedBarChartData = $.extend(true, {}, barChartData)
-
+    var stackedBarChartData = {
+      labels: ['D3-A', 'D3-B', 'D4-A', 'D4-B'],
+      datasets: [
+        {
+          label: 'Approved',
+          backgroundColor: '#00a65a',
+          data: [5, 5, 5, 5] // Disini seharusnya data dari database
+        },
+        {
+          label: 'Pending',
+          backgroundColor: '#f39c12',
+          data: [3, 3, 3, 3] // Disini seharusnya data dari database
+        },
+        {
+          label: 'Rejected',
+          backgroundColor: '#f56954',
+          data: [2, 2, 2, 2] // Disini seharusnya data dari database
+        }
+      ]
+    }
     var stackedBarChartOptions = {
-      responsive              : true,
-      maintainAspectRatio     : false,
+      responsive: true,
+      maintainAspectRatio: false,
       scales: {
         xAxes: [{
           stacked: true,
@@ -222,7 +374,6 @@
         }]
       }
     }
-
     new Chart(stackedBarChartCanvas, {
       type: 'bar',
       data: stackedBarChartData,

@@ -173,7 +173,7 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
           <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-            @if (auth()->user()->role=="1" || auth()->user()->role == "2" || auth()->user()->role == "3" || auth()->user()->role == "4")
+            @if (auth()->user()->role=="1" || auth()->user()->role == "2" || auth()->user()->role == "3" || auth()->user()->role == "4" || auth()->user()->role == "5")
             <li class="nav-item">
               <a href="{{ route('home') }}" class="nav-link">
                 <i class="nav-icon fas fa-home"></i>
@@ -195,7 +195,7 @@
               </a>
             </li>
             @endif
-            @if (auth()->user()->role == "1" ||  auth()->user()->role == "2" || auth()->user()->role == "3" || auth()->user()->role == "4")
+            @if (auth()->user()->role == "1" ||  auth()->user()->role == "2" || auth()->user()->role == "3" || auth()->user()->role == "4" || auth()->user()->role == "5")
             <li class="nav-item">
               <a href="{{ route('timeline') }}" class="nav-link">
                 <i class="nav-icon fas fa-calendar"></i>
@@ -292,6 +292,54 @@
                         </li> -->
                     </ul>
                 </div>
+            </li>
+            @endif
+            
+            <!-- Menu Yudisium untuk Koordinator dan Kaprodi -->
+            @if (auth()->user()->role=="1" || auth()->user()->role=="4" || auth()->user()->role=="5")
+            <li class="nav-item">
+                <a href="{{ route('yudisium.index') }}" class="nav-link">
+                    <i class="nav-icon fas fa-graduation-cap"></i>
+                    <p>
+                        Kelola Yudisium
+                        <!-- <span class="right badge badge-success">Updated</span> -->
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('yudisium.dashboard') }}" class="nav-link">
+                    <i class="nav-icon fas fa-chart-pie"></i>
+                    <p>
+                        Dashboard Yudisium
+                        <!-- <span class="right badge badge-success">Updated</span> -->
+                    </p>
+                </a>
+            </li>
+            @endif
+
+            <!-- Menu Yudisium untuk Dosen -->
+            @if (auth()->user()->role=="2")
+            <li class="nav-item">
+                <a href="{{ route('yudisium.status') }}" class="nav-link">
+                    <i class="nav-icon fas fa-graduation-cap"></i>
+                    <p>
+                        Status Yudisium Mahasiswa
+                        <!-- <span class="right badge badge-success">Updated</span> -->
+                    </p>
+                </a>
+            </li>
+            @endif
+
+            <!-- Menu Yudisium untuk Mahasiswa -->
+            @if (auth()->user()->role == "3")
+            <li class="nav-item">
+                <a href="{{ route('yudisium.status') }}" class="nav-link">
+                    <i class="nav-icon fas fa-graduation-cap"></i>
+                    <p>
+                        Status Yudisium
+                        <!-- <span class="right badge badge-danger">New</span> -->
+                    </p>
+                </a>
             </li>
             @endif
           </ul>

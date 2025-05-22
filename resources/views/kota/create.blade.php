@@ -115,7 +115,7 @@
                             </div>
                         </div>
 
-                        <!-- <div class="col-md-6">
+                         <div class="col-md-6">
                             <div class="list-group-item p-3">
                                 <div class="row align-items-start">
                                     <div class="col-md-4 mb-8pt mb-md-0">
@@ -134,10 +134,10 @@
                                     </div>
                                 </div>
                             </div>
-                        </div> -->
+                        </div> 
                     </div>
 
-                    <!-- <div class="row">
+                     <div class="row">
                         <div class="col">
                             <div class="list-group-item p-3">
                                 <div class="row align-items-start">
@@ -224,7 +224,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div> -->
+                    </div> 
 
                     <!-- JUDUL KUTIPAN -->
                     <div class="list-group-item p-3">

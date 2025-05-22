@@ -111,4 +111,14 @@ Route::post('/resume/search', [App\Http\Controllers\ResumeBimbinganController::c
 Route::delete('/resume/{id}', [App\Http\Controllers\ResumeBimbinganController::class, 'destroy'])->middleware(['auth', 'role:2,3'])->name('resume.destroy');
 Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\ResumeBimbinganController::class, 'generatePdf'])->middleware(['auth', 'role:3'])->name('resume.generatePdf');
 
-
+// Yudisium
+Route::get('/yudisium', [App\Http\Controllers\YudisiumController::class, 'index'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.index');
+Route::get('/yudisium/dashboard', [App\Http\Controllers\YudisiumController::class, 'dashboard'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.dashboard');
+Route::get('/yudisium/create', [App\Http\Controllers\YudisiumController::class, 'create'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.create');
+Route::post('/yudisium/store', [App\Http\Controllers\YudisiumController::class, 'store'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.store');
+Route::get('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class, 'show'])->middleware(['auth'])->name('yudisium.show');
+Route::get('/yudisium/{id}/edit', [App\Http\Controllers\YudisiumController::class, 'edit'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.edit');
+Route::put('/yudisium/{id}/update', [App\Http\Controllers\YudisiumController::class, 'update'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.update');
+Route::delete('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class, 'destroy'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.destroy');
+Route::get('/yudisium/export/excel', [App\Http\Controllers\YudisiumController::class, 'export'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.export');
+Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 'status'])->middleware(['auth', 'role:2,3'])->name('yudisium.status');

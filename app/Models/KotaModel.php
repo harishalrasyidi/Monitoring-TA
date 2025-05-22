@@ -33,4 +33,12 @@ class KotaModel extends Model
             return DB::table($this->table)->where('id_kota', $id)->first();
         }
     }
+
+    /**
+     * Get the yudisium associated with the kota.
+     */
+    public function yudisium()
+    {
+        return $this->hasOne(YudisiumModel::class, 'id_kota', 'id_kota');
+    }
 }
