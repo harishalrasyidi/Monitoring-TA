@@ -91,13 +91,11 @@
                 <small>{{ $kota->judul }}</small>
               </td>
               @php
-                // Urutkan progres berdasarkan id_master_tahapan_progres
                 $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
                 $status = [];
                 foreach($tahapan as $tp) {
                   $status[] = $tp->status;
                 }
-                // Jika tahapan kurang dari 4, tambahkan '-'
                 for($i = count($status); $i < 4; $i++) $status[] = '-';
               @endphp
               <td>{{ $status[0] ?? '-' }}</td>
