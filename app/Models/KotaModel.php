@@ -18,6 +18,8 @@ class KotaModel extends Model
         'judul',
         'kelas', 
         'periode', 
+        'kategori',
+        'prodi',
     ];
 
     public function users()

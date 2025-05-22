@@ -16,6 +16,6 @@ class KotaHasArtefakModel extends Model
         'id_kota', 
         'id_artefak',
         'file_pengumpulan',
-        'waktu_pengumpulan'
-    ];
+        'waktu_pengumpulan',
+    ];    
 }
