@@ -14,93 +14,85 @@ class KatalogController extends Controller
 {
     public function index(Request $request)
     {
-        // Set the id for Proposal Tugas Akhir
-        $proposal_id = 7; // Update this with the correct ID for "Proposal Tugas Akhir"
+        $proposal_id = 7;
+        $poster_id = 22; // ID artefak untuk Poster
 
-        // Get all data for dropdown filter options
-        $years = KotaModel::select('tahun')->distinct()->orderBy('tahun', 'desc')->get();
-        $kbks = KotaModel::select('kbk')->whereNotNull('kbk')->distinct()->get();
-        $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
-        $jenis_tas = [
-            ['id' => 'analisis', 'name' => 'Analisis'],
-            ['id' => 'development', 'name' => 'Development']
-        ];
-        $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
-                                ->where('jenis_ta', 'development')
-                                ->distinct()->get();
-        $prodis = [
-            ['id' => '1', 'name' => 'D3 TI A'],
-            ['id' => '2', 'name' => 'D3 TI B'],
-            ['id' => '3', 'name' => 'D4 TI A'],
-            ['id' => '4', 'name' => 'D4 TI B']
-        ];
+        // Dapatkan semua data untuk opsi dropdown
+        $categories = KotaModel::select('kategori')->distinct()->whereNotNull('kategori')->get();
+        $years = KotaHasArtefakModel::selectRaw('YEAR(waktu_pengumpulan) as year')
+            ->where('id_artefak', $proposal_id) // Filter berdasarkan artefak ID 7
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->get();
         
-        // Get all dosen for filter
+        // Ambil metodologi dari KotaModel untuk prodi D4
+        $metodologis = KotaModel::select('metodologi')
+            ->distinct()
+            ->whereNotNull('metodologi')
+            ->where('metodologi', '!=', '')
+            ->get();
+        
+        // Ambil dosen pembimbing (role = 2)
         $dosens = User::where('role', 2)->get();
 
-        // Query dasar untuk mendapatkan Proposal Tugas Akhir
+        // Query dasar dengan join untuk mendapatkan informasi lebih lengkap
         $query = KotaHasArtefakModel::query()
             ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
             ->join('tbl_kota', 'tbl_kota_has_artefak.id_kota', '=', 'tbl_kota.id_kota')
-            ->leftJoin('tbl_kota_has_user', function($join) {
-                $join->on('tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
-                    ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
-                    ->where('users.role', '=', 2); // Join with dosen (role 2)
-            })
+            ->leftJoin('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+            ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
             ->select('tbl_kota_has_artefak.*', 'tbl_artefak.nama_artefak', 'tbl_artefak.deskripsi', 
-                    'tbl_kota.nama_kota', 'tbl_kota.judul', 'tbl_kota.kelas', 'tbl_kota.periode',
-                    'tbl_kota.prodi', 'tbl_kota.kbk', 'tbl_kota.topik', 'tbl_kota.tahun', 
-                    'tbl_kota.jenis_ta', 'tbl_kota.metodologi',
-                    'users.name as dosen_name', 'users.id as dosen_id')
-            ->where('tbl_kota_has_artefak.id_artefak', $proposal_id);
-    
-        // Filter berdasarkan KBK
-        if ($request->filled('kbk')) {
-            $query->where('tbl_kota.kbk', $request->kbk);
-        }
-    
-        // Filter berdasarkan topik
+                    'tbl_kota.nama_kota', 'tbl_kota.judul', 'tbl_kota.kelas', 'tbl_kota.periode', 
+                    'tbl_kota.kategori', 'tbl_kota.prodi', 'tbl_kota.topik', 'tbl_kota.metodologi')
+            ->where('tbl_kota_has_artefak.id_artefak', $proposal_id) // Filter hanya artefak dengan ID 7
+            ->distinct(); // Gunakan distinct untuk menghindari duplikasi
+
+        // Filter berdasarkan topik (search text yang lebih abstrak)
         if ($request->filled('topik')) {
-            $query->where('tbl_kota.topik', $request->topik);
+            $topik = $request->topik;
+            $query->where(function($q) use ($topik) {
+                $q->where('tbl_kota.judul', 'like', '%' . $topik . '%')
+                  ->orWhere('tbl_kota.topik', 'like', '%' . $topik . '%')
+                  ->orWhere('tbl_artefak.deskripsi', 'like', '%' . $topik . '%');
+            });
         }
-    
+
+        // Filter berdasarkan kategori (Riset atau Development untuk D4)
+        if ($request->filled('kategori')) {
+            $query->where('tbl_kota.kategori', $request->kategori);
+        }
+
+        // Filter berdasarkan metodologi (hanya untuk kategori Development)
+        if ($request->filled('metodologi') && $request->filled('kategori') && $request->kategori == 'Development') {
+            $query->where('tbl_kota.metodologi', $request->metodologi);
+        }
+
         // Filter berdasarkan tahun
         if ($request->filled('tahun')) {
-            $query->where('tbl_kota.tahun', $request->tahun);
+            $query->whereYear('tbl_kota_has_artefak.waktu_pengumpulan', $request->tahun);
         }
-        
-        // Filter berdasarkan jenis TA
-        if ($request->filled('jenis_ta')) {
-            $query->where('tbl_kota.jenis_ta', $request->jenis_ta);
-            
-            // Jika development, tambahkan filter metodologi
-            if ($request->jenis_ta == 'development' && $request->filled('metodologi')) {
-                $query->where('tbl_kota.metodologi', $request->metodologi);
-            }
-        }
-        
-        // Filter berdasarkan prodi
-        if ($request->filled('prodi')) {
-            $query->where('tbl_kota.prodi', $request->prodi);
-        }
-        
+
         // Filter berdasarkan dosen pembimbing
-        if ($request->filled('dosen_id')) {
-            $query->where('users.id', $request->dosen_id);
+        if ($request->filled('dosen')) {
+            $query->where('users.id', $request->dosen)
+                  ->where('users.role', 2); // Pastikan yang dipilih adalah dosen
         }
-    
+
         // Dapatkan hasil dengan pagination
         $katalog = $query->paginate(12);
-    
-        return view('katalog.katalog', compact(
-            'katalog', 
-            'years', 
-            'kbks', 
-            'topics', 
-            'jenis_tas', 
-            'metodologis',
-            'prodis',
-            'dosens'
-        ));
+
+        // Tambahkan informasi poster untuk setiap item
+        foreach ($katalog as $item) {
+            // Cari poster yang sesuai dengan id_kota dan id_artefak poster (ID 22)
+            $poster = DB::table('tbl_kota_has_artefak')
+                ->where('id_kota', $item->id_kota)
+                ->where('id_artefak', $poster_id) // Gunakan ID artefak poster (22)
+                ->select('file_pengumpulan')
+                ->first();
+            
+            $item->poster_file = $poster ? $poster->file_pengumpulan : null;
+        }
+
+        return view('katalog.katalog', compact('katalog', 'categories', 'years', 'metodologis', 'dosens'));
     }
 }

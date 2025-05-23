@@ -13,26 +13,33 @@ class SubmissionController extends Controller
 {
     public function store(Request $request, $artefak_id)
     {
-        $request->validate([
-            'file_pengumpulan' => 'required|mimes:pdf|max:2048',
-        ], [
-            'file_pengumpulan.required' => 'File pengumpulan harus diunggah.',
-            'file_pengumpulan.mimes' => 'File pengumpulan harus dalam format pdf.',
-            'file_pengumpulan.max' => 'Ukuran file pengumpulan maksimal adalah 2MB.',
-        ]);
-    
+        $artefak = ArtefakModel::findOrFail($artefak_id);
+
+        if (strtolower($artefak->nama_artefak) === 'poster') {
+            $rules = ['file_pengumpulan' => 'required|mimes:jpg,jpeg,png|max:2048'];
+            $messages = [
+                'file_pengumpulan.required' => 'File pengumpulan harus diunggah.',
+                'file_pengumpulan.mimes' => 'File pengumpulan harus dalam format JPG atau PNG.',
+                'file_pengumpulan.max' => 'Ukuran file pengumpulan maksimal adalah 2MB.',
+            ];
+        } else {
+            $rules = ['file_pengumpulan' => 'required|mimes:pdf|max:2048'];
+            $messages = [
+                'file_pengumpulan.required' => 'File pengumpulan harus diunggah.',
+                'file_pengumpulan.mimes' => 'File pengumpulan harus dalam format PDF.',
+                'file_pengumpulan.max' => 'Ukuran file pengumpulan maksimal adalah 2MB.',
+            ];
+        }
+
+        $request->validate($rules, $messages);
+
         $file = $request->file('file_pengumpulan');
         $originalFileName = $file->getClientOriginalName();
         $filePath = $file->storeAs('submissions', $originalFileName, 'public');
-        // Mendapatkan id_kota dari user yang sedang login
+
         $user = auth()->user();
-    
-        // Query untuk mencari id_kota dari tbl_kota_has_user
-        $id_kota = DB::table('tbl_kota_has_user')
-                    ->where('id_user', $user->id)
-                    ->value('id_kota');
-    
-        // Pastikan id_kota valid sebelum menyimpan
+        $id_kota = DB::table('tbl_kota_has_user')->where('id_user', $user->id)->value('id_kota');
+
         if ($id_kota) {
             KotaHasArtefakModel::create([
                 'id_kota' => $id_kota,
@@ -40,13 +47,13 @@ class SubmissionController extends Controller
                 'file_pengumpulan' => $filePath,
                 'waktu_pengumpulan' => now(),
             ]);
-    
+
             return redirect()->route('artefak')->with('success', 'Tugas berhasil dikumpulkan!');
         } else {
-            // Handle jika id_kota tidak ditemukan atau tidak valid
             return redirect()->route('artefak')->with('error', 'Gagal menyimpan data: id_kota tidak valid.');
         }
     }
+
 
     public function destroy($id)
     {

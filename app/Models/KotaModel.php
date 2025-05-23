@@ -19,10 +19,8 @@ class KotaModel extends Model
         'kelas', 
         'periode',
         'prodi',
-        'kbk',
         'topik',
-        'tahun',
-        'jenis_ta',
+        'kategori',
         'metodologi'
     ];
 

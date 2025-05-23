@@ -49,14 +49,6 @@
                                                     <textarea class="form-control" id="deskripsi" name="deskripsi" required></textarea>
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="kategori_artefak">Kategori Artefak</label>
-                                                    <select name="kategori_artefak" id="kategori_artefak" class="form-control" required>
-                                                        <option value="" disabled selected>Pilih Kategori Artefak</option>
-                                                        <option value="FTA" {{ old('kategori_artefak') == 'FTA' ? 'selected' : '' }}>FTA</option>
-                                                        <option value="Dokumen" {{ old('kategori_artefak') == 'Dokumen' ? 'selected' : '' }}>Dokumen</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
                                                     <label for="tanggal_tenggat">Tanggal Tenggat</label>
                                                     <input type="date" class="form-control" id="tanggal_tenggat" name="tanggal_tenggat" required>
                                                 </div>
