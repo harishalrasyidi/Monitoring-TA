@@ -223,7 +223,12 @@ class HomeController extends Controller
             $kotas = $queryKota->paginate(10);
             $kotas_diuji = $queryKotaDiuji->paginate(10);
 
-            $availableYears = DB::table('tbl_kota')->distinct()->pluck('periode');
+            $availableYears = DB::table('tbl_kota')
+                ->join('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+                ->where('tbl_kota_has_user.id_user', Auth::id())
+                ->distinct()
+                ->orderBy('tbl_kota.periode', 'desc')
+                ->pluck('tbl_kota.periode');
 
             return view('beranda.pembimbing.home', compact('kotas', 'kotas_diuji', 'availableYears'));
         } elseif ($user->role == 4) {
