@@ -67,7 +67,7 @@
 <!-- DataTables Example -->
 <div class="card shadow mb-4">
 <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Di Bimbing</h6>
+        <h4 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Di Bimbing</h4>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -109,7 +109,7 @@
 <!-- Tabel KoTA yang Diuji -->
 <div class="card shadow mb-4">
     <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Diuji</h6>
+        <h4 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Diuji</h4>
     </div>
     <div class="card-body">
         <div class="table-responsive">
