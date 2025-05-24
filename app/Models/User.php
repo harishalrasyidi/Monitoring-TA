@@ -45,6 +45,8 @@ class User extends Authenticatable
 
     public function kota()
     {
-        return $this->belongsTo(KotaModel::class, 'id_kota');
+        return $this->belongsTo(KotaModel::class, 'id_kota', 'tbl_kota_has_user', 'id_user');
+        // return $this->belongsToMany(KotaModel::class, 'tbl_kota_has_user', 'id_user', 'id_kota')
+        //             ->withPivot('role');
     }
 }
