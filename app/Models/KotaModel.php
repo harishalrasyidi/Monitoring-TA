@@ -20,6 +20,7 @@ class KotaModel extends Model
         'periode', 
         'kategori',
         'prodi',
+        'abstract',
     ];
 
     public function users()

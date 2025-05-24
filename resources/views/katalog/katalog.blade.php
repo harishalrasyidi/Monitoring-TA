@@ -20,17 +20,19 @@
 
     <div class="content">
         <div class="container-fluid">
-                <!-- Search Box -->
-                <div class="row mb-4">
-                    <div class="col-md-6 offset-md-3">
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="searchInput" placeholder="Cari judul atau penulis...">
+            <!-- Search Box -->
+            <div class="row mb-4">
+                <div class="col-md-6 offset-md-3">
+                    <div class="input-group">
+                        <form method="GET" action="{{ route('katalog') }}" id="search-form">
+                            <input type="text" name="search" class="form-control" id="searchInput" placeholder="Cari judul, penulis, atau abstrak..." value="{{ request('search') }}">
                             <div class="input-group-append">
                                 <span class="input-group-text"><i class="fas fa-search"></i></span>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Filter Dokumen</h3>
