@@ -55,12 +55,101 @@
   <div class="content">
     <!-- Begin Page Content -->
     <div class="container-fluid">
-      <div class="row">
+      <!-- Quick Access Buttons -->
+      <div class="row mb-4">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Menu Cepat</h3>
+            </div>
+            <div class="card-body">
+              <div class="btn-group">
+                <a href="{{ route('kota') }}" class="btn btn-app">
+                  <i class="fas fa-book"></i> Data KoTA
+                </a>
+                <a href="{{ route('timeline') }}" class="btn btn-app">
+                  <i class="fas fa-calendar-alt"></i> Timeline
+                </a>
+                <a href="{{ route('yudisium.index') }}" class="btn btn-app">
+                  <i class="fas fa-graduation-cap"></i> Yudisium
+                </a>
+                <a href="{{ route('yudisium.dashboard') }}" class="btn btn-app">
+                  <i class="fas fa-chart-pie"></i> Dashboard Yudisium
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      <!-- Metrics Row -->
+      <div class="row">
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{ $totalKoTA ?? '40' }}</h3>
+              <p>Total KoTA</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-book"></i>
+            </div>
+            <a href="{{ route('kota') }}" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-success">
+            <div class="inner">
+              <h3>{{ $totalYudisium1 ?? '12' }}</h3>
+              <p>Yudisium 1</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-trophy"></i>
+            </div>
+            <a href="{{ route('yudisium.index', ['kategori' => 1]) }}" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-warning">
+            <div class="inner">
+              <h3>{{ $totalYudisium2 ?? '18' }}</h3>
+              <p>Yudisium 2</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-medal"></i>
+            </div>
+            <a href="{{ route('yudisium.index', ['kategori' => 2]) }}" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-danger">
+            <div class="inner">
+              <h3>{{ $totalYudisium3 ?? '10' }}</h3>
+              <p>Yudisium 3</p>
+            </div>
+            <div class="icon">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <a href="{{ route('yudisium.index', ['kategori' => 3]) }}" class="small-box-footer">
+              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title"><strong>Pie Chart</strong></h2>
+              <h2 class="card-title"><strong>Distribusi Kategori Yudisium</strong></h2>
             </div>
             <div class="card-body">
               <canvas id="pieChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
@@ -71,7 +160,7 @@
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title"><strong>Pie Chart</strong></h2>
+              <h2 class="card-title"><strong>Distribusi Status Yudisium</strong></h2>
             </div>
             <div class="card-body">
               <canvas id="pieChart1" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
@@ -82,7 +171,7 @@
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title"><strong>Pie Chart</strong></h2>
+              <h2 class="card-title"><strong>Distribusi Kelas</strong></h2>
             </div>
             <div class="card-body">
               <canvas id="pieChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
@@ -93,20 +182,7 @@
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><strong>Line Chart</strong></h3>
-            </div>
-            <div class="card-body">
-              <div class="chart">
-                <canvas id="lineChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title"><strong>Bar Chart</strong></h3>
+              <h3 class="card-title"><strong>Progres Seminar TA</strong></h3>
             </div>
             <div class="card-body">
               <div class="chart">
@@ -125,29 +201,23 @@
     document.addEventListener('DOMContentLoaded', function () {
 
         //-------------
-        //- PIE CHART -
+        //- PIE CHART - Distribusi Kategori Yudisium
         //-------------
         var pieChartCanvas = document.getElementById('pieChart').getContext('2d');
         var pieData = {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            labels: ['Yudisium 1', 'Yudisium 2', 'Yudisium 3'],
             datasets: [{
-                label: 'Dataset 1',
-                data: [12, 19, 3, 5, 2, 3],
+                label: 'Kategori Yudisium',
+                data: [12, 18, 10], // Data statis, idealnya diambil dari database
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)'
+                    'rgba(0, 165, 90, 0.8)',  // Hijau untuk Yudisium 1
+                    'rgba(243, 156, 18, 0.8)', // Kuning untuk Yudisium 2
+                    'rgba(221, 75, 57, 0.8)'   // Merah untuk Yudisium 3
                 ],
                 borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
+                    'rgba(0, 165, 90, 1)',
+                    'rgba(243, 156, 18, 1)',
+                    'rgba(221, 75, 57, 1)'
                 ],
                 borderWidth: 1
             }]
@@ -165,29 +235,23 @@
         });
 
         //-------------
-        //- PIE CHART 1 -
+        //- PIE CHART 1 - Status Yudisium
         //-------------
         var pieChartCanvas1 = document.getElementById('pieChart1').getContext('2d');
         var pieData1 = {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            labels: ['Pending', 'Approved', 'Rejected'],
             datasets: [{
-                label: 'Dataset 1',
-                data: [12, 19, 3, 5, 2, 3],
+                label: 'Status Yudisium',
+                data: [15, 20, 5], // Data statis, idealnya diambil dari database
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)'
+                    'rgba(243, 156, 18, 0.8)', // Kuning untuk Pending
+                    'rgba(0, 165, 90, 0.8)',   // Hijau untuk Approved
+                    'rgba(221, 75, 57, 0.8)'   // Merah untuk Rejected
                 ],
                 borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
+                    'rgba(243, 156, 18, 1)',
+                    'rgba(0, 165, 90, 1)',
+                    'rgba(221, 75, 57, 1)'
                 ],
                 borderWidth: 1
             }]
@@ -205,29 +269,25 @@
         });
 
         //-------------
-        //- PIE CHART 2 -
+        //- PIE CHART 2 - Distribusi Kelas
         //-------------
         var pieChartCanvas2 = document.getElementById('pieChart2').getContext('2d');
         var pieData2 = {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            labels: ['D3-A', 'D3-B', 'D4-A', 'D4-B'],
             datasets: [{
-                label: 'Dataset 1',
-                data: [12, 19, 3, 5, 2, 3],
+                label: 'Kelas',
+                data: [10, 10, 10, 10], // Data statis, idealnya diambil dari database
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)'
+                    'rgba(60, 141, 188, 0.8)',
+                    'rgba(0, 192, 239, 0.8)',
+                    'rgba(0, 166, 90, 0.8)',
+                    'rgba(96, 92, 168, 0.8)'
                 ],
                 borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
+                    'rgba(60, 141, 188, 1)',
+                    'rgba(0, 192, 239, 1)',
+                    'rgba(0, 166, 90, 1)',
+                    'rgba(96, 92, 168, 1)'
                 ],
                 borderWidth: 1
             }]
@@ -246,23 +306,23 @@
 
 
         //-------------
-        //- BAR CHART -
+        //- BAR CHART - Progres TA
         //-------------
         var barChartCanvas = document.getElementById('barChart').getContext('2d');
         var barChartData = {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            labels: ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'],
             datasets: [{
-                label: 'Dataset 1',
-                data: [65, 59, 80, 81, 56, 55, 40],
-                backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                borderColor: 'rgba(255, 99, 132, 1)',
+                label: 'Selesai',
+                data: [40, 30, 20, 10], // Data statis, idealnya diambil dari database
+                backgroundColor: 'rgba(60, 141, 188, 0.8)',
+                borderColor: 'rgba(60, 141, 188, 1)',
                 borderWidth: 1
             },
             {
-                label: 'Dataset 2',
-                data: [28, 48, 40, 19, 86, 27, 90],
-                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                borderColor: 'rgba(54, 162, 235, 1)',
+                label: 'On Progress',
+                data: [0, 10, 20, 30], // Data statis, idealnya diambil dari database
+                backgroundColor: 'rgba(0, 166, 90, 0.8)',
+                borderColor: 'rgba(0, 166, 90, 1)',
                 borderWidth: 1
             }]
         };

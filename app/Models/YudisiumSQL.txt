@@ -1,0 +1,32 @@
+-- Tabel untuk menyimpan data yudisium
+CREATE TABLE `tbl_yudisium` (
+  `id_yudisium` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_kota` bigint(20) UNSIGNED NOT NULL,
+  `kategori_yudisium` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1, 2, atau 3',
+  `tanggal_yudisium` date NOT NULL,
+  `nilai_akhir` decimal(5,2) DEFAULT NULL,
+  `status` enum('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+  `keterangan` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id_yudisium`),
+  KEY `tbl_yudisium_id_kota_foreign` (`id_kota`),
+  CONSTRAINT `tbl_yudisium_id_kota_foreign` FOREIGN KEY (`id_kota`) REFERENCES `tbl_kota` (`id_kota`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Tabel untuk menyimpan log perubahan data yudisium
+CREATE TABLE `tbl_yudisium_log` (
+  `id_log` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id_yudisium` bigint(20) UNSIGNED NOT NULL,
+  `id_user` bigint(20) UNSIGNED NOT NULL,
+  `jenis_perubahan` varchar(255) NOT NULL,
+  `nilai_lama` text DEFAULT NULL,
+  `nilai_baru` text DEFAULT NULL,
+  `waktu_perubahan` timestamp NOT NULL DEFAULT current_timestamp(),
+  `keterangan` text DEFAULT NULL,
+  PRIMARY KEY (`id_log`),
+  KEY `tbl_yudisium_log_id_yudisium_foreign` (`id_yudisium`),
+  KEY `tbl_yudisium_log_id_user_foreign` (`id_user`),
+  CONSTRAINT `tbl_yudisium_log_id_yudisium_foreign` FOREIGN KEY (`id_yudisium`) REFERENCES `tbl_yudisium` (`id_yudisium`) ON DELETE CASCADE,
+  CONSTRAINT `tbl_yudisium_log_id_user_foreign` FOREIGN KEY (`id_user`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

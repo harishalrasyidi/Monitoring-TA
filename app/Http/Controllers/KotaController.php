@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\KotaModel;
+use App\Models\YudisiumModel;
 use App\Models\User;
 use App\Models\KotaHasUserModel;
 use App\Models\KotaHasArtefakModel;
@@ -83,7 +84,7 @@ class KotaController extends Controller
         return view('kota.create', compact('dosen', 'mahasiswa'));
     }
     
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
             'nama_kota' => 'required',
@@ -117,36 +118,74 @@ class KotaController extends Controller
             }
         }
         
-        // Create Kota
-        $kota = KotaModel::create($request->only('nama_kota', 'judul', 'kelas', 'periode'));
-        $id_kota = $kota->id_kota;
+        // Gunakan transaksi database untuk memastikan konsistensi
+        DB::beginTransaction();
         
-        // Save Mahasiswa and Dosen to tbl_kota_has_user
-        foreach ($userIds as $userId) {
-            $id_user = DB::table('users')->where('nomor_induk', $userId)->value('id');
-            DB::table('tbl_kota_has_user')->insert([
-                'id_kota' => $id_kota,
-                'id_user' => $id_user
+        try {
+            // Create Kota
+            $kota = KotaModel::create([
+                'nama_kota' => $request->nama_kota,
+                'judul' => $request->judul,
+                'kelas' => $request->kelas,
+                'periode' => $request->periode,
+                'status_yudisium' => 'pending' // Set status_yudisium di sini
             ]);
+            
+            $id_kota = $kota->id_kota;
+            
+            // Save Mahasiswa and Dosen to tbl_kota_has_user
+            foreach ($userIds as $userId) {
+                $id_user = DB::table('users')->where('nomor_induk', $userId)->value('id');
+                DB::table('tbl_kota_has_user')->insert([
+                    'id_kota' => $id_kota,
+                    'id_user' => $id_user
+                ]);
+            }
+            
+            // Tambahkan data ke tabel tbl_kota_has_tahapan_progres
+            $initialTahapanProgres = [
+                ['id_master_tahapan_progres' => 1, 'status' => 'on_progres'],
+                ['id_master_tahapan_progres' => 2, 'status' => 'belum-disetujui'],
+                ['id_master_tahapan_progres' => 3, 'status' => 'belum-disetujui'],
+                ['id_master_tahapan_progres' => 4, 'status' => 'belum-disetujui']
+            ];
+            
+            foreach ($initialTahapanProgres as $tahapan) {
+                $tahapan['id_kota'] = $id_kota;
+                DB::table('tbl_kota_has_tahapan_progres')->insert($tahapan);
+            }
+
+            // Buat data yudisium default
+            $yudisium = new \App\Models\YudisiumModel([
+                'id_kota' => $id_kota,
+                'kategori_yudisium' => 1, // Default Yudisium 1
+                'tanggal_yudisium' => now()->addMonths(6),
+                'nilai_akhir' => null,
+                'status' => 'pending',
+                'keterangan' => 'Otomatis dibuat saat KoTA dibuat'
+            ]);
+            $yudisium->save();
+            
+            // Buat log untuk yudisium
+            \App\Models\YudisiumLogModel::create([
+                'id_yudisium' => $yudisium->id_yudisium,
+                'id_user' => auth()->id(),
+                'jenis_perubahan' => 'Penambahan Data',
+                'nilai_lama' => null,
+                'nilai_baru' => json_encode($yudisium->toArray()),
+                'keterangan' => 'Otomatis dibuat saat KoTA dibuat',
+            ]);
+            
+            DB::commit();
+            
+            session()->flash('success', 'Data KoTA dan Yudisium berhasil ditambahkan');
+            return redirect()->route('kota');
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->withInput();
         }
-        
-        // Tambahkan data ke tabel tbl_kota_has_tahapan_progres
-        $initialTahapanProgres = [
-            ['id_master_tahapan_progres' => 1, 'status' => 'on_progres'],
-            ['id_master_tahapan_progres' => 2, 'status' => 'belum-disetujui'],
-            ['id_master_tahapan_progres' => 3, 'status' => 'belum-disetujui'],
-            ['id_master_tahapan_progres' => 4, 'status' => 'belum-disetujui']
-        ];
-        
-        foreach ($initialTahapanProgres as $tahapan) {
-            $tahapan['id_kota'] = $id_kota;
-            DB::table('tbl_kota_has_tahapan_progres')->insert($tahapan);
-        }
-        
-        session()->flash('success', 'Data KoTA berhasil ditambahkan');
-        return redirect()->route('kota');
-        
-        
     }
     
     public function detail($id)
