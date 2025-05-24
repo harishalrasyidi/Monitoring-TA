@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Illuminate\Support\Facades\Log;
-
+use App\Models\Kota;
 
 class KotaController extends Controller
 {
@@ -428,4 +428,14 @@ class KotaController extends Controller
         
         return redirect()->route('kota')->with('toast_success', 'Data KoTA berhasil dihapus');
     }
+
+    public function showArtefak($id)
+    {
+        $kota = Kota::with([
+            'artefakRelasi.artefakMaster' // jika kamu punya relasi seperti ini
+        ])->findOrFail($id);
+
+        return view('artefak.artefak-detail', compact('kota'));
+    }
+
 }

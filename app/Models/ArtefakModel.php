@@ -30,4 +30,10 @@ class ArtefakModel extends Model
             return DB::table($this->table)->where('id_artefak', $id)->first();
         }
     }
+
+    public function master()
+    {
+        return $this->belongsTo(MasterArterfakModel::class, 'kategori_artefak', 'id');
+    }
+
 }

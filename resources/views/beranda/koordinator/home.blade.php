@@ -80,6 +80,7 @@
             <th>Seminar 3</th>
             <th>Sidang</th>
             <th>Status</th>
+            <th>Artefak</th>
           </tr>
         </thead>
         <tbody>
@@ -91,13 +92,11 @@
                 <small>{{ $kota->judul }}</small>
               </td>
               @php
-                // Urutkan progres berdasarkan id_master_tahapan_progres
                 $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
                 $status = [];
                 foreach($tahapan as $tp) {
                   $status[] = $tp->status;
                 }
-                // Jika tahapan kurang dari 4, tambahkan '-'
                 for($i = count($status); $i < 4; $i++) $status[] = '-';
               @endphp
               <td>{{ $status[0] ?? '-' }}</td>
@@ -116,10 +115,15 @@
                   <span class="badge badge-warning">Dalam Progres</span>
                 @endif
               </td>
+              <td>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                  Lihat Detail
+                </a> 
+              </td>
             </tr>
           @empty
             <tr>
-              <td colspan="7" class="text-center">Data tidak ditemukan</td>
+              <td colspan="8" class="text-center">Data tidak ditemukan</td>
             </tr>
           @endforelse
         </tbody>
