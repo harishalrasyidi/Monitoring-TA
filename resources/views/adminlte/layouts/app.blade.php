@@ -20,11 +20,12 @@
   <!-- FullCalendar -->
   <link rel="stylesheet" href="{{ asset('assets/plugins/fullcalendar/main.css') }}">
   <!-- AdminLTE -->
-  <script src="{{ asset('assets/dist/css/adminlte.min.js') }}"></script>
   <!-- Manual CSS -->
-  <link rel="stylesheet" href="/resources/css/app.css">
+  {{-- <link rel="stylesheet" href="/resources/css/app.css"> --}}
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('assets/dist/css/adminlte.min.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Tempusdominus Bootstrap 4 -->
@@ -340,6 +341,8 @@
   <script src="{{ asset('assets/plugins/fullcalendar/main.js') }}"></script>
   <!-- AdminLTE -->
   <script src="{{ asset('assets/dist/js/adminlte.js') }}"></script>
+  <script src="{{ asset('assets/dist/js/adminlte.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
   <!-- Tempusdominus Bootstrap 4 -->
   <script src="{{ asset('assets/AdminLTE-3.2.0/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
   <!-- overlayScrollbars -->

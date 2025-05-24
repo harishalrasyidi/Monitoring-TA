@@ -21,4 +21,4 @@ class Kota extends Model
     {
         return $this->hasMany(KotaTahapanProgress::class, 'id_kota', 'id_kota');
     }
-} 
+}

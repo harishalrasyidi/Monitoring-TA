@@ -2,62 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Kota;
+use App\Models\KotaTahapanProgress;
 use App\Models\MasterTahapanProgress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         try {
-            // Mengambil data KoTA dengan relasi tahapan progress
-            $kotaList = Kota::with(['tahapanProgress.masterTahapan'])->get();
-            
-            // Menghitung statistik
+            // Fetch KoTA with progress
+            $kotaList = Kota::with(['tahapanProgress'])->get();
             $totalKota = Kota::count();
-            
-            // Mengambil data untuk chart
-            $masterTahapan = MasterTahapanProgress::all();
+
+            // Chart data with static IDs
+            $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+            $tahapanIds = [1, 2, 3, 4];
             $chartData = [];
-            
-            foreach ($masterTahapan as $tahapan) {
-                $chartData[$tahapan->nama_progres] = Kota::whereHas('tahapanProgress', function($query) use ($tahapan) {
-                    $query->where('id_master_tahapan_progres', $tahapan->id)
-                          ->where('status', 'tuntas');
-                })->count();
+
+            foreach ($tahapanIds as $index => $tahapanId) {
+                $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
+                    ->where('status', 'tuntas')
+                    ->distinct('id_kota')
+                    ->count('id_kota');
+                $chartData[$tahapanNames[$index]] = $count;
             }
 
-            // Menghitung status berdasarkan tahapan terakhir
+            // Calculate status counts
             $selesai = 0;
             $dalamProgres = 0;
-            $terlambat = 0;
 
             foreach ($kotaList as $kota) {
-                $lastProgress = $kota->tahapanProgress()
-                                   ->orderBy('id_master_tahapan_progres', 'desc')
-                                   ->first();
-                
-                if ($lastProgress) {
-                    if ($lastProgress->status === 'tuntas' && $lastProgress->masterTahapan->nama_progres === 'Sidang') {
-                        $selesai++;
-                    } elseif ($lastProgress->status === 'belum tuntas') {
-                        $terlambat++;
-                    } else {
-                        $dalamProgres++;
-                    }
+                $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+
+                if ($tahapanProgress->isEmpty()) {
+                    $dalamProgres++;
+                    continue;
+                }
+
+                $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
+
+                if ($sidangProgress && $sidangProgress->status === 'tuntas') {
+                    $selesai++;
+                } else {
+                    $dalamProgres++;
                 }
             }
 
-            // Debug: Cek apakah data ada
-            \Log::info('Kota List:', ['count' => $kotaList->count()]);
             \Log::info('Chart Data:', $chartData);
             \Log::info('Status Counts:', [
                 'total' => $totalKota,
                 'selesai' => $selesai,
                 'dalamProgres' => $dalamProgres,
-                'terlambat' => $terlambat
             ]);
 
             return view('beranda.koordinator.home', [
@@ -65,10 +65,8 @@ class DashboardController extends Controller
                 'totalKota' => $totalKota,
                 'selesai' => $selesai,
                 'dalamProgres' => $dalamProgres,
-                'terlambat' => $terlambat,
                 'chartData' => $chartData
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Dashboard Error: ' . $e->getMessage());
             return view('beranda.koordinator.home', [
@@ -76,9 +74,13 @@ class DashboardController extends Controller
                 'totalKota' => 0,
                 'selesai' => 0,
                 'dalamProgres' => 0,
-                'terlambat' => 0,
-                'chartData' => []
+                'chartData' => [
+                    'Seminar 1' => 0,
+                    'Seminar 2' => 0,
+                    'Seminar 3' => 0,
+                    'Sidang' => 0
+                ]
             ]);
         }
     }
-} 
+}

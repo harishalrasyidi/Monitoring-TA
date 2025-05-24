@@ -35,15 +35,6 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body">
-          <i class="fas fa-exclamation-circle fa-2x text-danger mb-2"></i>
-          <h6>Terlambat</h6>
-          <h3>{{ $terlambat }}</h3>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Statistik Tahapan KoTA -->
@@ -61,6 +52,7 @@
     </div>
     <div class="card-body">
       <div id="tahapanChart"></div>
+      {{-- <pre>{{ var_dump($chartData) }}</pre> --}}
     </div>
   </div>
 
@@ -91,11 +83,13 @@
                 <small>{{ $kota->judul }}</small>
               </td>
               @php
+                // Urutkan progres berdasarkan id_master_tahapan_progres
                 $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
                 $status = [];
                 foreach($tahapan as $tp) {
                   $status[] = $tp->status;
                 }
+                // Jika tahapan kurang dari 4, tambahkan '-'
                 for($i = count($status); $i < 4; $i++) $status[] = '-';
               @endphp
               <td>{{ $status[0] ?? '-' }}</td>
@@ -108,8 +102,6 @@
                 @endphp
                 @if($last && $last->status === 'tuntas' && optional($last->masterTahapan)->nama_progres === 'Sidang')
                   <span class="badge badge-success">Selesai</span>
-                @elseif($last && $last->status === 'belum tuntas')
-                  <span class="badge badge-danger">Terlambat</span>
                 @else
                   <span class="badge badge-warning">Dalam Progres</span>
                 @endif
@@ -127,8 +119,7 @@
 </div>
 
 @endsection
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     var options = {
@@ -146,4 +137,4 @@
     chart.render();
   });
 </script>
-@endpush
+
