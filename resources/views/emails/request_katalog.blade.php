@@ -1,10 +1,9 @@
-{{-- resources/views/emails/request_katalog.blade.php --}}
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Request Katalog TA</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Katalog KoTA</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,85 +14,114 @@
             padding: 20px;
         }
         .header {
-            background-color: #3490dc;
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 30px;
+            border: 1px solid #dee2e6;
+        }
+        .footer {
+            background-color: #6c757d;
             color: white;
             padding: 15px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
-        }
-        .content {
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 5px 5px;
-        }
-        .footer {
-            margin-top: 20px;
+            border-radius: 0 0 8px 8px;
             font-size: 12px;
-            text-align: center;
-            color: #777;
         }
-        .info-block {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin: 15px 0;
-            border-left: 4px solid #3490dc;
+        .info-box {
+            background-color: white;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
         }
         .btn {
             display: inline-block;
-            background-color: #3490dc;
+            padding: 10px 20px;
+            background-color: #007bff;
             color: white;
-            padding: 10px 15px;
             text-decoration: none;
-            border-radius: 4px;
-            margin-top: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
         }
-        .quote {
-            background-color: #f7f7f9;
+        .contact-info {
+            background-color: #e9ecef;
             padding: 15px;
-            border-left: 4px solid #aaa;
+            border-radius: 5px;
             margin: 15px 0;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h2>Request Katalog Tugas Akhir</h2>
+        <h2>🎓 Request Katalog KoTA</h2>
+        <p>Permintaan Akses Informasi Tugas Akhir</p>
     </div>
-    
+
     <div class="content">
-        <p>Halo <strong>{{ explode(' ', $data['sender_name'])[0] }}</strong>,</p>
+        <p>Halo,</p>
         
-        <p>Seseorang telah membuat permintaan untuk katalog Tugas Akhir (TA) dengan informasi berikut:</p>
-        
-        <div class="info-block">
-            <p><strong>Judul TA:</strong> {{ $data['judul_ta'] }}</p>
-            <p><strong>Kota:</strong> {{ $data['kota_nama'] }}</p>
-            <p><strong>Periode:</strong> {{ $data['periode'] }}</p>
-            <p><strong>Kelas:</strong> {{ $data['kelas'] }}</p>
+        <p>Anda menerima permintaan akses katalog KoTA dari mahasiswa berikut:</p>
+
+        <div class="contact-info">
+            <strong>📧 Informasi Pemohon:</strong><br>
+            <strong>Nama:</strong> {{ $data['sender_name'] }}<br>
+            <strong>Email:</strong> {{ $data['sender_email'] }}<br>
+            <strong>NIM:</strong> {{ $data['sender_nim'] }}<br>
+            <strong>Tanggal Request:</strong> {{ $data['request_date'] }}
         </div>
-        
-        <p><strong>Detail Permintaan:</strong></p>
-        <div class="quote">
-            {{ $data['tujuan_request'] }}
+
+        <div class="info-box">
+            <strong>📚 Detail KoTA yang Diminta:</strong><br>
+            <strong>Nama KoTA:</strong> {{ $data['kota_nama'] }}<br>
+            <strong>Judul TA:</strong> {{ $data['judul_ta'] }}<br>
+            <strong>Periode:</strong> {{ $data['periode'] }}<br>
+            <strong>Kelas:</strong> {{ $data['kelas'] }}
         </div>
+
+        <div class="info-box">
+            <strong>🎯 Tujuan Request:</strong><br>
+            <p style="font-style: italic; margin: 10px 0;">
+                "{{ $data['tujuan_request'] }}"
+            </p>
+        </div>
+
+        @if(!empty($data['pesan']))
+        <div class="info-box">
+            <strong>💬 Pesan Tambahan:</strong><br>
+            <p style="font-style: italic; margin: 10px 0;">
+                "{{ $data['pesan'] }}"
+            </p>
+        </div>
+        @endif
+
+        <hr style="margin: 30px 0;">
+
+        <h3>🤝 Bagaimana Cara Merespons?</h3>
+        <p>Jika Anda bersedia berbagi informasi katalog TA ini, silakan hubungi pemohon langsung melalui:</p>
         
-        <p><strong>Informasi Pemohon:</strong></p>
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="mailto:{{ $data['sender_email'] }}?subject=Re: Request Katalog KoTA - {{ $data['kota_nama'] }}" class="btn">
+                📧 Balas Email Ini
+            </a>
+        </div>
+
+        <p><strong>Catatan Penting:</strong></p>
         <ul>
-            <li>Nama: {{ $data['sender_name'] }}</li>
-            <li>Email: <a href="mailto:{{ $data['sender_email'] }}">{{ $data['sender_email'] }}</a></li>
+            <li>Anda tidak wajib untuk merespons atau berbagi informasi</li>
+            <li>Jika berkenan berbagi, pastikan tidak ada informasi sensitif</li>
+            <li>Anda bisa berbagi dokumen yang sudah dipublikasikan atau diizinkan</li>
+            <li>Pertimbangkan untuk berdiskusi terlebih dahulu sebelum berbagi file</li>
         </ul>
-        
-        <p>Jika Anda bersedia berbagi katalog TA dengan pemohon, silakan balas email langsung ke alamat di atas dengan melampirkan file yang diminta.</p>
-        
-        <p>Terima kasih atas perhatian dan bantuannya.</p>
-        
-        <p>Salam,<br>
-        Tim Katalog TA</p>
     </div>
-    
+
     <div class="footer">
-        <p>Email ini dibuat otomatis. Harap tidak membalas ke email ini.</p>
+        <p>Email ini dikirim otomatis. Harap tidak membalas ke email ini.</p>
+        <p>Jika ada pertanyaan, silakan hubungi administrator sistem.</p>
         <p>&copy; {{ date('Y') }} Sistem Katalog TA</p>
     </div>
 </body>

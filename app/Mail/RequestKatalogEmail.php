@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
@@ -11,16 +10,16 @@ class RequestKatalogEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $data;
+    public $emailData;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct($emailData)
     {
-        $this->data = $data;
+        $this->emailData = $emailData;
     }
 
     /**
@@ -30,8 +29,8 @@ class RequestKatalogEmail extends Mailable
      */
     public function build()
     {
-        return $this->subject($this->data['subject'])
+        return $this->subject($this->emailData['subject'])
                     ->view('emails.request_katalog')
-                    ->with('data', $this->data);  // Kirim dengan nama 'data' agar sesuai dengan template
+                    ->with('data', $this->emailData);
     }
 }

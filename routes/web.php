@@ -112,8 +112,47 @@ Route::delete('/resume/{id}', [App\Http\Controllers\ResumeBimbinganController::c
 Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\ResumeBimbinganController::class, 'generatePdf'])->middleware(['auth', 'role:3'])->name('resume.generatePdf');
 
 
-//Katalog
-Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
+//Katalog TA Routes
+Route::middleware(['auth'])->group(function () {
+    // List katalog TA (berdasarkan data kota)
+    Route::get('/katalog-ta', [App\Http\Controllers\KatalogTAController::class, 'index'])
+        ->name('katalog-ta.index');
+    
+    // Detail katalog TA (berdasarkan kota)
+    Route::get('/katalog-ta/{id}', [App\Http\Controllers\KatalogTAController::class, 'show'])
+        ->name('katalog-ta.show');
+    
+    // Request form untuk mengakses informasi kota/TA
+    Route::get('/katalog-ta/{id}/request', [App\Http\Controllers\KatalogTAController::class, 'showRequestForm'])
+        ->name('katalog-ta.request-form');
+    
+    // Send request untuk mengakses informasi kota/TA
+    Route::post('/katalog-ta/{id}/request', [App\Http\Controllers\KatalogTAController::class, 'sendRequest'])
+        ->name('katalog-ta.send-request');
+    
+    // Download artefak tertentu dari kota (hanya untuk anggota kota atau admin)
+    Route::get('/katalog-ta/{kotaId}/artefak/{artefakId}/download', [App\Http\Controllers\KatalogTAController::class, 'downloadArtefak'])
+        ->name('katalog-ta.download-artefak');
+    
+    // Statistik katalog TA
+    Route::get('/katalog-ta-statistics', [App\Http\Controllers\KatalogTAController::class, 'statistics'])
+        ->name('katalog-ta.statistics');
+    
+    // API endpoint untuk filter data kota
+    Route::get('/api/katalog-ta/kota-data', [App\Http\Controllers\KatalogTAController::class, 'getKotaData'])
+        ->name('api.katalog-ta.kota-data');
+});
 
-Route::get('/laporan-ta', [App\Http\Controllers\DetailKatalogController::class, 'index'])->name('laporan.index');
-Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogController::class, 'show'])->name('laporan.show');
+// Redirect old katalog route to new katalog-ta
+Route::get('/katalog', function() {
+    return redirect()->route('katalog-ta.index');
+})->middleware(['auth'])->name('katalog');
+
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
+
+Auth::routes();

@@ -10,20 +10,29 @@
                 <a href="{{ route('katalog-ta.index') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left mr-1"></i> Kembali
                 </a>
-                @if(!Auth::user()->isPenulisTA($katalog->id))
-                    <a href="{{ route('katalog-ta.request-form', $katalog->id) }}" class="btn btn-primary">
+                @if(!$kota->users->contains('id', Auth::user()->id))
+                    <a href="{{ route('katalog-ta.request-form', $kota->id_kota) }}" class="btn btn-primary">
                         <i class="fas fa-envelope mr-1"></i> Request TA
                     </a>
                 @else
-                    <a href="{{ route('katalog-ta.download', $katalog->id) }}" class="btn btn-success">
-                        <i class="fas fa-download mr-1"></i> Download TA
-                    </a>
-                    <a href="{{ route('katalog-ta.edit', $katalog->id) }}" class="btn btn-warning">
-                        <i class="fas fa-edit mr-1"></i> Edit
-                    </a>
+                    @if($artefakKota->count() > 0)
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-download mr-1"></i> Download Artefak
+                            </button>
+                            <div class="dropdown-menu">
+                                @foreach($artefakKota as $artefak)
+                                    <a class="dropdown-item" href="{{ route('katalog-ta.download-artefak', [$kota->id_kota, $artefak->id_artefak]) }}">
+                                        <i class="fas fa-file-pdf mr-1"></i> {{ $artefak->nama_artefak }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
+
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -32,6 +41,7 @@
                 </button>
             </div>
         @endif
+
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
@@ -40,67 +50,184 @@
                 </button>
             </div>
         @endif
+
         <div class="card shadow-sm">
             <div class="card-header bg-info text-white">
-                <h4 class="mb-0">{{ $katalog->judul_ta }}</h4>
+                <h4 class="mb-0">{{ $kota->judul }}</h4>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-12 mb-4 text-center">
-                        <i class="fas fa-file-pdf fa-5x text-danger"></i>
+                        <i class="fas fa-users fa-5x text-primary"></i>
                     </div>
                     <div class="col-md-12">
                         <table class="table table-bordered">
                             <tr>
-                                <th style="width: 200px">Kota</th>
-                                <td>{{ $katalog->kota->nama_kota ?? 'N/A' }}</td>
+                                <th style="width: 200px">Nama KoTA</th>
+                                <td>{{ $kota->nama_kota }}</td>
+                            </tr>
+                            <tr>
+                                <th>Judul TA</th>
+                                <td>{{ $kota->judul }}</td>
                             </tr>
                             <tr>
                                 <th>Kelas</th>
-                                <td>{{ $katalog->kota->kelas ?? 'N/A' }}</td>
+                                <td><span class="badge badge-success">{{ $kota->kelas }}</span></td>
                             </tr>
                             <tr>
                                 <th>Periode</th>
-                                <td>{{ $katalog->kota->periode ?? 'N/A' }}</td>
+                                <td><span class="badge badge-primary">{{ $kota->periode }}</span></td>
                             </tr>
-                            <tr>
-                                <th>Tanggal Pengumpulan</th>
-                                <td>{{ \Carbon\Carbon::parse($katalog->waktu_pengumpulan)->format('d M Y, H:i') }}</td>
-                            </tr>
+                            @if($kota->deskripsi)
                             <tr>
                                 <th>Deskripsi</th>
-                                <td>{{ $katalog->deskripsi }}</td>
+                                <td>{{ $kota->deskripsi }}</td>
                             </tr>
+                            @endif
                             <tr>
-                                <th>Anggota Tim</th>
+                                <th>Anggota Mahasiswa</th>
                                 <td>
-                                    @if($katalog->anggota->count() > 0)
+                                    @if($mahasiswa->count() > 0)
                                         <ul class="list-group list-group-flush">
-                                            @foreach($katalog->anggota as $anggota)
+                                            @foreach($mahasiswa as $mhs)
                                                 <li class="list-group-item px-0">
                                                     <div class="d-flex align-items-center">
                                                         <i class="fas fa-user-graduate mr-2 text-primary"></i>
                                                         <div>
-                                                            <strong>{{ $anggota->user->name }}</strong><br>
-                                                            <small class="text-muted">{{ $anggota->user->email }}</small>
+                                                            <strong>{{ $mhs->name }}</strong>
+                                                            @if($mhs->nomor_induk)
+                                                                <span class="text-muted">({{ $mhs->nomor_induk }})</span>
+                                                            @endif
+                                                            <br>
+                                                            <small class="text-muted">{{ $mhs->email }}</small>
                                                         </div>
                                                     </div>
                                                 </li>
                                             @endforeach
                                         </ul>
                                     @else
-                                        <span class="text-muted">Tidak ada data anggota</span>
+                                        <span class="text-muted">Tidak ada data mahasiswa</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Dosen Pembimbing</th>
+                                <td>
+                                    @if($dosen->count() > 0)
+                                        <ul class="list-group list-group-flush">
+                                            @foreach($dosen as $dsn)
+                                                <li class="list-group-item px-0">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-chalkboard-teacher mr-2 text-warning"></i>
+                                                        <div>
+                                                            <strong>{{ $dsn->name }}</strong><br>
+                                                            <small class="text-muted">{{ $dsn->email }}</small>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <span class="text-muted">Tidak ada data dosen pembimbing</span>
                                     @endif
                                 </td>
                             </tr>
                         </table>
                     </div>
-                    @if(!Auth::user()->isPenulisTA($katalog->id))
+
+                    <!-- Section Artefak yang telah dikumpulkan -->
+                    @if($artefakKota->count() > 0)
+                        <div class="col-md-12 mt-4">
+                            <h5><i class="fas fa-file-archive mr-2"></i>Artefak yang Telah Dikumpulkan</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Nama Artefak</th>
+                                            <th>Tanggal Pengumpulan</th>
+                                            @if($kota->users->contains('id', Auth::user()->id) || Auth::user()->role == 1)
+                                                <th>Aksi</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($artefakKota as $artefak)
+                                            <tr>
+                                                <td>
+                                                    <i class="fas fa-file-pdf text-danger mr-2"></i>
+                                                    {{ $artefak->nama_artefak }}
+                                                </td>
+                                                <td>
+                                                    @if($artefak->waktu_pengumpulan)
+                                                        {{ \Carbon\Carbon::parse($artefak->waktu_pengumpulan)->format('d M Y, H:i') }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </td>
+                                                @if($kota->users->contains('id', Auth::user()->id) || Auth::user()->role == 1)
+                                                    <td>
+                                                        @if($artefak->file_pengumpulan)
+                                                            <a href="{{ route('katalog-ta.download-artefak', [$kota->id_kota, $artefak->id_artefak]) }}" 
+                                                               class="btn btn-sm btn-success">
+                                                                <i class="fas fa-download"></i> Download
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">File tidak tersedia</span>
+                                                        @endif
+                                                    </td>
+                                                @endif
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Section Progress/Status Tahapan -->
+                    @if($tahapanProgres->count() > 0)
+                        <div class="col-md-12 mt-4">
+                            <h5><i class="fas fa-tasks mr-2"></i>Progress Tahapan</h5>
+                            <div class="row">
+                                @foreach($tahapanProgres as $tahapan)
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card border-left-{{ $tahapan->status == 1 ? 'success' : 'secondary' }}">
+                                            <div class="card-body py-2">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-{{ $tahapan->status == 1 ? 'check-circle text-success' : 'clock text-muted' }} mr-2"></i>
+                                                    <div>
+                                                        <div class="text-sm font-weight-bold">{{ $tahapan->nama_progres }}</div>
+                                                        <div class="text-xs text-muted">
+                                                            {{ $tahapan->status == 1 ? 'Selesai' : 'Belum Selesai' }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Info untuk non-anggota -->
+                    @if(!$kota->users->contains('id', Auth::user()->id))
                         <div class="col-md-12 mt-4">
                             <div class="alert alert-warning">
                                 <i class="fas fa-info-circle mr-2"></i>
-                                <strong>Info:</strong> Untuk mengakses file lengkap dari TA ini, silakan gunakan tombol "Request TA" di atas.
-                                Penulis TA akan menerima notifikasi dan dapat menghubungi Anda melalui email yang terdaftar.
+                                <strong>Info:</strong> Untuk mengakses artefak lengkap dari TA ini, silakan gunakan tombol "Request TA" di atas.
+                                Anggota KoTA akan menerima notifikasi dan dapat menghubungi Anda melalui email yang terdaftar.
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Info untuk anggota -->
+                    @if($kota->users->contains('id', Auth::user()->id))
+                        <div class="col-md-12 mt-4">
+                            <div class="alert alert-info">
+                                <i class="fas fa-user-check mr-2"></i>
+                                <strong>Selamat datang!</strong> Anda adalah anggota dari KoTA ini. 
+                                Anda dapat mengunduh semua artefak yang telah dikumpulkan.
                             </div>
                         </div>
                     @endif
@@ -110,3 +237,17 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Tooltip initialization
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Auto dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+});
+</script>
+@endpush

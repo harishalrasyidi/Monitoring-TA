@@ -1,301 +1,393 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\KatalogTA;
 use App\Models\KotaModel;
 use App\Models\User;
-use App\Models\AnggotaTA;
-use App\Models\KotaHasUserModel; // Added this import
+use App\Models\KotaHasUserModel;
 use App\Mail\RequestKatalogEmail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class KatalogTAController extends Controller
 {
-    // Tambahkan middleware auth
     public function __construct()
     {
         $this->middleware('auth');
     }
     
-    // Tampilkan daftar katalog TA
+    /**
+     * Tampilkan daftar katalog TA berdasarkan data kota
+     */
     public function index(Request $request)
     {
-        $query = KatalogTA::with('kota');
+        $query = KotaModel::with(['users' => function($q) {
+            $q->whereIn('role', [2, 3]); // Ambil dosen dan mahasiswa
+        }]);
         
         // Filter pencarian jika ada
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
-            $query->where('judul_ta', 'LIKE', "%{$search}%")
-                  ->orWhereHas('kota', function($q) use ($search) {
-                      $q->where('nama_kota', 'LIKE', "%{$search}%");
-                  });
+            $query->where(function($q) use ($search) {
+                $q->where('judul', 'LIKE', "%{$search}%")
+                  ->orWhere('nama_kota', 'LIKE', "%{$search}%")
+                  ->orWhere('kelas', 'LIKE', "%{$search}%")
+                  ->orWhere('periode', 'LIKE', "%{$search}%");
+            });
         }
         
-        $katalog = $query->orderBy('waktu_pengumpulan', 'desc')->paginate(9);
+        // Filter berdasarkan periode jika ada
+        if ($request->has('periode') && !empty($request->periode)) {
+            $query->where('periode', $request->periode);
+        }
         
-        return view('katalog_ta.index', compact('katalog'));
+        // Filter berdasarkan kelas jika ada
+        if ($request->has('kelas') && !empty($request->kelas)) {
+            $query->where('kelas', $request->kelas);
+        }
+        
+        // Hanya tampilkan kota yang memiliki anggota
+        $query->whereHas('users');
+        
+        $katalog = $query->orderBy('periode', 'desc')
+                        ->orderBy('nama_kota', 'asc')
+                        ->paginate(9);
+        
+        // Ambil data untuk filter dropdown
+        $periodeList = KotaModel::whereHas('users')
+                               ->select('periode')
+                               ->distinct()
+                               ->orderBy('periode', 'desc')
+                               ->pluck('periode');
+                               
+        $kelasList = KotaModel::whereHas('users')
+                             ->select('kelas')
+                             ->distinct()
+                             ->orderBy('kelas', 'asc')
+                             ->pluck('kelas');
+        
+        return view('katalog_ta.index', compact('katalog', 'periodeList', 'kelasList'));
     }
     
-    // Tampilkan detail katalog TA
+    /**
+     * Tampilkan detail katalog TA berdasarkan kota
+     */
     public function show($id)
     {
-        $katalog = KatalogTA::with(['kota', 'anggota.user'])->findOrFail($id);
-        return view('katalog_ta.show', compact('katalog'));
+        $kota = KotaModel::with(['users'])->findOrFail($id);
+        
+        // Pisahkan mahasiswa dan dosen
+        $mahasiswa = $kota->users->where('role', 3);
+        $dosen = $kota->users->where('role', 2);
+        
+        // Ambil data artefak yang sudah dikumpulkan untuk kota ini
+        $artefakKota = DB::table('tbl_kota_has_artefak')
+                        ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
+                        ->where('tbl_kota_has_artefak.id_kota', $id)
+                        ->select('tbl_artefak.*', 'tbl_kota_has_artefak.file_pengumpulan', 'tbl_kota_has_artefak.waktu_pengumpulan')
+                        ->get();
+        
+        // Ambil tahapan progres kota
+        $tahapanProgres = DB::table('tbl_kota_has_tahapan_progres')
+                           ->join('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
+                           ->where('tbl_kota_has_tahapan_progres.id_kota', $id)
+                           ->select('tbl_master_tahapan_progres.nama_progres', 'tbl_kota_has_tahapan_progres.status')
+                           ->get();
+        
+        return view('katalog_ta.show', compact('kota', 'mahasiswa', 'dosen', 'artefakKota', 'tahapanProgres'));
     }
     
-    // Tampilkan form upload katalog TA
-    public function create()
-    {
-        $kotaList = KotaModel::all();
-        // Get all students regardless of kota assignment initially
-        $mahasiswaList = User::where('role', 'mahasiswa')->orderBy('name', 'asc')->get();
-        
-        return view('katalog_ta.create', compact('kotaList', 'mahasiswaList'));
-    }
-    
-    // Get mahasiswa by kota (for AJAX)
-    public function getMahasiswaByKota($id_kota)
-    {
-        // Get users associated with the selected kota from tbl_kota_has_user
-        $mahasiswaList = User::whereHas('kotaRelasi', function($query) use ($id_kota) {
-                $query->where('id_kota', $id_kota);
-            })
-            ->where('role', 'mahasiswa')
-            ->orderBy('name', 'asc')
-            ->get(['id', 'name', 'nim']);
-        
-        return response()->json($mahasiswaList);
-    }
-    
-    // Proses upload katalog TA
-    public function store(Request $request)
-    {
-        // Validasi input
-        $validated = $request->validate([
-            'judul_ta' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'id_kota' => 'required|exists:tbl_kota,id_kota',
-            'anggota_kelompok' => 'required|array|min:1|max:3',
-            'anggota_kelompok.*' => 'exists:users,id',
-            'file_ta' => 'required|file|mimes:pdf|max:10240', // max 10MB
-        ]);
-        
-        // Upload file
-        $file = $request->file('file_ta');
-        $fileName = time() . '_' . Str::slug($request->judul_ta) . '.' . $file->getClientOriginalExtension();
-        $filePath = $file->storeAs('katalog_ta', $fileName, 'public');
-        
-        // Simpan katalog TA
-        $katalogTA = KatalogTA::create([
-            'id_kota' => $validated['id_kota'],
-            'judul_ta' => $validated['judul_ta'],
-            'deskripsi' => $validated['deskripsi'],
-            'file_ta' => $filePath,
-            'waktu_pengumpulan' => now(),
-        ]);
-        
-        // Simpan relasi anggota TA
-        foreach ($validated['anggota_kelompok'] as $userId) {
-            // Check if user is already associated with this kota
-            $existingRelation = KotaHasUserModel::where('id_user', $userId)
-                ->where('id_kota', $validated['id_kota'])
-                ->first();
-                
-            if (!$existingRelation) {
-                // Create relation in tbl_kota_has_user if it doesn't exist
-                KotaHasUserModel::create([
-                    'id_user' => $userId,
-                    'id_kota' => $validated['id_kota'],
-                    'id_katalog' => $katalogTA->id
-                ]);
-            } else {
-                // Update existing relation with katalog ID
-                $existingRelation->update([
-                    'id_katalog' => $katalogTA->id
-                ]);
-            }
-        }
-        
-        return redirect()->route('katalog-ta.index')
-            ->with('success', 'Katalog TA berhasil diupload.');
-    }
-    
-    // Tambahkan fungsi edit dan update katalog TA
-    public function edit($id)
-    {
-        $katalog = KatalogTA::with('anggota.user')->findOrFail($id);
-        
-        // Periksa apakah user adalah pemilik TA
-        $isOwner = $katalog->anggota->contains('id_user', Auth::id());
-        
-        if (!$isOwner && !Auth::user()->hasRole('admin')) {
-            return redirect()->route('katalog-ta.index')
-                ->with('error', 'Anda tidak memiliki akses untuk mengedit katalog TA ini.');
-        }
-        
-        $kotaList = KotaModel::all();
-        $mahasiswaList = User::where('role', 'mahasiswa')->orderBy('name', 'asc')->get();
-        $selectedAnggota = $katalog->anggota->pluck('id_user')->toArray();
-        
-        return view('katalog_ta.edit', compact('katalog', 'kotaList', 'mahasiswaList', 'selectedAnggota'));
-    }
-    
-    public function update(Request $request, $id)
-    {
-        $katalog = KatalogTA::findOrFail($id);
-        
-        // Periksa apakah user adalah pemilik TA
-        $isOwner = $katalog->anggota->contains('id_user', Auth::id());
-        
-        if (!$isOwner && !Auth::user()->hasRole('admin')) {
-            return redirect()->route('katalog-ta.index')
-                ->with('error', 'Anda tidak memiliki akses untuk mengedit katalog TA ini.');
-        }
-        
-        // Validasi input
-        $validated = $request->validate([
-            'judul_ta' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'id_kota' => 'required|exists:tbl_kota,id_kota',
-            'anggota_kelompok' => 'required|array|min:1|max:3',
-            'anggota_kelompok.*' => 'exists:users,id',
-            'file_ta' => 'nullable|file|mimes:pdf|max:10240', // max 10MB
-        ]);
-        
-        // Update file jika ada
-        if ($request->hasFile('file_ta')) {
-            // Hapus file lama
-            if ($katalog->file_ta) {
-                Storage::disk('public')->delete($katalog->file_ta);
-            }
-            
-            // Upload file baru
-            $file = $request->file('file_ta');
-            $fileName = time() . '_' . Str::slug($request->judul_ta) . '.' . $file->getClientOriginalExtension();
-            $filePath = $file->storeAs('katalog_ta', $fileName, 'public');
-            
-            $katalog->file_ta = $filePath;
-        }
-        
-        // Update katalog TA
-        $katalog->judul_ta = $validated['judul_ta'];
-        $katalog->deskripsi = $validated['deskripsi'];
-        $katalog->id_kota = $validated['id_kota'];
-        $katalog->save();
-        
-        // Update relasi anggota TA
-        // Remove existing relationships
-        KotaHasUserModel::where('id_katalog', $katalog->id)->update(['id_katalog' => null]);
-        
-        foreach ($validated['anggota_kelompok'] as $userId) {
-            // Check if user is already associated with this kota
-            $existingRelation = KotaHasUserModel::where('id_user', $userId)
-                ->where('id_kota', $validated['id_kota'])
-                ->first();
-                
-            if (!$existingRelation) {
-                // Create relation in tbl_kota_has_user if it doesn't exist
-                KotaHasUserModel::create([
-                    'id_user' => $userId,
-                    'id_kota' => $validated['id_kota'],
-                    'id_katalog' => $katalog->id
-                ]);
-            } else {
-                // Update existing relation with katalog ID
-                $existingRelation->update([
-                    'id_katalog' => $katalog->id
-                ]);
-            }
-        }
-        
-        return redirect()->route('katalog-ta.show', $katalog->id)
-            ->with('success', 'Katalog TA berhasil diperbarui.');
-    }
-    
-    // Tampilkan form request katalog TA
+    /**
+     * Tampilkan form request untuk mengakses detail kota/TA
+     */
     public function showRequestForm($id)
     {
-        $katalog = KatalogTA::with(['kota', 'anggota.user'])->findOrFail($id);
-        return view('katalog_ta.request_form', compact('katalog'));
+        $kota = KotaModel::with(['users'])->findOrFail($id);
+        
+        // Pisahkan mahasiswa dan dosen
+        $mahasiswa = $kota->users->where('role', 3);
+        $dosen = $kota->users->where('role', 2);
+        
+        return view('katalog_ta.request_form', compact('kota', 'mahasiswa', 'dosen'));
     }
     
-    // Proses request katalog TA
+    /**
+     * Proses request untuk mengakses informasi kota/TA menggunakan Laravel Mail
+     */
     public function sendRequest(Request $request, $id)
     {
         // Validasi input
         $validated = $request->validate([
-            'tujuan_request' => 'required|string|max:1000',
+            'tujuan_request' => 'required|string|min:10|max:1000',
+            'pesan' => 'nullable|string|max:2000',
+        ], [
+            'tujuan_request.required' => 'Tujuan request harus diisi.',
+            'tujuan_request.min' => 'Tujuan request minimal 10 karakter.',
+            'tujuan_request.max' => 'Tujuan request maksimal 1000 karakter.',
+            'pesan.max' => 'Pesan tambahan maksimal 2000 karakter.',
         ]);
         
-        // Ambil data katalog TA
-        $katalog = KatalogTA::with(['kota', 'anggota.user'])->findOrFail($id);
-        
-        // Data pengirim (user yang sedang login)
+        $kota = KotaModel::with(['users'])->findOrFail($id);
         $requester = Auth::user();
         
-        // Siapkan data email
-        $data_email = [
-            'subject' => 'Request Katalog TA: ' . $katalog->judul_ta,
+        // Ambil email mahasiswa dan dosen dari kota ini
+        $emailList = $kota->users->pluck('email')->filter()->unique()->toArray();
+        
+        if (empty($emailList)) {
+            return redirect()->back()->withInput()->with('error', 'Tidak ada anggota KoTA yang dapat dihubungi saat ini. Silakan coba lagi nanti.');
+        }
+        
+        // Siapkan data email menggunakan format yang sama dengan controller lama
+        $emailData = [
+            'subject' => 'Request Katalog KoTA: ' . $kota->nama_kota,
             'sender_name' => $requester->name,
             'sender_email' => $requester->email,
+            'sender_nim' => $requester->nomor_induk ?? 'N/A',
             'tujuan_request' => $validated['tujuan_request'],
-            'judul_ta' => $katalog->judul_ta,
-            'katalog_id' => $katalog->id,
-            'kota_nama' => $katalog->kota->nama_kota ?? 'N/A',
-            'periode' => $katalog->kota->periode ?? 'N/A',
-            'kelas' => $katalog->kota->kelas ?? 'N/A'
+            'pesan' => $validated['pesan'] ?? '',
+            'kota_nama' => $kota->nama_kota,
+            'judul_ta' => $kota->judul,
+            'periode' => $kota->periode,
+            'kelas' => $kota->kelas,
+            'request_date' => now()->format('d F Y H:i'),
         ];
         
-        // Kirim email ke setiap penulis TA
-        $emailSent = false;
+        // Log aktivitas request
+        Log::info('Request katalog TA', [
+            'requester_id' => $requester->id,
+            'requester_email' => $requester->email,
+            'kota_id' => $kota->id_kota,
+            'kota_nama' => $kota->nama_kota,
+            'timestamp' => now()
+        ]);
         
-        // Ambil semua anggota TA dari tbl_kota_has_user
-        $penulisList = User::whereHas('kotaUsers', function($query) use ($katalog) {
-            $query->where('id_kota', $katalog->id_kota);
-        })->get();
-        
-        
-        
-        foreach ($penulisList as $penulis) {
-            if ($penulis && $penulis->email) {
-                Mail::to($penulis->email)->send(new RequestKatalogEmail($data_email));
-                $emailSent = true;
+        // Kirim email ke semua anggota kota menggunakan Laravel Mail
+        try {
+            $successCount = 0;
+            $failedEmails = [];
+            
+            foreach ($emailList as $email) {
+                try {
+                    // Gunakan RequestKatalogEmail Mailable class
+                    Mail::to($email)->send(new RequestKatalogEmail($emailData));
+                    
+                    Log::info('Email request katalog TA berhasil dikirim', [
+                        'to' => $email,
+                        'subject' => $emailData['subject'],
+                        'from' => $requester->email,
+                        'kota' => $kota->nama_kota
+                    ]);
+                    $successCount++;
+                    
+                } catch (\Exception $e) {
+                    Log::error('Gagal mengirim email request katalog', [
+                        'to' => $email,
+                        'error' => $e->getMessage()
+                    ]);
+                    $failedEmails[] = $email;
+                }
             }
+            
+            // Simpan ke database untuk tracking
+            $this->saveRequestToDatabase($requester->id, $kota->id_kota, $validated);
+            
+            if ($successCount > 0) {
+                $message = "Request berhasil dikirim ke {$successCount} anggota KoTA ({$kota->nama_kota}). ";
+                $message .= "Mereka akan menghubungi Anda di email {$requester->email} jika bersedia berbagi informasi.";
+                
+                if (!empty($failedEmails)) {
+                    $message .= " Namun, ada " . count($failedEmails) . " email yang gagal dikirim.";
+                }
+                
+                return redirect()->route('katalog-ta.show', $id)->with('success', $message);
+            } else {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Semua email gagal dikirim. Periksa konfigurasi email server atau coba lagi nanti.');
+            }
+                
+        } catch (\Exception $e) {
+            Log::error('Error saat mengirim request katalog TA', [
+                'requester_id' => $requester->id,
+                'kota_id' => $kota->id_kota,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->back()->withInput()
+                ->with('error', 'Terjadi kesalahan sistem saat mengirim request. Silakan coba lagi atau hubungi administrator.');
         }
-        
-        if (!$emailSent) {
-            return redirect()->back()->with('error', 'Tidak ada penulis TA yang dapat dihubungi saat ini.');
-        }
-        
-        // Redirect dengan pesan sukses
-        return redirect()->route('katalog-ta.show', $id)
-            ->with('success', 'Request katalog berhasil dikirim ke penulis TA. Mereka akan menghubungi Anda melalui email jika bersedia berbagi katalog.');
     }
     
-    // Download Katalog TA (hanya untuk admin dan pemilik TA)
-    public function download($id)
+    /**
+     * Simpan request ke database untuk tracking
+     */
+    private function saveRequestToDatabase($requesterId, $kotaId, $data)
     {
-        $katalog = KatalogTA::with('anggota')->findOrFail($id);
+        try {
+            DB::table('tbl_katalog_requests')->insert([
+                'requester_id' => $requesterId,
+                'kota_id' => $kotaId,
+                'tujuan_request' => $data['tujuan_request'],
+                'pesan' => $data['pesan'] ?? null,
+                'status' => 'sent',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+        } catch (\Exception $e) {
+            // Jika tabel belum ada, buat tabel atau log error
+            Log::warning('Gagal menyimpan request ke database', [
+                'error' => $e->getMessage(),
+                'requester_id' => $requesterId,
+                'kota_id' => $kotaId
+            ]);
+        }
+    }
+    
+    /**
+     * Download file artefak tertentu (hanya untuk anggota kota atau admin)
+     */
+    public function downloadArtefak($kotaId, $artefakId)
+    {
+        $kota = KotaModel::findOrFail($kotaId);
+        $user = Auth::user();
         
-        // Cek apakah user adalah admin atau pemilik TA
-        $isOwner = $katalog->anggota->contains('id_user', Auth::id());
+        // Cek apakah user adalah anggota kota ini atau admin
+        $isAnggota = $kota->users->contains('id', $user->id);
+        $isAdmin = $user->role == 1; // Assuming role 1 is admin
         
-        if (!$isOwner && !Auth::user()->hasRole('admin')) {
-            return redirect()->route('katalog-ta.show', $id)
-                ->with('error', 'Anda tidak memiliki akses untuk mengunduh file ini.');
+        if (!$isAnggota && !$isAdmin) {
+            return redirect()->route('katalog-ta.show', $kotaId)
+                ->with('error', 'Anda tidak memiliki akses untuk mengunduh file ini. Silakan ajukan request terlebih dahulu.');
         }
         
-        // Periksa apakah file ada
-        if (!Storage::disk('public')->exists($katalog->file_ta)) {
-            return redirect()->route('katalog-ta.show', $id)
-                ->with('error', 'File TA tidak ditemukan.');
+        // Ambil informasi file artefak
+        $artefak = DB::table('tbl_kota_has_artefak')
+                    ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
+                    ->where('tbl_kota_has_artefak.id_kota', $kotaId)
+                    ->where('tbl_kota_has_artefak.id_artefak', $artefakId)
+                    ->select('tbl_kota_has_artefak.file_pengumpulan', 'tbl_artefak.nama_artefak')
+                    ->first();
+        
+        if (!$artefak || !$artefak->file_pengumpulan) {
+            return redirect()->route('katalog-ta.show', $kotaId)
+                ->with('error', 'File artefak tidak ditemukan.');
         }
+        
+        // Periksa apakah file ada di storage
+        if (!Storage::disk('public')->exists($artefak->file_pengumpulan)) {
+            return redirect()->route('katalog-ta.show', $kotaId)
+                ->with('error', 'File tidak ditemukan di server. Mungkin sudah dihapus atau dipindahkan.');
+        }
+        
+        // Log download activity
+        Log::info('Download artefak katalog TA', [
+            'user_id' => $user->id,
+            'kota_id' => $kotaId,
+            'artefak_id' => $artefakId,
+            'file' => $artefak->file_pengumpulan
+        ]);
         
         // Download file
-        return Storage::disk('public')->download($katalog->file_ta, Str::slug($katalog->judul_ta) . '.pdf');
+        return Storage::disk('public')->download(
+            $artefak->file_pengumpulan, 
+            $artefak->nama_artefak . '.pdf'
+        );
+    }
+    
+    /**
+     * Tampilkan statistik katalog TA
+     */
+    public function statistics()
+    {
+        $stats = [
+            'total_kota' => KotaModel::whereHas('users')->count(),
+            'kota_aktif' => KotaModel::whereHas('users')->count(),
+            'total_mahasiswa' => DB::table('tbl_kota_has_user')
+                                  ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
+                                  ->where('users.role', 3)
+                                  ->count(),
+            'total_dosen' => DB::table('tbl_kota_has_user')
+                              ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
+                              ->where('users.role', 2)
+                              ->count(),
+        ];
+        
+        // Statistik per periode
+        $statsPeriode = KotaModel::whereHas('users')
+                                ->select('periode', DB::raw('count(*) as total'))
+                                ->groupBy('periode')
+                                ->orderBy('periode', 'desc')
+                                ->get();
+        
+        // Statistik per kelas
+        $statsKelas = KotaModel::whereHas('users')
+                              ->select('kelas', DB::raw('count(*) as total'))
+                              ->groupBy('kelas')
+                              ->orderBy('kelas', 'asc')
+                              ->get();
+        
+        // Statistik artefak yang sudah dikumpulkan
+        $statsArtefak = DB::table('tbl_kota_has_artefak')
+                         ->join('tbl_kota', 'tbl_kota_has_artefak.id_kota', '=', 'tbl_kota.id_kota')
+                         ->join('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+                         ->select('tbl_kota.periode', DB::raw('count(DISTINCT tbl_kota_has_artefak.id_kota) as total_artefak'))
+                         ->groupBy('tbl_kota.periode')
+                         ->orderBy('tbl_kota.periode', 'desc')
+                         ->get();
+        
+        return view('katalog_ta.statistics', compact('stats', 'statsPeriode', 'statsKelas', 'statsArtefak'));
+    }
+    
+    /**
+     * API endpoint untuk mendapatkan data kota berdasarkan filter
+     */
+    public function getKotaData(Request $request)
+    {
+        $query = KotaModel::with(['users' => function($q) {
+            $q->whereIn('role', [2, 3]); // Ambil dosen dan mahasiswa
+        }])->whereHas('users'); // Hanya kota yang punya anggota
+        
+        if ($request->has('periode')) {
+            $query->where('periode', $request->periode);
+        }
+        
+        if ($request->has('kelas')) {
+            $query->where('kelas', $request->kelas);
+        }
+        
+        $data = $query->get()->map(function($kota) {
+            return [
+                'id' => $kota->id_kota,
+                'nama_kota' => $kota->nama_kota,
+                'judul' => $kota->judul,
+                'kelas' => $kota->kelas,
+                'periode' => $kota->periode,
+                'mahasiswa_count' => $kota->users->where('role', 3)->count(),
+                'dosen_count' => $kota->users->where('role', 2)->count(),
+                'mahasiswa' => $kota->users->where('role', 3)->map(function($user) {
+                    return [
+                        'name' => $user->name,
+                        'nim' => $user->nomor_induk,
+                        'email' => $user->email,
+                    ];
+                }),
+                'dosen' => $kota->users->where('role', 2)->map(function($user) {
+                    return [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ];
+                }),
+            ];
+        });
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+            'total' => $data->count()
+        ]);
     }
 }
