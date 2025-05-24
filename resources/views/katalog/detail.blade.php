@@ -47,7 +47,14 @@
                                 <strong><i class="fas fa-user-tie mr-1"></i> Pembimbing</strong>
                                 <p class="text-muted">{{ $laporan['pembimbing'] }}</p>
                                 <hr>
-                                
+                                <!-- Tambahkan di sini -->
+                                @if($laporan['abstrak'])
+                                    <strong><i class="fas fa-align-left mr-1"></i> Abstrak Tugas Akhir</strong>
+                                    <div class="bg-light p-3 rounded border mb-3" style="white-space: pre-wrap;">
+                                        {{ $laporan['abstrak'] }}
+                                    </div>
+                                @endif
+
                                 @if($laporan['penguji'])
                                 <strong><i class="fas fa-users mr-1"></i> Penguji</strong>
                                 <p class="text-muted">{{ $laporan['penguji'] }}</p>
@@ -61,18 +68,20 @@
                                 
                                 @if($laporan['poster_path'])
                                 <hr>
-                                <a href="{{ asset('/storage/submissions/' . $laporan['poster_path']) }}" target="_blank" class="btn btn-info btn-block">
+                                <a href="{{ Storage::url($laporan['poster_path']) }}" target="_blank" class="btn btn-info btn-block">
                                     <i class="fas fa-image"></i> Lihat Poster
                                 </a>
                                 @endif
                                 
+                                @if($laporan['file_path'])
                                 <hr>
-                                <a href="{{ asset('storage/' . $laporan['file_path']) }}" download class="btn btn-success btn-block">
+                                <a href="{{ Storage::url($laporan['file_path']) }}" download class="btn btn-success btn-block">
                                     <i class="fas fa-download"></i> Unduh Lembar Pengesahan
                                 </a>
+                                @endif
 
                                 <hr>
-                                <a href="{{ asset('storage/' . $laporan['file_path']) }}" download class="btn btn-secondary btn-block">
+                                <a href="#" class="btn btn-secondary btn-block" onclick="requestFullAccess()">
                                     <i class="fas fa-download"></i> Request Full Akses TA
                                 </a>
                             </div>
@@ -142,12 +151,34 @@
                             </div>
                             <div class="card-body p-0" style="height: 750px;">
                                 @if($laporan['file_path'])
-                                    <!-- Using LaravelPDFViewer package -->
-                                    <iframe src="{{ asset('/storage/submissions/' . $laporan['file_path']) }}" width="100%" height="100%" frameborder="0"></iframe>
+                                    <!-- Try multiple URL formats to ensure PDF loads -->
+                                    <iframe 
+                                        src="{{ Storage::url($laporan['file_path']) }}" 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameborder="0"
+                                        id="pdfViewer">
+                                    </iframe>
+                                    
+                                    <!-- Fallback if iframe doesn't work -->
+                                    <div id="pdfFallback" style="display: none;" class="text-center p-5">
+                                        <i class="fas fa-file-pdf fa-5x text-danger mb-3"></i>
+                                        <h4>Dokumen PDF</h4>
+                                        <p>Jika PDF tidak tampil, silakan:</p>
+                                        <a href="{{ Storage::url($laporan['file_path']) }}" target="_blank" class="btn btn-primary mr-2">
+                                            <i class="fas fa-external-link-alt"></i> Buka di Tab Baru
+                                        </a>
+                                        <a href="{{ Storage::url($laporan['file_path']) }}" download class="btn btn-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                        <br><br>
+                                        <small class="text-muted">File: {{ $laporan['original_file_name'] }}</small>
+                                    </div>
                                 @else
                                     <div class="text-center p-5">
                                         <i class="fas fa-file-pdf fa-5x text-secondary mb-3"></i>
                                         <h4 class="text-muted">Dokumen laporan tidak tersedia</h4>
+                                        <p class="text-muted">File belum diupload atau terjadi masalah pada path file.</p>
                                     </div>
                                 @endif
                             </div>
@@ -158,3 +189,37 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Check if PDF loaded successfully
+    document.getElementById('pdfViewer').addEventListener('error', function() {
+        document.getElementById('pdfViewer').style.display = 'none';
+        document.getElementById('pdfFallback').style.display = 'block';
+    });
+
+    // Function for requesting full access
+    function requestFullAccess() {
+        // Implement your logic for requesting full access
+        alert('Fitur request full access akan segera tersedia. Silakan hubungi admin untuk akses penuh.');
+    }
+
+    // Alternative PDF loading check
+    $(document).ready(function() {
+        // Check if iframe loads successfully after 3 seconds
+        setTimeout(function() {
+            try {
+                var iframe = document.getElementById('pdfViewer');
+                if (iframe && iframe.contentDocument && iframe.contentDocument.body.innerHTML === '') {
+                    // If iframe is empty, show fallback
+                    document.getElementById('pdfViewer').style.display = 'none';
+                    document.getElementById('pdfFallback').style.display = 'block';
+                }
+            } catch (e) {
+                // Cross-origin error means PDF might be loading, so leave it as is
+                console.log('PDF viewer loading...');
+            }
+        }, 3000);
+    });
+</script>
+@endpush

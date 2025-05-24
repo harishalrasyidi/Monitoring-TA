@@ -6,7 +6,7 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Katalog Dokumen</h1>
+                    <h1 class="m-0">Katalog Dokumen Tugas Akhir</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -20,29 +20,81 @@
 
     <div class="content">
         <div class="container-fluid">
-            <!-- Search Box -->
+            <!-- Search Box dengan instruksi -->
             <div class="row mb-4">
-                <div class="col-md-6 offset-md-3">
-                    <div class="input-group">
-                        <form method="GET" action="{{ route('katalog') }}" id="search-form">
-                            <input type="text" name="search" class="form-control" id="searchInput" placeholder="Cari judul, penulis, atau abstrak..." value="{{ request('search') }}">
-                            <div class="input-group-append">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            </div>
-                        </form>
+                <div class="col-md-8 offset-md-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-search mr-2"></i>Pencarian Berdasarkan Abstrak TA
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="GET" action="{{ route('katalog') }}" id="search-form">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           name="search" 
+                                           class="form-control form-control-lg" 
+                                           id="searchInput" 
+                                           placeholder="Masukkan minimal 3 kata kunci untuk pencarian yang akurat..." 
+                                           value="{{ request('search') }}"
+                                           autocomplete="off">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary btn-lg" type="submit">
+                                            <i class="fas fa-search"></i> Cari
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Keep existing filters -->
+                                <input type="hidden" name="kategori" value="{{ request('kategori') }}">
+                                <input type="hidden" name="prodi" value="{{ request('prodi') }}">
+                                <input type="hidden" name="tahun" value="{{ request('tahun') }}">
+                            </form>
+                            
+                            @if(request('search'))
+                                <div class="mt-2">
+                                    <small class="text-info">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Mencari: "<strong>{{ request('search') }}</strong>"
+                                        @php
+                                            $searchWords = explode(' ', trim(request('search')));
+                                            $wordCount = count(array_filter($searchWords));
+                                        @endphp
+                                        ({{ $wordCount }} kata kunci)
+                                        @if($wordCount >= 3)
+                                            <span class="badge badge-success ml-1">Pencarian Optimal</span>
+                                        @else
+                                            <span class="badge badge-warning ml-1">Minimal 3 kata untuk hasil terbaik</span>
+                                        @endif
+                                    </small>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Filter Card -->
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Filter Dokumen</h3>
+                    <h3 class="card-title">
+                        <i class="fas fa-filter mr-2"></i>Filter Dokumen
+                    </h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('katalog') }}" id="filter-form">
+                        <!-- Keep search term when filtering -->
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                        
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>Kategori</label>
+                                    <label><i class="fas fa-tag mr-1"></i>Kategori</label>
                                     <select name="kategori" class="form-control" id="kategori-filter">
                                         <option value="">Semua Kategori</option>
                                         @foreach($categories as $category)
@@ -55,7 +107,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>Program Studi</label>
+                                    <label><i class="fas fa-graduation-cap mr-1"></i>Program Studi</label>
                                     <select name="prodi" class="form-control" id="prodi-filter">
                                         <option value="">Semua Prodi</option>
                                         @foreach($prodis as $prodi)
@@ -74,7 +126,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>Tahun</label>
+                                    <label><i class="fas fa-calendar mr-1"></i>Tahun</label>
                                     <select name="tahun" class="form-control" id="tahun-filter">
                                         <option value="">Semua Tahun</option>
                                         @foreach($years as $year)
@@ -89,15 +141,38 @@
                                 <div class="form-group">
                                     <label>&nbsp;</label>
                                     <button class="btn btn-primary btn-block" type="submit">
-                                        <i class="fas fa-search mr-1"></i> Filter
+                                        <i class="fas fa-filter mr-1"></i> Terapkan Filter
                                     </button>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Clear Filters Button -->
+                        @if(request()->hasAny(['kategori', 'prodi', 'tahun', 'search']))
+                            <div class="row">
+                                <div class="col-12">
+                                    <a href="{{ route('katalog') }}" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-times mr-1"></i>Hapus Semua Filter
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
                     </form>
                 </div>
             </div>
 
+            <!-- Results Info -->
+            @if($katalog->count() > 0)
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Menampilkan {{ $katalog->count() }} dari {{ $katalog->total() }} dokumen tugas akhir
+                    @if(request('search'))
+                        yang sesuai dengan pencarian "<strong>{{ request('search') }}</strong>"
+                    @endif
+                </div>
+            @endif
+
+            <!-- Results Grid -->
             <div class="row">
                 @if($katalog->count() > 0)
                     @foreach($katalog as $item)
@@ -110,12 +185,29 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="text-center mb-3">
-                                        <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                                        <i class="fas fa-file-alt fa-3x text-info"></i>
+                                        <small class="d-block text-muted mt-1">Abstrak TA</small>
                                     </div>
-                                    <p class="card-text mb-1"><strong>Artefak:</strong> {{ $item->nama_artefak }}</p>
-                                    <p class="card-text mb-1"><strong>Kota:</strong> {{ $item->nama_kota }}</p>
-                                    <p class="card-text mb-1"><strong>Kategori:</strong> {{ $item->kategori }}</p>
-                                    <p class="card-text mb-1"><strong>Program Studi:</strong> 
+                                    
+                                    <p class="card-text mb-1">
+                                        <strong><i class="fas fa-user mr-1"></i>Penulis:</strong> 
+                                        @php
+                                            $penulis = \App\Models\User::join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
+                                                ->where('tbl_kota_has_user.id_kota', $item->id_kota)
+                                                ->where('users.role', 3)
+                                                ->pluck('name')
+                                                ->implode(', ');
+                                        @endphp
+                                        {{ $penulis ?: 'Tidak ada data' }}
+                                    </p>
+                                    
+                                    <p class="card-text mb-1">
+                                        <strong><i class="fas fa-layer-group mr-1"></i>Kategori:</strong> 
+                                        {{ $item->kategori }}
+                                    </p>
+                                    
+                                    <p class="card-text mb-1">
+                                        <strong><i class="fas fa-graduation-cap mr-1"></i>Program Studi:</strong> 
                                         @if($item->prodi == '1')
                                             D3 Teknik Informatika
                                         @elseif($item->prodi == '2')
@@ -124,42 +216,135 @@
                                             {{ $item->prodi }}
                                         @endif
                                     </p>
+                                    
+                                    <p class="card-text mb-1">
+                                        <strong><i class="fas fa-calendar mr-1"></i>Periode:</strong> 
+                                        {{ $item->periode }}
+                                    </p>
+                                    
+                                    <!-- Show search relevance if searching -->
+                                    @if(request('search'))
+                                        @php
+                                            $searchWords = explode(' ', strtolower(request('search')));
+                                            $titleWords = explode(' ', strtolower($item->judul));
+                                            $matchCount = count(array_intersect($searchWords, $titleWords));
+                                        @endphp
+                                        @if($matchCount > 0)
+                                            <div class="mb-2">
+                                                <small class="badge badge-success">
+                                                    {{ $matchCount }} kata cocok
+                                                </small>
+                                            </div>
+                                        @endif
+                                    @endif
                                 </div>
-                                 <div class="card-footer bg-light">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">Dikumpulkan: {{ \Carbon\Carbon::parse($item->waktu_pengumpulan)->format('d M Y') }}</small>
-                                            <a href="{{ route('laporan.show', $item->id_kota) }}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-eye"></i> Lihat
-                                            </a>
-                                        </div>
+                                <div class="card-footer bg-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ \Carbon\Carbon::parse($item->waktu_pengumpulan)->format('d M Y') }}
+                                        </small>
+                                        <a href="{{ route('laporan.show', $item->id_kota) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Lihat Detail
+                                        </a>
                                     </div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
                 @else
                     <div class="col-12">
-                        <div class="alert alert-info text-center">
-                            <i class="fas fa-info-circle mr-2"></i> Tidak ada dokumen yang sesuai dengan filter yang dipilih
+                        <div class="alert alert-warning text-center">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <h4>Tidak ada dokumen yang ditemukan</h4>
+                            @if(request('search'))
+                                <p>Tidak ada dokumen tugas akhir yang sesuai dengan pencarian "<strong>{{ request('search') }}</strong>"</p>
+                                <p>Tips pencarian:</p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-lightbulb text-warning mr-1"></i> Gunakan minimal 3 kata kunci</li>
+                                    <li><i class="fas fa-lightbulb text-warning mr-1"></i> Coba kata kunci yang lebih umum</li>
+                                    <li><i class="fas fa-lightbulb text-warning mr-1"></i> Periksa ejaan kata kunci</li>
+                                </ul>
+                                <a href="{{ route('katalog') }}" class="btn btn-primary mt-2">
+                                    <i class="fas fa-list mr-1"></i>Lihat Semua Dokumen
+                                </a>
+                            @else
+                                <p>Belum ada dokumen tugas akhir yang tersedia atau sesuai dengan filter yang dipilih.</p>
+                            @endif
                         </div>
                     </div>
                 @endif
             </div>
 
-            <div class="d-flex justify-content-center mt-4">
-                {{ $katalog->appends(request()->query())->links() }}
-            </div>
+            <!-- Pagination -->
+            @if($katalog->hasPages())
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $katalog->appends(request()->query())->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
-    $(document).ready(function() {
-        // Auto-submit form when dropdown changes
-        $('#kategori-filter, #prodi-filter, #tahun-filter').change(function() {
-            $('#filter-form').submit();
-        });
+$(document).ready(function() {
+    // Auto-submit form when dropdown changes
+    $('#kategori-filter, #prodi-filter, #tahun-filter').change(function() {
+        $('#filter-form').submit();
     });
+    
+    // Search input enhancements
+    $('#searchInput').on('input', function() {
+        const searchTerm = $(this).val().trim();
+        const wordCount = searchTerm.split(' ').filter(word => word.length > 0).length;
+        
+        // Show word count feedback
+        let feedbackClass = 'text-muted';
+        let feedbackText = wordCount + ' kata';
+        
+        if (wordCount >= 3) {
+            feedbackClass = 'text-success';
+            feedbackText += ' ✓ Optimal';
+        } else if (wordCount > 0) {
+            feedbackClass = 'text-warning';
+            feedbackText += ' (minimal 3 untuk hasil terbaik)';
+        }
+        
+        // Remove existing feedback
+        $('#searchInput').next('.search-feedback').remove();
+        
+        // Add feedback if there's input
+        if (searchTerm.length > 0) {
+            $('#searchInput').after('<small class="search-feedback ' + feedbackClass + ' d-block mt-1">' + feedbackText + '</small>');
+        }
+    });
+    
+    // Search form validation
+    $('#search-form').on('submit', function(e) {
+        const searchTerm = $('#searchInput').val().trim();
+        if (searchTerm.length > 0 && searchTerm.length < 3) {
+            e.preventDefault();
+            alert('Silakan masukkan minimal 3 karakter untuk pencarian yang lebih akurat.');
+            return false;
+        }
+    });
+    
+    // Highlight search terms in results (if search is active)
+    @if(request('search'))
+        const searchTerms = "{{ request('search') }}".toLowerCase().split(' ');
+        $('.card-title, .card-text').each(function() {
+            let text = $(this).html();
+            searchTerms.forEach(function(term) {
+                if (term.length > 2) {
+                    const regex = new RegExp('(' + term + ')', 'gi');
+                    text = text.replace(regex, '<mark>$1</mark>');
+                }
+            });
+            $(this).html(text);
+        });
+    @endif
+});
 </script>
-@endsection
+@endpush
