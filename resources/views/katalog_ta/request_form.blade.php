@@ -23,9 +23,9 @@
                     <div class="col-md-12">
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle mr-2"></i>
-                            <strong>Info:</strong> Email Anda (<strong>{{ Auth::user()->email }}</strong>) akan digunakan 
-                            sebagai kontak untuk anggota KoTA. Anggota dapat menghubungi Anda secara langsung jika mereka bersedia
-                            berbagi katalog TA.
+                           <strong>Info:</strong> Request Anda akan dikirim ke <strong>anggota KoTA</strong> 
+                            untuk mendapatkan akses katalog TA. Email Anda (<strong>{{ Auth::user()->email }}</strong>) 
+                            akan digunakan sebagai kontak balasan.
                         </div>
                         
                         <!-- Info KoTA -->
@@ -47,8 +47,13 @@
                                 
                                 <!-- Anggota KoTA -->
                                 <div class="mt-3">
-                                    <h6><strong>Anggota KoTA:</strong></h6>
-                                    <div class="row">
+                                    <h6><strong>Informasi Anggota KoTA:</strong></h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Informasi ini hanya untuk referensi. Jika Anda mengenal anggota KoTA, 
+                                        Anda dapat menghubungi mereka secara langsung di luar sistem.
+                                    </small>
+                                    <div class="row mt-2">
                                         @if($mahasiswa->count() > 0)
                                             <div class="col-md-6">
                                                 <p><strong>Mahasiswa:</strong></p>
@@ -121,8 +126,8 @@
                                     </div>
                                 @enderror
                                 <small class="form-text text-muted">
-                                    Pilih tujuan yang paling sesuai dengan kebutuhan Anda. Ini akan membantu anggota KoTA 
-                                    memahami maksud permintaan Anda.
+                                    Pilih tujuan yang paling sesuai dengan kebutuhan Anda. Ini akan membantu 
+                                    anggota KoTA dalam memproses permintaan Anda.
                                 </small>
                             </div>
                             
@@ -142,6 +147,100 @@
                                     Maksimal 500 karakter. <span id="char_count">0</span>/500
                                 </small>
                             </div>
+
+                             <!-- Status Akademik -->
+                            <div class="form-group">
+                                <label for="status_pemohon">Status Pemohon <span class="text-danger">*</span></label>
+                                <select name="status_pemohon" id="status_pemohon" 
+                                    class="form-control @error('status_pemohon') is-invalid @enderror" required>
+                                    <option value="">-- Pilih Status Anda --</option>
+                                    <option value="mahasiswa_aktif" {{ old('status_pemohon') == 'mahasiswa_aktif' ? 'selected' : '' }}>
+                                        Mahasiswa Aktif (sedang menyusun TA)
+                                    </option>
+                                    <option value="mahasiswa_alumni" {{ old('status_pemohon') == 'mahasiswa_alumni' ? 'selected' : '' }}>
+                                        Alumni/Mahasiswa yang telah lulus
+                                    </option>
+                                    <option value="dosen_internal" {{ old('status_pemohon') == 'dosen_internal' ? 'selected' : '' }}>
+                                        Dosen Internal Jurusan
+                                    </option>
+                                    <option value="dosen_eksternal" {{ old('status_pemohon') == 'dosen_eksternal' ? 'selected' : '' }}>
+                                        Dosen Eksternal/Institusi Lain
+                                    </option>
+                                    <option value="peneliti" {{ old('status_pemohon') == 'peneliti' ? 'selected' : '' }}>
+                                        Peneliti/Praktisi
+                                    </option>
+                                </select>
+                                @error('status_pemohon')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Status ini membantu anggota KoTA dalam menentukan prioritas dan jenis akses yang diberikan.
+                                </small>
+                            </div>
+
+                             <!-- Request Priority -->
+                            <div class="form-group">
+                                <label for="prioritas">Tingkat Prioritas <span class="text-danger">*</span></label>
+                                <select name="prioritas" id="prioritas" 
+                                    class="form-control @error('prioritas') is-invalid @enderror" required>
+                                    <option value="">-- Pilih Prioritas --</option>
+                                    <option value="rendah" {{ old('prioritas') == 'rendah' ? 'selected' : '' }}>
+                                        🟢 Rendah (tidak mendesak, fleksible waktu)
+                                    </option>
+                                    <option value="sedang" {{ old('prioritas') == 'sedang' ? 'selected' : '' }}>
+                                        🟡 Sedang (perlu dalam 1-2 minggu)
+                                    </option>
+                                    <option value="tinggi" {{ old('prioritas') == 'tinggi' ? 'selected' : '' }}>
+                                        🟠 Tinggi (dibutuhkan segera, dalam 3-7 hari)
+                                    </option>
+                                    <option value="urgent" {{ old('prioritas') == 'urgent' ? 'selected' : '' }}>
+                                        🔴 Urgent (sangat mendesak, dalam 1-2 hari)
+                                    </option>
+                                </select>
+                                @error('prioritas')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Prioritas ini membantu anggota KoTA dalam mengatur urutan pemrosesan request.
+                                </small>
+                            </div>
+
+                            <!-- Deadline Request (Optional) -->
+                            <div class="form-group">
+                                <label for="deadline_request">Deadline Kebutuhan (Opsional)</label>
+                                <input type="date" name="deadline_request" id="deadline_request" 
+                                    class="form-control @error('deadline_request') is-invalid @enderror" 
+                                    value="{{ old('deadline_request') }}" min="{{ date('Y-m-d') }}">
+                                @error('deadline_request')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Jika ada deadline tertentu kapan Anda membutuhkan akses katalog ini.
+                                </small>
+                            </div>
+
+                            <!-- Institusi/Afiliasi -->
+                            <div class="form-group">
+                                <label for="institusi">Institusi/Afiliasi <span class="text-danger">*</span></label>
+                                <input type="text" name="institusi" id="institusi" 
+                                    class="form-control @error('institusi') is-invalid @enderror" 
+                                    placeholder="Contoh: Universitas XYZ, PT ABC, dll"
+                                    value="{{ old('institusi') }}" maxlength="200" required>
+                                @error('institusi')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Sebutkan institusi atau afiliasi Anda saat ini.
+                                </small>
+                            </div>
                             
                             <div class="form-group">
                                 <label for="pesan">Pesan Tambahan (Opsional)</label>
@@ -155,8 +254,8 @@
                                     </div>
                                 @enderror
                                 <small class="form-text text-muted">
-                                    Anda dapat menambahkan pesan khusus atau pertanyaan untuk anggota KoTA.
-                                    Maksimal 1000 karakter.
+                                    Anda dapat menambahkan informasi seperti konteks penelitian, pertanyaan spesifik, 
+                                    atau detail lainnya yang membantu anggota KoTA memahami request Anda. Maksimal 1000 karakter.
                                 </small>
                             </div>
                             
@@ -211,6 +310,9 @@
             // Validasi form terlebih dahulu
             var tujuanRequest = $('#tujuan_request').val();
             var detailTujuan = $('#detail_tujuan').val().trim();
+            var statusPemohon = $('#status_pemohon').val();
+            var prioritas = $('#prioritas').val();
+            var institusi = $('#institusi').val().trim();
             
             if (!tujuanRequest) {
                 Swal.fire({
@@ -233,9 +335,44 @@
                 $('#detail_tujuan').focus();
                 return;
             }
+
+            if (!statusPemohon) {
+                Swal.fire({
+                    title: 'Peringatan!',
+                    text: 'Mohon pilih status pemohon terlebih dahulu.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                $('#status_pemohon').focus();
+                return;
+            }
+
+            if (!prioritas) {
+                Swal.fire({
+                    title: 'Peringatan!',
+                    text: 'Mohon pilih tingkat prioritas terlebih dahulu.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                $('#prioritas').focus();
+                return;
+            }
+
+            if (!institusi) {
+                Swal.fire({
+                    title: 'Peringatan!',
+                    text: 'Mohon isi institusi/afiliasi Anda.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                $('#institusi').focus();
+                return;
+            }
             
             // Get selected option text for display
             var selectedText = $('#tujuan_request option:selected').text();
+            var selectedStatus = $('#status_pemohon option:selected').text();
+            var selectedPrioritas = $('#prioritas option:selected').text();
             
             Swal.fire({
                 title: 'Konfirmasi Request',
@@ -245,6 +382,9 @@
                         <p><strong>{{ $kota->nama_kota }}</strong></p>
                         <p><strong>Judul:</strong> {{ $kota->judul }}</p>
                         <p><strong>Tujuan:</strong> ${selectedText}</p>
+                        <p><strong>Status:</strong> ${selectedStatus}</p>
+                        <p><strong>Prioritas:</strong> ${selectedPrioritas}</p>
+                        <p><strong>Institusi:</strong> ${institusi}</p>
                         <hr>
                         <p class="text-muted">Pastikan informasi yang Anda berikan sudah benar.</p>
                     </div>

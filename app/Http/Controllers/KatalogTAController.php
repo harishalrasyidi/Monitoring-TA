@@ -163,18 +163,31 @@ class KatalogTAController extends Controller
     
     /**
      * Proses request untuk mengakses informasi kota/TA menggunakan Laravel Mail
+     * UPDATED: Sesuai dengan form baru yang ada field tambahan
      */
     public function sendRequest(Request $request, $id)
     {
-        // Validasi input
+        // Validasi input - UPDATED dengan field baru
         $validated = $request->validate([
             'tujuan_request' => 'required|string',
             'detail_tujuan' => 'required_if:tujuan_request,lainnya|nullable|string|max:500',
+            'status_pemohon' => 'required|string|in:mahasiswa_aktif,mahasiswa_alumni,dosen_internal,dosen_eksternal,peneliti',
+            'prioritas' => 'required|string|in:rendah,sedang,tinggi,urgent',
+            'deadline_request' => 'nullable|date|after:today',
+            'institusi' => 'required|string|max:200',
             'pesan' => 'nullable|string|max:1000',
         ], [
             'tujuan_request.required' => 'Tujuan request harus dipilih.',
             'detail_tujuan.required_if' => 'Detail tujuan harus diisi ketika memilih "Lainnya".',
             'detail_tujuan.max' => 'Detail tujuan maksimal 500 karakter.',
+            'status_pemohon.required' => 'Status pemohon harus dipilih.',
+            'status_pemohon.in' => 'Status pemohon tidak valid.',
+            'prioritas.required' => 'Tingkat prioritas harus dipilih.',
+            'prioritas.in' => 'Tingkat prioritas tidak valid.',
+            'deadline_request.date' => 'Format tanggal deadline tidak valid.',
+            'deadline_request.after' => 'Deadline harus tanggal di masa depan.',
+            'institusi.required' => 'Institusi/afiliasi harus diisi.',
+            'institusi.max' => 'Institusi/afiliasi maksimal 200 karakter.',
             'pesan.max' => 'Pesan tambahan maksimal 1000 karakter.',
         ]);
         
@@ -202,30 +215,65 @@ class KatalogTAController extends Controller
             'lainnya' => $validated['detail_tujuan'] ?? 'Lainnya'
         ];
         
-        $tujuanDisplay = $tujuanMapping[$validated['tujuan_request']] ?? $validated['tujuan_request'];
+        // ADDED: Mapping untuk status pemohon
+        $statusMapping = [
+            'mahasiswa_aktif' => 'Mahasiswa Aktif (sedang menyusun TA)',
+            'mahasiswa_alumni' => 'Alumni/Mahasiswa yang telah lulus',
+            'dosen_internal' => 'Dosen Internal Jurusan',
+            'dosen_eksternal' => 'Dosen Eksternal/Institusi Lain',
+            'peneliti' => 'Peneliti/Praktisi'
+        ];
         
-        // Siapkan data email
+        // ADDED: Mapping untuk prioritas
+        $prioritasMapping = [
+            'rendah' => 'Rendah (tidak mendesak)',
+            'sedang' => 'Sedang (1-2 minggu)',
+            'tinggi' => 'Tinggi (3-7 hari)',
+            'urgent' => 'Urgent (1-2 hari)'
+        ];
+        
+        $tujuanDisplay = $tujuanMapping[$validated['tujuan_request']] ?? $validated['tujuan_request'];
+        $statusDisplay = $statusMapping[$validated['status_pemohon']] ?? $validated['status_pemohon'];
+        $prioritasDisplay = $prioritasMapping[$validated['prioritas']] ?? $validated['prioritas'];
+        
+        // Format deadline jika ada
+        $deadlineFormatted = null;
+        if (!empty($validated['deadline_request'])) {
+            $deadlineFormatted = \Carbon\Carbon::parse($validated['deadline_request'])->format('d F Y');
+        }
+        
+        // Siapkan data email - UPDATED dengan field baru
         $emailData = [
-            'subject' => 'Request Katalog KoTA: ' . $kota->nama_kota,
+            'subject' => "[{$prioritasDisplay}] Request Katalog KoTA: {$kota->nama_kota}",
             'sender_name' => $requester->name,
             'sender_email' => $requester->email,
             'sender_nim' => $requester->nomor_induk ?? 'N/A',
             'tujuan_request' => $tujuanDisplay,
+            'status_pemohon' => $statusDisplay,
+            'prioritas' => $prioritasDisplay,
+            'prioritas_level' => $validated['prioritas'], // For styling purposes
+            'deadline_request' => $deadlineFormatted,
+            'institusi' => $validated['institusi'],
             'pesan' => $validated['pesan'] ?? '',
             'kota_nama' => $kota->nama_kota,
             'judul_ta' => $kota->judul,
             'periode' => $kota->periode,
             'kelas' => $kota->kelas,
             'request_date' => now()->format('d F Y H:i'),
+            'request_id' => 'REQ-' . now()->format('YmdHis') . '-' . $id
         ];
         
-        // Log aktivitas request
+        // Log aktivitas request - UPDATED
         Log::info('Request katalog TA', [
             'requester_id' => $requester->id,
             'requester_email' => $requester->email,
             'kota_id' => $kota->id_kota,
             'kota_nama' => $kota->nama_kota,
             'tujuan' => $validated['tujuan_request'],
+            'status_pemohon' => $validated['status_pemohon'],
+            'prioritas' => $validated['prioritas'],
+            'institusi' => $validated['institusi'],
+            'deadline' => $validated['deadline_request'],
             'timestamp' => now()
         ]);
         
@@ -242,7 +290,8 @@ class KatalogTAController extends Controller
                         'to' => $email,
                         'subject' => $emailData['subject'],
                         'from' => $requester->email,
-                        'kota' => $kota->nama_kota
+                        'kota' => $kota->nama_kota,
+                        'request_id' => $emailData['request_id']
                     ]);
                     $successCount++;
                     
@@ -256,11 +305,16 @@ class KatalogTAController extends Controller
             }
             
             // Simpan ke database untuk tracking
-            $this->saveRequestToDatabase($requester->id, $kota->id_kota, $validated);
+            $this->saveRequestToDatabase($requester->id, $kota->id_kota, $validated, $emailData['request_id']);
             
             if ($successCount > 0) {
                 $message = "Request berhasil dikirim ke {$successCount} anggota KoTA ({$kota->nama_kota}). ";
                 $message .= "Mereka akan menghubungi Anda di email {$requester->email} jika bersedia berbagi informasi.";
+                
+                // Tambahkan info deadline jika ada
+                if (!empty($deadlineFormatted)) {
+                    $message .= " Deadline yang Anda tentukan: {$deadlineFormatted}.";
+                }
                 
                 if (!empty($failedEmails)) {
                     $message .= " Namun, ada " . count($failedEmails) . " email yang gagal dikirim.";
@@ -287,8 +341,9 @@ class KatalogTAController extends Controller
     
     /**
      * Simpan request ke database untuk tracking
+     * UPDATED: dengan field tambahan
      */
-    private function saveRequestToDatabase($requesterId, $kotaId, $data)
+    private function saveRequestToDatabase($requesterId, $kotaId, $data, $requestId)
     {
         try {
             // Cek apakah tabel ada
@@ -296,10 +351,15 @@ class KatalogTAController extends Controller
             
             if (!empty($tables)) {
                 DB::table('tbl_katalog_requests')->insert([
+                    'request_id' => $requestId,
                     'requester_id' => $requesterId,
                     'kota_id' => $kotaId,
                     'tujuan_request' => $data['tujuan_request'],
                     'detail_tujuan' => $data['detail_tujuan'] ?? null,
+                    'status_pemohon' => $data['status_pemohon'],
+                    'prioritas' => $data['prioritas'],
+                    'deadline_request' => $data['deadline_request'] ?? null,
+                    'institusi' => $data['institusi'],
                     'pesan' => $data['pesan'] ?? null,
                     'status' => 'sent',
                     'created_at' => now(),
@@ -307,6 +367,7 @@ class KatalogTAController extends Controller
                 ]);
                 
                 Log::info('Request tersimpan di database', [
+                    'request_id' => $requestId,
                     'requester_id' => $requesterId,
                     'kota_id' => $kotaId
                 ]);
@@ -317,11 +378,14 @@ class KatalogTAController extends Controller
             // Jika tabel belum ada atau ada error, hanya log saja
             Log::warning('Gagal menyimpan request ke database', [
                 'error' => $e->getMessage(),
+                'request_id' => $requestId,
                 'requester_id' => $requesterId,
                 'kota_id' => $kotaId
             ]);
         }
     }
+    
+    // Method lainnya tetap sama seperti sebelumnya...
     
     /**
      * Download file artefak tertentu (hanya untuk anggota kota atau admin)
