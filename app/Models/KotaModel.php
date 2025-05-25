@@ -42,6 +42,12 @@ class KotaModel extends Model
         return $this->hasOne(YudisiumModel::class, 'id_kota', 'id_kota');
     }
 
+    public function resumeBimbingan()
+{
+    return $this->hasMany(KotaHasResumeBimbinganModel::class, 'id_kota');
+}
+
+
     // Tambahan 
     // public function users()
     // {

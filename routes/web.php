@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
-
+Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
 
 //Kota
 Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
