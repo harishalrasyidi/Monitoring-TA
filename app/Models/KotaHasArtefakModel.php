@@ -21,7 +21,12 @@ class KotaHasArtefakModel extends Model
 
     public function artefak()
     {
-        return $this->belongsTo(ArtefakModel::class, 'id_artefak');
+        return $this->belongsTo(ArtefakModel::class, 'id_artefak', 'id_artefak');
+    }
+
+    public function master()
+    {
+        return $this->belongsTo(MasterArterfakModel::class, 'nama_artefak', 'id');
     }
 
 }
