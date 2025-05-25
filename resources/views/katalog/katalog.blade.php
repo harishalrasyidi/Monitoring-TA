@@ -73,7 +73,7 @@
                             </div>
 
                             <!-- Filter Metodologi (Hanya untuk Development) -->
-                            <div class="col-md-2" id="metodologi-wrapper" style="{{ request('kategori') == 'Development' ? '' : 'display: none;' }}">
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label>Metodologi SDLC</label>
                                     <select name="metodologi" class="form-control" id="metodologi-filter">
@@ -181,7 +181,7 @@
                                         <p class="card-text mb-1"><strong>Kategori:</strong> {{ $item->kategori }}</p>
                                     @endif
                                     
-                                    @if($item->metodologi && $item->kategori == 'Development')
+                                    @if($item->metodologi && ($item->kategori == 'Development'))
                                         <p class="card-text mb-1"><strong>Metodologi:</strong> {{ $item->metodologi }}</p>
                                     @endif
                                     

@@ -62,8 +62,7 @@ class KatalogController extends Controller
             $query->where('tbl_kota.kategori', $request->kategori);
         }
 
-        // Filter berdasarkan metodologi (hanya untuk kategori Development)
-        if ($request->filled('metodologi') && $request->filled('kategori') && $request->kategori == 'Development') {
+        if ($request->filled('metodologi') && $request->filled('kategori') && $request->kategori == 'Development' && $request->kategori == 'Riset') {
             $query->where('tbl_kota.metodologi', $request->metodologi);
         }
 

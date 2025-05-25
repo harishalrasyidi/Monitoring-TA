@@ -102,7 +102,7 @@ class KotaController extends Controller
         $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
         $years = KotaModel::select('tahun')->whereNotNull('tahun')->distinct()->orderBy('tahun', 'desc')->get();
         $jenis_tas = [
-            ['id' => 'analisis', 'name' => 'Analisis'],
+            ['id' => 'riset', 'name' => 'Riset'],
             ['id' => 'development', 'name' => 'Development']
         ];
         $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
@@ -128,7 +128,7 @@ class KotaController extends Controller
         $kbks = KotaModel::select('kbk')->whereNotNull('kbk')->distinct()->get();
         $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
         $jenis_tas = [
-            ['id' => 'analisis', 'name' => 'Analisis'],
+            ['id' => 'riset', 'name' => 'Riset'],
             ['id' => 'development', 'name' => 'Development']
         ];
         $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
@@ -160,7 +160,7 @@ class KotaController extends Controller
             'kbk' => 'nullable',
             'topik' => 'nullable',
             'tahun' => 'nullable|numeric',
-            'jenis_ta' => 'nullable|in:analisis,development',
+            'jenis_ta' => 'nullable|in:riset,development',
             'metodologi' => 'nullable',
         ]);
         
@@ -368,7 +368,7 @@ class KotaController extends Controller
         ];
         
         $jenis_tas = [
-            ['id' => 'analisis', 'name' => 'Analisis'],
+            ['id' => 'riset', 'name' => 'Riset'],
             ['id' => 'development', 'name' => 'Development']
         ];
 
@@ -440,7 +440,7 @@ class KotaController extends Controller
         $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
         $years = KotaModel::select('tahun')->whereNotNull('tahun')->distinct()->orderBy('tahun', 'desc')->get();
         $jenis_tas = [
-            ['id' => 'analisis', 'name' => 'Analisis'],
+            ['id' => 'riset', 'name' => 'Riset'],
             ['id' => 'development', 'name' => 'Development']
         ];
         $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
@@ -498,7 +498,7 @@ class KotaController extends Controller
             'kbk' => 'nullable',
             'topik' => 'nullable',
             'tahun' => 'nullable|numeric',
-            'jenis_ta' => 'nullable|in:analisis,development',
+            'jenis_ta' => 'nullable|in:riset,development',
             'metodologi' => 'nullable',
         ]);
         
