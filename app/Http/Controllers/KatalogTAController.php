@@ -1,4 +1,5 @@
 <?php
+// File: app/Http/Controllers/KatalogTAController.php
 
 namespace App\Http\Controllers;
 
@@ -84,21 +85,66 @@ class KatalogTAController extends Controller
         $mahasiswa = $kota->users->where('role', 3);
         $dosen = $kota->users->where('role', 2);
         
-        // Ambil data artefak yang sudah dikumpulkan untuk kota ini
-        $artefakKota = DB::table('tbl_kota_has_artefak')
-                        ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
-                        ->where('tbl_kota_has_artefak.id_kota', $id)
-                        ->select('tbl_artefak.*', 'tbl_kota_has_artefak.file_pengumpulan', 'tbl_kota_has_artefak.waktu_pengumpulan')
-                        ->get();
+        // Ambil data artefak yang sudah dikumpulkan untuk kota ini dengan error handling
+        $artefakKota = collect(); // Default empty collection
+        try {
+            $artefakKota = DB::table('tbl_kota_has_artefak')
+                            ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
+                            ->where('tbl_kota_has_artefak.id_kota', $id)
+                            ->whereNotNull('tbl_kota_has_artefak.file_pengumpulan')
+                            ->select('tbl_artefak.*', 'tbl_kota_has_artefak.file_pengumpulan', 'tbl_kota_has_artefak.waktu_pengumpulan')
+                            ->orderBy('tbl_kota_has_artefak.waktu_pengumpulan', 'desc')
+                            ->get();
+        } catch (\Exception $e) {
+            Log::warning('Error fetching artefak kota', [
+                'kota_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+        }
         
-        // Ambil tahapan progres kota
-        $tahapanProgres = DB::table('tbl_kota_has_tahapan_progres')
-                           ->join('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
-                           ->where('tbl_kota_has_tahapan_progres.id_kota', $id)
-                           ->select('tbl_master_tahapan_progres.nama_progres', 'tbl_kota_has_tahapan_progres.status')
-                           ->get();
+        // Ambil tahapan progres kota dengan error handling untuk kolom urutan
+        $tahapanProgres = collect(); // Default empty collection
+        $persentaseProgress = 0;
         
-        return view('katalog_ta.show', compact('kota', 'mahasiswa', 'dosen', 'artefakKota', 'tahapanProgres'));
+        try {
+            // Cek apakah kolom urutan ada di tabel
+            $columns = DB::select('SHOW COLUMNS FROM tbl_master_tahapan_progres');
+            $hasUrutanColumn = collect($columns)->contains(function($column) {
+                return $column->Field === 'urutan';
+            });
+            
+            if ($hasUrutanColumn) {
+                // Jika kolom urutan ada
+                $tahapanProgres = DB::table('tbl_kota_has_tahapan_progres')
+                                   ->join('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
+                                   ->where('tbl_kota_has_tahapan_progres.id_kota', $id)
+                                   ->select('tbl_master_tahapan_progres.nama_progres', 'tbl_kota_has_tahapan_progres.status', 'tbl_master_tahapan_progres.urutan')
+                                   ->orderBy('tbl_master_tahapan_progres.urutan', 'asc')
+                                   ->get();
+            } else {
+                // Jika kolom urutan tidak ada, gunakan id sebagai pengurutan
+                $tahapanProgres = DB::table('tbl_kota_has_tahapan_progres')
+                                   ->join('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
+                                   ->where('tbl_kota_has_tahapan_progres.id_kota', $id)
+                                   ->select('tbl_master_tahapan_progres.nama_progres', 'tbl_kota_has_tahapan_progres.status')
+                                   ->orderBy('tbl_master_tahapan_progres.id', 'asc')
+                                   ->get();
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error fetching tahapan progres', [
+                'kota_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+        }
+        
+        // Hitung persentase progress
+        if ($tahapanProgres->count() > 0) {
+            $totalTahapan = $tahapanProgres->count();
+            $selesaiTahapan = $tahapanProgres->where('status', 'selesai')->count();
+            $persentaseProgress = round(($selesaiTahapan / $totalTahapan) * 100);
+        }
+        
+        return view('katalog_ta.show', compact('kota', 'mahasiswa', 'dosen', 'artefakKota', 'tahapanProgres', 'persentaseProgress'));
     }
     
     /**
@@ -122,32 +168,49 @@ class KatalogTAController extends Controller
     {
         // Validasi input
         $validated = $request->validate([
-            'tujuan_request' => 'required|string|min:10|max:1000',
-            'pesan' => 'nullable|string|max:2000',
+            'tujuan_request' => 'required|string',
+            'detail_tujuan' => 'required_if:tujuan_request,lainnya|nullable|string|max:500',
+            'pesan' => 'nullable|string|max:1000',
         ], [
-            'tujuan_request.required' => 'Tujuan request harus diisi.',
-            'tujuan_request.min' => 'Tujuan request minimal 10 karakter.',
-            'tujuan_request.max' => 'Tujuan request maksimal 1000 karakter.',
-            'pesan.max' => 'Pesan tambahan maksimal 2000 karakter.',
+            'tujuan_request.required' => 'Tujuan request harus dipilih.',
+            'detail_tujuan.required_if' => 'Detail tujuan harus diisi ketika memilih "Lainnya".',
+            'detail_tujuan.max' => 'Detail tujuan maksimal 500 karakter.',
+            'pesan.max' => 'Pesan tambahan maksimal 1000 karakter.',
         ]);
         
         $kota = KotaModel::with(['users'])->findOrFail($id);
         $requester = Auth::user();
         
         // Ambil email mahasiswa dan dosen dari kota ini
-        $emailList = $kota->users->pluck('email')->filter()->unique()->toArray();
+        $emailList = $kota->users->whereNotNull('email')->pluck('email')->filter()->unique()->toArray();
         
         if (empty($emailList)) {
             return redirect()->back()->withInput()->with('error', 'Tidak ada anggota KoTA yang dapat dihubungi saat ini. Silakan coba lagi nanti.');
         }
         
-        // Siapkan data email menggunakan format yang sama dengan controller lama
+        // Mapping tujuan request untuk tampilan yang lebih user-friendly
+        $tujuanMapping = [
+            'referensi_penelitian' => 'Referensi untuk penelitian serupa',
+            'studi_metodologi' => 'Mempelajari metodologi yang digunakan',
+            'studi_literatur' => 'Menambah referensi literatur',
+            'inspirasi_topik' => 'Mencari inspirasi topik TA',
+            'analisis_perbandingan' => 'Analisis perbandingan penelitian',
+            'validasi_ide' => 'Validasi ide penelitian',
+            'pembelajaran_teknik' => 'Mempelajari teknik/tools yang digunakan',
+            'konsultasi_akademik' => 'Konsultasi akademik dengan penulis',
+            'kolaborasi_penelitian' => 'Mencari peluang kolaborasi penelitian',
+            'lainnya' => $validated['detail_tujuan'] ?? 'Lainnya'
+        ];
+        
+        $tujuanDisplay = $tujuanMapping[$validated['tujuan_request']] ?? $validated['tujuan_request'];
+        
+        // Siapkan data email
         $emailData = [
             'subject' => 'Request Katalog KoTA: ' . $kota->nama_kota,
             'sender_name' => $requester->name,
             'sender_email' => $requester->email,
             'sender_nim' => $requester->nomor_induk ?? 'N/A',
-            'tujuan_request' => $validated['tujuan_request'],
+            'tujuan_request' => $tujuanDisplay,
             'pesan' => $validated['pesan'] ?? '',
             'kota_nama' => $kota->nama_kota,
             'judul_ta' => $kota->judul,
@@ -162,17 +225,17 @@ class KatalogTAController extends Controller
             'requester_email' => $requester->email,
             'kota_id' => $kota->id_kota,
             'kota_nama' => $kota->nama_kota,
+            'tujuan' => $validated['tujuan_request'],
             'timestamp' => now()
         ]);
         
-        // Kirim email ke semua anggota kota menggunakan Laravel Mail
+        // Kirim email ke semua anggota kota
         try {
             $successCount = 0;
             $failedEmails = [];
             
             foreach ($emailList as $email) {
                 try {
-                    // Gunakan RequestKatalogEmail Mailable class
                     Mail::to($email)->send(new RequestKatalogEmail($emailData));
                     
                     Log::info('Email request katalog TA berhasil dikirim', [
@@ -228,17 +291,30 @@ class KatalogTAController extends Controller
     private function saveRequestToDatabase($requesterId, $kotaId, $data)
     {
         try {
-            DB::table('tbl_katalog_requests')->insert([
-                'requester_id' => $requesterId,
-                'kota_id' => $kotaId,
-                'tujuan_request' => $data['tujuan_request'],
-                'pesan' => $data['pesan'] ?? null,
-                'status' => 'sent',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            // Cek apakah tabel ada
+            $tables = DB::select('SHOW TABLES LIKE "tbl_katalog_requests"');
+            
+            if (!empty($tables)) {
+                DB::table('tbl_katalog_requests')->insert([
+                    'requester_id' => $requesterId,
+                    'kota_id' => $kotaId,
+                    'tujuan_request' => $data['tujuan_request'],
+                    'detail_tujuan' => $data['detail_tujuan'] ?? null,
+                    'pesan' => $data['pesan'] ?? null,
+                    'status' => 'sent',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                
+                Log::info('Request tersimpan di database', [
+                    'requester_id' => $requesterId,
+                    'kota_id' => $kotaId
+                ]);
+            } else {
+                Log::info('Tabel tbl_katalog_requests belum ada, request tidak disimpan ke database');
+            }
         } catch (\Exception $e) {
-            // Jika tabel belum ada, buat tabel atau log error
+            // Jika tabel belum ada atau ada error, hanya log saja
             Log::warning('Gagal menyimpan request ke database', [
                 'error' => $e->getMessage(),
                 'requester_id' => $requesterId,
@@ -294,7 +370,7 @@ class KatalogTAController extends Controller
         // Download file
         return Storage::disk('public')->download(
             $artefak->file_pengumpulan, 
-            $artefak->nama_artefak . '.pdf'
+            $artefak->nama_artefak . '_' . $kota->nama_kota . '.pdf'
         );
     }
     
@@ -305,16 +381,43 @@ class KatalogTAController extends Controller
     {
         $stats = [
             'total_kota' => KotaModel::whereHas('users')->count(),
-            'kota_aktif' => KotaModel::whereHas('users')->count(),
-            'total_mahasiswa' => DB::table('tbl_kota_has_user')
-                                  ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
-                                  ->where('users.role', 3)
-                                  ->count(),
-            'total_dosen' => DB::table('tbl_kota_has_user')
-                              ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
-                              ->where('users.role', 2)
-                              ->count(),
+            'kota_selesai' => 0, // Default value
+            'total_mahasiswa' => 0,
+            'total_dosen' => 0,
         ];
+        
+        // Hitung statistik dengan error handling
+        try {
+            $stats['total_mahasiswa'] = DB::table('tbl_kota_has_user')
+                                          ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
+                                          ->where('users.role', 3)
+                                          ->distinct('users.id')
+                                          ->count();
+        } catch (\Exception $e) {
+            Log::warning('Error counting mahasiswa', ['error' => $e->getMessage()]);
+        }
+        
+        try {
+            $stats['total_dosen'] = DB::table('tbl_kota_has_user')
+                                      ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
+                                      ->where('users.role', 2)
+                                      ->distinct('users.id')
+                                      ->count();
+        } catch (\Exception $e) {
+            Log::warning('Error counting dosen', ['error' => $e->getMessage()]);
+        }
+        
+        // Hitung kota selesai dengan safe query
+        try {
+            $stats['kota_selesai'] = DB::table('tbl_kota')
+                ->join('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+                ->join('tbl_kota_has_tahapan_progres', 'tbl_kota.id_kota', '=', 'tbl_kota_has_tahapan_progres.id_kota')
+                ->where('tbl_kota_has_tahapan_progres.status', 'selesai')
+                ->distinct('tbl_kota.id_kota')
+                ->count();
+        } catch (\Exception $e) {
+            Log::warning('Error calculating completed kota', ['error' => $e->getMessage()]);
+        }
         
         // Statistik per periode
         $statsPeriode = KotaModel::whereHas('users')
@@ -331,13 +434,18 @@ class KatalogTAController extends Controller
                               ->get();
         
         // Statistik artefak yang sudah dikumpulkan
-        $statsArtefak = DB::table('tbl_kota_has_artefak')
-                         ->join('tbl_kota', 'tbl_kota_has_artefak.id_kota', '=', 'tbl_kota.id_kota')
-                         ->join('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
-                         ->select('tbl_kota.periode', DB::raw('count(DISTINCT tbl_kota_has_artefak.id_kota) as total_artefak'))
-                         ->groupBy('tbl_kota.periode')
-                         ->orderBy('tbl_kota.periode', 'desc')
-                         ->get();
+        $statsArtefak = collect(); // Default empty
+        try {
+            $statsArtefak = DB::table('tbl_kota_has_artefak')
+                             ->join('tbl_kota', 'tbl_kota_has_artefak.id_kota', '=', 'tbl_kota.id_kota')
+                             ->whereNotNull('tbl_kota_has_artefak.file_pengumpulan')
+                             ->select('tbl_kota.periode', DB::raw('count(*) as total_artefak'))
+                             ->groupBy('tbl_kota.periode')
+                             ->orderBy('tbl_kota.periode', 'desc')
+                             ->get();
+        } catch (\Exception $e) {
+            Log::warning('Error fetching artefak statistics', ['error' => $e->getMessage()]);
+        }
         
         return view('katalog_ta.statistics', compact('stats', 'statsPeriode', 'statsKelas', 'statsArtefak'));
     }
@@ -347,47 +455,62 @@ class KatalogTAController extends Controller
      */
     public function getKotaData(Request $request)
     {
-        $query = KotaModel::with(['users' => function($q) {
-            $q->whereIn('role', [2, 3]); // Ambil dosen dan mahasiswa
-        }])->whereHas('users'); // Hanya kota yang punya anggota
-        
-        if ($request->has('periode')) {
-            $query->where('periode', $request->periode);
+        try {
+            $query = KotaModel::with(['users' => function($q) {
+                $q->whereIn('role', [2, 3]); // Ambil dosen dan mahasiswa
+            }])->whereHas('users'); // Hanya kota yang punya anggota
+            
+            if ($request->has('periode')) {
+                $query->where('periode', $request->periode);
+            }
+            
+            if ($request->has('kelas')) {
+                $query->where('kelas', $request->kelas);
+            }
+            
+            $data = $query->get()->map(function($kota) {
+                return [
+                    'id' => $kota->id_kota,
+                    'nama_kota' => $kota->nama_kota,
+                    'judul' => $kota->judul,
+                    'kelas' => $kota->kelas,
+                    'periode' => $kota->periode,
+                    'mahasiswa_count' => $kota->users->where('role', 3)->count(),
+                    'dosen_count' => $kota->users->where('role', 2)->count(),
+                    'mahasiswa' => $kota->users->where('role', 3)->map(function($user) {
+                        return [
+                            'name' => $user->name,
+                            'nim' => $user->nomor_induk,
+                            'email' => $user->email,
+                        ];
+                    }),
+                    'dosen' => $kota->users->where('role', 2)->map(function($user) {
+                        return [
+                            'name' => $user->name,
+                            'email' => $user->email,
+                        ];
+                    }),
+                ];
+            });
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => $data,
+                'total' => $data->count()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in getKotaData API', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil data kota',
+                'data' => [],
+                'total' => 0
+            ], 500);
         }
-        
-        if ($request->has('kelas')) {
-            $query->where('kelas', $request->kelas);
-        }
-        
-        $data = $query->get()->map(function($kota) {
-            return [
-                'id' => $kota->id_kota,
-                'nama_kota' => $kota->nama_kota,
-                'judul' => $kota->judul,
-                'kelas' => $kota->kelas,
-                'periode' => $kota->periode,
-                'mahasiswa_count' => $kota->users->where('role', 3)->count(),
-                'dosen_count' => $kota->users->where('role', 2)->count(),
-                'mahasiswa' => $kota->users->where('role', 3)->map(function($user) {
-                    return [
-                        'name' => $user->name,
-                        'nim' => $user->nomor_induk,
-                        'email' => $user->email,
-                    ];
-                }),
-                'dosen' => $kota->users->where('role', 2)->map(function($user) {
-                    return [
-                        'name' => $user->name,
-                        'email' => $user->email,
-                    ];
-                }),
-            ];
-        });
-        
-        return response()->json([
-            'status' => 'success',
-            'data' => $data,
-            'total' => $data->count()
-        ]);
     }
 }

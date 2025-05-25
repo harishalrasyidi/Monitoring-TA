@@ -78,20 +78,68 @@
                         <form action="{{ route('katalog-ta.send-request', $kota->id_kota) }}" method="POST">
                             @csrf
                             
+                            <!-- Dropdown untuk Tujuan Request -->
                             <div class="form-group">
                                 <label for="tujuan_request">Tujuan Request Katalog TA <span class="text-danger">*</span></label>
-                                <textarea name="tujuan_request" id="tujuan_request" rows="5" 
-                                    class="form-control @error('tujuan_request') is-invalid @enderror" 
-                                    placeholder="Jelaskan tujuan Anda meminta katalog TA ini (contoh: untuk referensi penelitian, memahami metodologi yang digunakan, dll)..." 
-                                    required>{{ old('tujuan_request') }}</textarea>
+                                <select name="tujuan_request" id="tujuan_request" 
+                                    class="form-control @error('tujuan_request') is-invalid @enderror" required>
+                                    <option value="">-- Pilih Tujuan Request --</option>
+                                    <option value="referensi_penelitian" {{ old('tujuan_request') == 'referensi_penelitian' ? 'selected' : '' }}>
+                                        Referensi untuk penelitian serupa
+                                    </option>
+                                    <option value="studi_metodologi" {{ old('tujuan_request') == 'studi_metodologi' ? 'selected' : '' }}>
+                                        Mempelajari metodologi yang digunakan
+                                    </option>
+                                    <option value="studi_literatur" {{ old('tujuan_request') == 'studi_literatur' ? 'selected' : '' }}>
+                                        Menambah referensi literatur
+                                    </option>
+                                    <option value="inspirasi_topik" {{ old('tujuan_request') == 'inspirasi_topik' ? 'selected' : '' }}>
+                                        Mencari inspirasi topik TA
+                                    </option>
+                                    <option value="analisis_perbandingan" {{ old('tujuan_request') == 'analisis_perbandingan' ? 'selected' : '' }}>
+                                        Analisis perbandingan penelitian
+                                    </option>
+                                    <option value="validasi_ide" {{ old('tujuan_request') == 'validasi_ide' ? 'selected' : '' }}>
+                                        Validasi ide penelitian
+                                    </option>
+                                    <option value="pembelajaran_teknik" {{ old('tujuan_request') == 'pembelajaran_teknik' ? 'selected' : '' }}>
+                                        Mempelajari teknik/tools yang digunakan
+                                    </option>
+                                    <option value="konsultasi_akademik" {{ old('tujuan_request') == 'konsultasi_akademik' ? 'selected' : '' }}>
+                                        Konsultasi akademik dengan penulis
+                                    </option>
+                                    <option value="kolaborasi_penelitian" {{ old('tujuan_request') == 'kolaborasi_penelitian' ? 'selected' : '' }}>
+                                        Mencari peluang kolaborasi penelitian
+                                    </option>
+                                    <option value="lainnya" {{ old('tujuan_request') == 'lainnya' ? 'selected' : '' }}>
+                                        Lainnya (akan dijelaskan di pesan tambahan)
+                                    </option>
+                                </select>
                                 @error('tujuan_request')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
                                 <small class="form-text text-muted">
-                                    Jelaskan dengan jelas mengapa Anda memerlukan katalog TA ini. Hal ini akan membantu anggota KoTA dalam
-                                    mempertimbangkan permintaan Anda.
+                                    Pilih tujuan yang paling sesuai dengan kebutuhan Anda. Ini akan membantu anggota KoTA 
+                                    memahami maksud permintaan Anda.
+                                </small>
+                            </div>
+                            
+                            <!-- Textarea untuk detail tambahan ketika pilih "Lainnya" -->
+                            <div class="form-group" id="detail_lainnya" style="display: none;">
+                                <label for="detail_tujuan">Detail Tujuan Request <span class="text-danger">*</span></label>
+                                <textarea name="detail_tujuan" id="detail_tujuan" rows="3" 
+                                    class="form-control @error('detail_tujuan') is-invalid @enderror" 
+                                    placeholder="Jelaskan secara detail tujuan request Anda..."
+                                    maxlength="500">{{ old('detail_tujuan') }}</textarea>
+                                @error('detail_tujuan')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Maksimal 500 karakter. <span id="char_count">0</span>/500
                                 </small>
                             </div>
                             
@@ -99,7 +147,8 @@
                                 <label for="pesan">Pesan Tambahan (Opsional)</label>
                                 <textarea name="pesan" id="pesan" rows="3" 
                                     class="form-control @error('pesan') is-invalid @enderror" 
-                                    placeholder="Pesan tambahan untuk anggota KoTA...">{{ old('pesan') }}</textarea>
+                                    placeholder="Pesan tambahan untuk anggota KoTA..."
+                                    maxlength="1000">{{ old('pesan') }}</textarea>
                                 @error('pesan')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -107,6 +156,7 @@
                                 @enderror
                                 <small class="form-text text-muted">
                                     Anda dapat menambahkan pesan khusus atau pertanyaan untuk anggota KoTA.
+                                    Maksimal 1000 karakter.
                                 </small>
                             </div>
                             
@@ -129,22 +179,63 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Show/Hide detail textarea when "Lainnya" is selected
+        $('#tujuan_request').change(function() {
+            if ($(this).val() === 'lainnya') {
+                $('#detail_lainnya').slideDown();
+                $('#detail_tujuan').attr('required', true);
+            } else {
+                $('#detail_lainnya').slideUp();
+                $('#detail_tujuan').attr('required', false).val('');
+            }
+        });
+        
+        // Character counter for detail_tujuan
+        $('#detail_tujuan').on('input', function() {
+            var currentLength = $(this).val().length;
+            $('#char_count').text(currentLength);
+            
+            if (currentLength > 450) {
+                $('#char_count').parent().removeClass('text-muted').addClass('text-warning');
+            } else if (currentLength > 500) {
+                $('#char_count').parent().removeClass('text-warning').addClass('text-danger');
+            } else {
+                $('#char_count').parent().removeClass('text-warning text-danger').addClass('text-muted');
+            }
+        });
+        
         // Confirm dialog before sending request
         $('#submitRequest').click(function(e) {
             e.preventDefault();
             
             // Validasi form terlebih dahulu
-            var tujuanRequest = $('#tujuan_request').val().trim();
+            var tujuanRequest = $('#tujuan_request').val();
+            var detailTujuan = $('#detail_tujuan').val().trim();
+            
             if (!tujuanRequest) {
                 Swal.fire({
                     title: 'Peringatan!',
-                    text: 'Mohon isi tujuan request terlebih dahulu.',
+                    text: 'Mohon pilih tujuan request terlebih dahulu.',
                     icon: 'warning',
                     confirmButtonText: 'OK'
                 });
                 $('#tujuan_request').focus();
                 return;
             }
+            
+            if (tujuanRequest === 'lainnya' && !detailTujuan) {
+                Swal.fire({
+                    title: 'Peringatan!',
+                    text: 'Mohon jelaskan detail tujuan request Anda.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                $('#detail_tujuan').focus();
+                return;
+            }
+            
+            // Get selected option text for display
+            var selectedText = $('#tujuan_request option:selected').text();
             
             Swal.fire({
                 title: 'Konfirmasi Request',
@@ -153,6 +244,7 @@
                         <p>Email request akan dikirim ke anggota KoTA:</p>
                         <p><strong>{{ $kota->nama_kota }}</strong></p>
                         <p><strong>Judul:</strong> {{ $kota->judul }}</p>
+                        <p><strong>Tujuan:</strong> ${selectedText}</p>
                         <hr>
                         <p class="text-muted">Pastikan informasi yang Anda berikan sudah benar.</p>
                     </div>
@@ -184,27 +276,6 @@
             });
         });
         
-        // Character counter for textarea
-        $('#tujuan_request').on('input', function() {
-            var maxLength = 1000;
-            var currentLength = $(this).val().length;
-            var remaining = maxLength - currentLength;
-            
-            if (!$(this).next('.char-counter').length) {
-                $(this).after('<small class="char-counter text-muted float-right"></small>');
-            }
-            
-            $(this).next('.char-counter').text(remaining + ' karakter tersisa');
-            
-            if (remaining < 50) {
-                $(this).next('.char-counter').removeClass('text-muted').addClass('text-warning');
-            } else if (remaining < 0) {
-                $(this).next('.char-counter').removeClass('text-warning').addClass('text-danger');
-            } else {
-                $(this).next('.char-counter').removeClass('text-warning text-danger').addClass('text-muted');
-            }
-        });
-        
         // Auto resize textarea
         $('textarea').each(function() {
             this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
@@ -212,6 +283,12 @@
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
+        
+        // Initialize on page load
+        if ($('#tujuan_request').val() === 'lainnya') {
+            $('#detail_lainnya').show();
+            $('#detail_tujuan').attr('required', true);
+        }
     });
 </script>
 @endpush

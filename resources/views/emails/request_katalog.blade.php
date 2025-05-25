@@ -65,7 +65,7 @@
     <div class="content">
         <p>Halo,</p>
         
-        <p>Anda menerima permintaan akses katalog KoTA dari mahasiswa berikut:</p>
+        <p>Anda menerima permintaan akses katalog KoTA berikut:</p>
 
         <div class="contact-info">
             <strong>📧 Informasi Pemohon:</strong><br>
@@ -89,6 +89,13 @@
                 "{{ $data['tujuan_request'] }}"
             </p>
         </div>
+
+        <!-- <div class="tujuan-box">
+                <h4>🎯 Tujuan Request</h4>
+                <div class="quote-text">
+                    "{{ $data['tujuan_request'] }}""
+                </div>
+            </div> -->
 
         @if(!empty($data['pesan']))
         <div class="info-box">
@@ -122,7 +129,7 @@
     <div class="footer">
         <p>Email ini dikirim otomatis. Harap tidak membalas ke email ini.</p>
         <p>Jika ada pertanyaan, silakan hubungi administrator sistem.</p>
-        <p>&copy; {{ date('Y') }} Sistem Katalog TA</p>
+        <p><strong>&copy; {{ date('Y') }} Sistem Katalog TA</strong></p>
     </div>
 </body>
 </html>
