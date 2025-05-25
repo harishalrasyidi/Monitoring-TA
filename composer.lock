@@ -8945,12 +8945,20 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.1.0"
     },
+<<<<<<< Updated upstream
     "platform-dev": [],
+<<<<<<< HEAD
     "plugin-api-version": "2.2.0"
+=======
+=======
+    "platform-dev": {},
+>>>>>>> Stashed changes
+    "plugin-api-version": "2.6.0"
+>>>>>>> origin/angel
 }

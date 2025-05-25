@@ -2,104 +2,104 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\KotaHasArtefakModel;
-use App\Models\ArtefakModel;
 use App\Models\KotaModel;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class KatalogController extends Controller
 {
     public function index(Request $request)
     {
+        $proposal_id = 7; // ID artefak proposal
+        $poster_id = 8; // ID artefak poster
+
         // Data untuk filter dropdown
-        $categories = KotaModel::select('kategori')->distinct()->get();
-        $years = KotaHasArtefakModel::selectRaw('YEAR(waktu_pengumpulan) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->get();
+        $categories = KotaModel::select('kategori')->distinct()->whereNotNull('kategori')->get();
+        $years = KotaModel::selectRaw('YEAR(periode) as year')->distinct()->orderBy('year', 'desc')->get();
         $prodis = KotaModel::select('prodi')->distinct()->get();
+        $metodologis = KotaModel::select('metodologi')->distinct()->whereNotNull('metodologi')->where('metodologi', '!=', '')->get();
+        $dosens = User::where('role', 2)->get(); // Dosen pembimbing
 
         // Query utama
-        $query = KotaHasArtefakModel::query()
-            ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
-            ->join('tbl_kota', 'tbl_kota_has_artefak.id_kota', '=', 'tbl_kota.id_kota')
-            ->select(
-                'tbl_kota_has_artefak.*',
-                'tbl_artefak.nama_artefak',
-                'tbl_artefak.deskripsi',
-                'tbl_kota.nama_kota',
-                'tbl_kota.judul',
-                'tbl_kota.kelas',
-                'tbl_kota.periode',
-                'tbl_kota.kategori',
-                'tbl_kota.prodi',
-                'tbl_kota.abstrak' // <--- penting
-            );
+        $query = KotaModel::query()
+            ->whereExists(function ($subQuery) use ($proposal_id) {
+                $subQuery->select(DB::raw(1))
+                    ->from('tbl_kota_has_artefak')
+                    ->whereColumn('tbl_kota_has_artefak.id_kota', 'tbl_kota.id_kota')
+                    ->where('tbl_kota_has_artefak.id_artefak', $proposal_id);
+            });
 
         // Jika mencari
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $searchWords = explode(' ', trim($searchTerm));
 
-            // Hanya kata minimal 3 huruf
             $validWords = array_filter($searchWords, function ($word) {
                 return strlen(trim($word)) >= 3;
             });
 
             if (count($validWords) >= 3 || (count($validWords) === 1 && strlen($validWords[0]) >= 5)) {
                 $query->where(function ($q) use ($validWords, $searchTerm) {
-                    // full phrase match
-                    $q->where('tbl_kota.judul', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('tbl_kota.abstrak', 'LIKE', "%{$searchTerm}%");
+                    $q->where('judul', 'LIKE', "%{$searchTerm}%")
+                        ->orWhere('abstrak', 'LIKE', "%{$searchTerm}%");
 
-                    // kata per kata
                     foreach ($validWords as $word) {
-                        $q->orWhere('tbl_kota.judul', 'LIKE', "%{$word}%")
-                          ->orWhere('tbl_kota.nama_kota', 'LIKE', "%{$word}%")
-                          ->orWhere('tbl_kota.kategori', 'LIKE', "%{$word}%")
-                          ->orWhere('tbl_artefak.nama_artefak', 'LIKE', "%{$word}%")
-                          ->orWhere('tbl_artefak.deskripsi', 'LIKE', "%{$word}%")
-                          ->orWhere('tbl_kota.abstrak', 'LIKE', "%{$word}%"); // <--- penting
+                        $q->orWhere('judul', 'LIKE', "%{$word}%")
+                            ->orWhere('kategori', 'LIKE', "%{$word}%")
+                            ->orWhere('metodologi', 'LIKE', "%{$word}%")
+                            ->orWhere('abstrak', 'LIKE', "%{$word}%");
                     }
-
-                    // Search nama penulis
-                    $q->orWhereExists(function ($authorQuery) use ($validWords, $searchTerm) {
-                        $authorQuery->select(DB::raw(1))
-                            ->from('tbl_kota_has_user')
-                            ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
-                            ->whereColumn('tbl_kota_has_user.id_kota', 'tbl_kota.id_kota')
-                            ->where('users.role', 3)
-                            ->where(function ($nameQuery) use ($validWords, $searchTerm) {
-                                $nameQuery->where('users.name', 'LIKE', "%{$searchTerm}%");
-                                foreach ($validWords as $word) {
-                                    $nameQuery->orWhere('users.name', 'LIKE', "%{$word}%");
-                                }
-                            });
-                    });
                 });
             }
         }
 
         // Filter kategori
         if ($request->filled('kategori')) {
-            $query->where('tbl_kota.kategori', $request->kategori);
+            $query->where('kategori', $request->kategori);
         }
 
         // Filter prodi
         if ($request->filled('prodi')) {
-            $query->where('tbl_kota.prodi', $request->prodi);
+            $query->where('prodi', $request->prodi);
+        }
+
+        // Filter metodologi
+        if ($request->filled('metodologi')) {
+            $query->where('metodologi', $request->metodologi);
         }
 
         // Filter tahun
         if ($request->filled('tahun')) {
-            $query->whereYear('tbl_kota_has_artefak.waktu_pengumpulan', $request->tahun);
+            $query->whereYear('periode', $request->tahun);
         }
 
-        // Ambil hasil
-        $katalog = $query->orderBy('tbl_kota_has_artefak.waktu_pengumpulan', 'desc')->paginate(12);
+        // Filter dosen pembimbing
+        if ($request->filled('dosen')) {
+            $query->whereExists(function ($subQuery) use ($request) {
+                $subQuery->select(DB::raw(1))
+                    ->from('tbl_kota_has_user')
+                    ->join('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
+                    ->whereColumn('tbl_kota_has_user.id_kota', 'tbl_kota.id_kota')
+                    ->where('users.id', $request->dosen)
+                    ->where('users.role', 2);
+            });
+        }
 
-        return view('katalog.katalog', compact('katalog', 'categories', 'years', 'prodis'));
+        // Dapatkan hasil dengan pagination
+        $katalog = $query->paginate(12);
+
+        // Tambahkan informasi poster untuk setiap item
+        foreach ($katalog as $item) {
+            $poster = DB::table('tbl_kota_has_artefak')
+                ->where('id_kota', $item->id_kota)
+                ->where('id_artefak', $poster_id)
+                ->select('file_pengumpulan')
+                ->first();
+
+            $item->poster_file = $poster ? $poster->file_pengumpulan : null;
+        }
+
+        return view('katalog.katalog', compact('prodis', 'katalog', 'categories', 'years', 'metodologis', 'dosens'));
     }
 }

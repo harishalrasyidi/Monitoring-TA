@@ -46,7 +46,22 @@
                                     @endif
                                 </p>
                                 <hr>
-
+                                <strong><i class="fas fa-layer-group mr-1"></i> Kategori</strong>
+                                <p class="text-muted">
+                                    @if($laporan['kategori'] == '1')
+                                        Riset
+                                    @elseif($laporan['kategori'] == '2')
+                                        Develop
+                                    @else
+                                        {{ $laporan['kategori'] ?: 'Tidak ada data' }}
+                                    @endif
+                                </p>
+                                <hr>
+                                @if(!empty($laporan['metodologi']))
+                                    <strong><i class="fas fa-cogs mr-1"></i> Metodologi</strong>
+                                    <p class="text-muted">{{ $laporan['metodologi'] }}</p>
+                                    <hr>
+                                @endif
                                 @if($laporan['penguji'])
                                 <strong><i class="fas fa-users mr-1"></i> Penguji</strong>
                                 <p class="text-muted">{{ $laporan['penguji'] }}</p>
@@ -57,7 +72,6 @@
                                 <strong><i class="fas fa-tags mr-1"></i> Kata Kunci</strong>
                                 <p class="text-muted">{{ $laporan['kata_kunci'] }}</p>
                                 @endif
-                                
                                 {{-- Kondisi untuk download berdasarkan role --}}
                                 @if($laporan['file_path'])
                                 <hr>
@@ -128,7 +142,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <!-- Abstract/PDF Viewer -->
                     <div class="col-md-9">
                         <div class="card card-primary card-outline">
@@ -327,7 +340,7 @@
                 posterLoading.style.display = 'block';
                 posterIframeContainer.innerHTML = '';
                 
-                const posterUrl = '{{ isset($laporan["poster_path"]) ? Storage::url($laporan["poster_path"]) : "" }}';
+                const posterUrl = '{{ isset($laporan["poster_path"]) ? asset("/storage/submissions/" . $laporan["poster_path"]) : "no-file" }}';
                 
                 const iframe = document.createElement('iframe');
                 iframe.id = 'poster-iframe';

@@ -16,7 +16,6 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Illuminate\Support\Facades\Log;
 
-
 class KotaController extends Controller
 {
     /**
@@ -49,38 +48,102 @@ class KotaController extends Controller
             $query->where($sort, $value);
         }
 
+        // Filter berdasarkan field baru
+        if ($request->filled('prodi')) {
+            $query->where('prodi', $request->prodi);
+        }
+        
+        if ($request->filled('kbk')) {
+            $query->where('kbk', $request->kbk);
+        }
+        
+        if ($request->filled('topik')) {
+            $query->where('topik', $request->topik);
+        }
+        
+        if ($request->filled('tahun')) {
+            $query->where('tahun', $request->tahun);
+        }
+        
+        if ($request->filled('jenis_ta')) {
+            $query->where('jenis_ta', $request->jenis_ta);
+            
+            // Jika memilih development, bisa filter berdasarkan metodologi
+            if ($request->jenis_ta == 'development' && $request->filled('metodologi')) {
+                $query->where('metodologi', $request->metodologi);
+            }
+        }
+
         // Menambahkan logika sorting berdasarkan parameter 'sort' dan 'direction'
         if ($request->has('sort') && $request->has('direction')) {
             $query->orderBy($request->input('sort'), $request->input('direction'));
         }
 
-
         // Lakukan join dengan tabel tahapan_progres dan master_tahapan_progres
         $query->leftJoin('tbl_kota_has_tahapan_progres', 'tbl_kota.id_kota', '=', 'tbl_kota_has_tahapan_progres.id_kota')
-                        ->leftJoin('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
-                        ->select('tbl_kota.*', 'tbl_master_tahapan_progres.nama_progres AS nama_tahapan', 'tbl_kota_has_tahapan_progres.status AS status')
-                        ->where(function ($query) {
-                            $query->where('tbl_kota_has_tahapan_progres.status', 'on_progres')
-                                    ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
-                        });
-                        // ->first();
+                ->leftJoin('tbl_master_tahapan_progres', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres', '=', 'tbl_master_tahapan_progres.id')
+                ->select('tbl_kota.*', 'tbl_master_tahapan_progres.nama_progres AS nama_tahapan', 'tbl_kota_has_tahapan_progres.status AS status')
+                ->where(function ($query) {
+                    $query->where('tbl_kota_has_tahapan_progres.status', 'on_progres')
+                            ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
+                });
     
         $kotas = $query->get();
 
+        // Tambahkan data untuk dropdown filter
+        $prodis = [
+            ['id' => '1', 'name' => 'D3 TI A'],
+            ['id' => '2', 'name' => 'D3 TI B'],
+            ['id' => '3', 'name' => 'D4 TI A'],
+            ['id' => '4', 'name' => 'D4 TI B']
+        ];
+        
+        $kbks = KotaModel::select('kbk')->whereNotNull('kbk')->distinct()->get();
+        $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
+        $years = KotaModel::select('tahun')->whereNotNull('tahun')->distinct()->orderBy('tahun', 'desc')->get();
+        $jenis_tas = [
+            ['id' => 'riset', 'name' => 'Riset'],
+            ['id' => 'development', 'name' => 'Development']
+        ];
+        $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
+                               ->where('jenis_ta', 'development')
+                               ->distinct()->get();
 
-
-
-        return view('kota.index', compact('kotas'));
+        return view('kota.index', compact('kotas', 'prodis', 'kbks', 'topics', 'years', 'jenis_tas', 'metodologis'));
     }
 
-
-    
     public function create()
     {
         $dosen = User::where('role', 2)->get();
         $mahasiswa = User::where('role', 3)->get();
         
-        return view('kota.create', compact('dosen', 'mahasiswa'));
+        // Data untuk dropdown field baru
+        $prodis = [
+            ['id' => '1', 'name' => 'D3 TI A'],
+            ['id' => '2', 'name' => 'D3 TI B'],
+            ['id' => '3', 'name' => 'D4 TI A'],
+            ['id' => '4', 'name' => 'D4 TI B']
+        ];
+        
+        $kbks = KotaModel::select('kbk')->whereNotNull('kbk')->distinct()->get();
+        $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
+        $jenis_tas = [
+            ['id' => 'riset', 'name' => 'Riset'],
+            ['id' => 'development', 'name' => 'Development']
+        ];
+        $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
+                             ->where('jenis_ta', 'development')
+                             ->distinct()->get();
+        
+        return view('kota.create', compact(
+            'dosen', 
+            'mahasiswa', 
+            'prodis', 
+            'kbks', 
+            'topics', 
+            'jenis_tas', 
+            'metodologis'
+        ));
     }
     
     public function store(Request $request)
@@ -92,6 +155,13 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1|max:3',
             'dosen' => 'required|array|min:2|max:2',
+            // Validasi field baru
+            'prodi' => 'nullable',
+            'kbk' => 'nullable',
+            'topik' => 'nullable',
+            'tahun' => 'nullable|numeric',
+            'jenis_ta' => 'nullable|in:riset,development',
+            'metodologi' => 'nullable',
         ]);
         
         // Check if the Kota already exists
@@ -117,8 +187,20 @@ class KotaController extends Controller
             }
         }
         
-        // Create Kota
-        $kota = KotaModel::create($request->only('nama_kota', 'judul', 'kelas', 'periode'));
+        // Create Kota with all fields including new ones
+        $kota = KotaModel::create([
+            'nama_kota' => $request->nama_kota,
+            'judul' => $request->judul,
+            'kelas' => $request->kelas,
+            'periode' => $request->periode,
+            'prodi' => $request->prodi,
+            'kbk' => $request->kbk,
+            'topik' => $request->topik,
+            'tahun' => $request->tahun,
+            'jenis_ta' => $request->jenis_ta,
+            'metodologi' => $request->jenis_ta == 'development' ? $request->metodologi : null,
+        ]);
+        
         $id_kota = $kota->id_kota;
         
         // Save Mahasiswa and Dosen to tbl_kota_has_user
@@ -145,8 +227,6 @@ class KotaController extends Controller
         
         session()->flash('success', 'Data KoTA berhasil ditambahkan');
         return redirect()->route('kota');
-        
-        
     }
     
     public function detail($id)
@@ -211,7 +291,6 @@ class KotaController extends Controller
         $selesaiPercentage2 = ($total_kegiatan_2 > 0) ? ($selesai_count_2 / $total_kegiatan_2) * 100 : 0;
         $selesaiPercentage3 = ($total_kegiatan_3 > 0) ? ($selesai_count_3 / $total_kegiatan_3) * 100 : 0;
         $selesaiPercentage4 = ($total_kegiatan_4 > 0) ? ($selesai_count_4 / $total_kegiatan_4) * 100 : 0;
-        // $belumSelesaiPercentage = ($totalKegiatan > 0) ? ($belumSelesaiCount / $totalKegiatan) * 100 : 0;
         
         $kota = KotaModel::with('users')->findOrFail($id);
         $dosen = $kota->users->where('role', 2);
@@ -220,13 +299,11 @@ class KotaController extends Controller
         $mastertahapan = DB::table('tbl_master_tahapan_progres')->get();
         $tahapan_progres = KotaHasTahapanProgresModel::where('id_kota', $id)->get();
 
-
         $masterArtefaks = DB::table('tbl_master_artefak')->get();
         $artefakKota = KotaHasArtefakModel::where('id_kota', $id)
                                                 ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
                                                 ->select('tbl_artefak.nama_artefak')
                                                 ->get();
-
 
         // Inisialisasi array kosong untuk menyimpan artefak sesuai dengan tahapan
         $seminar1 = [];
@@ -282,35 +359,28 @@ class KotaController extends Controller
             }
         }
         
+        // Data untuk dropdown field baru jika diperlukan di halaman detail
+        $prodis = [
+            ['id' => '1', 'name' => 'D3 TI A'],
+            ['id' => '2', 'name' => 'D3 TI B'],
+            ['id' => '3', 'name' => 'D4 TI A'],
+            ['id' => '4', 'name' => 'D4 TI B']
+        ];
+        
+        $jenis_tas = [
+            ['id' => 'riset', 'name' => 'Riset'],
+            ['id' => 'development', 'name' => 'Development']
+        ];
 
         return view('kota.detail', 
-        compact('kota', 'progressStage4Count', 'progressStage2Count', 'progressStage3Count', 'dosen', 'mahasiswa', 'seminar1', 'seminar2', 'seminar3', 'sidang', 'artefakKota', 'mastertahapan', 'tahapan_progres', 'selesaiPercentage1', 'selesaiPercentage2', 'selesaiPercentage3', 'selesaiPercentage4'));
+        compact('kota', 'progressStage4Count', 'progressStage2Count', 'progressStage3Count', 
+                'dosen', 'mahasiswa', 'seminar1', 'seminar2', 'seminar3', 'sidang', 
+                'artefakKota', 'mastertahapan', 'tahapan_progres', 'selesaiPercentage1', 
+                'selesaiPercentage2', 'selesaiPercentage3', 'selesaiPercentage4',
+                'prodis', 'jenis_tas'));
     }
 
-    // public function store_status(Request $request)
-    // {
-    //     $status = $request->input('status');
-    //     $id_kota = $request->input('id_kota');
-    //     $id_master_tahapan_progres = $request->input('id_master_tahapan_progres');
-
-    //     // \Log::info('Data received', [
-    //     //     'status' => $status,
-    //     //     'id_kota' => $id_kota,
-    //     //     'id_master_tahapan_progres' => $id_master_tahapan_progres
-    //     // ]);
-        
-    //     $kotaTahapanProgres = KotaHasTahapanProgresModel::where('id_kota', $id_kota)
-    //                                                      ->where('id_master_tahapan_progres', $id_master_tahapan_progres)
-    //                                                      ->first();
-    
-    //     if ($kotaTahapanProgres) {
-    //         $kotaTahapanProgres->status = $status;
-    //         $kotaTahapanProgres->save();
-    //     }
-    
-    //     return redirect()->back();
-
-        public function store_status(Request $request)
+    public function store_status(Request $request)
     {
         $status = $request->input('status');
         $id_kota = $request->input('id_kota');
@@ -320,7 +390,6 @@ class KotaController extends Controller
         $kotaTahapanProgres = KotaHasTahapanProgresModel::where('id_kota', $id_kota)
             ->where('id_master_tahapan_progres', $id_master_tahapan_progres)
             ->first();
-
 
         if ($kotaTahapanProgres) {
             // Ubah status tahapan progres saat ini
@@ -342,31 +411,56 @@ class KotaController extends Controller
     
         return redirect()->back();
     }
-    // }
-    
-
     
     public function edit($id)
-{
-    $kota = KotaModel::with('users')->findOrFail($id);
-    
-    if (!$kota) {
-        return redirect()->route('kota')->withErrors('Data tidak ditemukan.');
+    {
+        $kota = KotaModel::with('users')->findOrFail($id);
+        
+        if (!$kota) {
+            return redirect()->route('kota')->withErrors('Data tidak ditemukan.');
+        }
+
+        // Ambil dosen dan mahasiswa berdasarkan role
+        $dosen = User::where('role', 2)->get();
+        $mahasiswa = User::where('role', 3)->get(); // Hanya mahasiswa dengan role 3
+
+        // Lakukan pengecekan untuk opsi yang dipilih (selected)
+        $selectedDosen = $kota->users()->where('role', 2)->pluck('users.id')->toArray();
+        $selectedMahasiswa = $kota->users()->where('role', 3)->pluck('users.id')->toArray();
+
+        // Data untuk dropdown field baru
+        $prodis = [
+            ['id' => '1', 'name' => 'D3 TI A'],
+            ['id' => '2', 'name' => 'D3 TI B'],
+            ['id' => '3', 'name' => 'D4 TI A'],
+            ['id' => '4', 'name' => 'D4 TI B']
+        ];
+        
+        $kbks = KotaModel::select('kbk')->whereNotNull('kbk')->distinct()->get();
+        $topics = KotaModel::select('topik')->whereNotNull('topik')->distinct()->get();
+        $years = KotaModel::select('tahun')->whereNotNull('tahun')->distinct()->orderBy('tahun', 'desc')->get();
+        $jenis_tas = [
+            ['id' => 'riset', 'name' => 'Riset'],
+            ['id' => 'development', 'name' => 'Development']
+        ];
+        $metodologis = KotaModel::select('metodologi')->whereNotNull('metodologi')
+                           ->where('jenis_ta', 'development')
+                           ->distinct()->get();
+
+        return view('kota.edit', compact(
+            'kota', 
+            'dosen', 
+            'mahasiswa', 
+            'selectedDosen', 
+            'selectedMahasiswa',
+            'prodis',
+            'kbks',
+            'topics',
+            'years',
+            'jenis_tas',
+            'metodologis'
+        ));
     }
-
-
-    // Ambil dosen dan mahasiswa berdasarkan role
-    $dosen = User::where('role', 2)->get();
-    $mahasiswa = User::where('role', 3)->get(); // Hanya mahasiswa dengan role 3
-
-    // Lakukan pengecekan untuk opsi yang dipilih (selected)
-    $selectedDosen = $kota->users()->where('role', 2)->pluck('users.id')->toArray();
-    $selectedMahasiswa = $kota->users()->where('role', 3)->pluck('users.id')->toArray();
-
-    return view('kota.edit', compact('kota', 'dosen', 'mahasiswa', 'selectedDosen', 'selectedMahasiswa'));
-}
-
-
 
     public function showFile($nama_artefak)
     {
@@ -390,9 +484,8 @@ class KotaController extends Controller
         }
     }
 
-    public function update(Request  $request, $id)
+    public function update(Request $request, $id)
     {
-        
         $request->validate([
             'nama_kota' => '',
             'judul' => 'required',
@@ -400,17 +493,52 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1',
             'dosen' => 'required|array|min:2',
+            // Validasi field baru
+            'prodi' => 'nullable',
+            'kbk' => 'nullable',
+            'topik' => 'nullable',
+            'tahun' => 'nullable|numeric',
+            'jenis_ta' => 'nullable|in:riset,development',
+            'metodologi' => 'nullable',
         ]);
         
         // Mengambil data kota berdasarkan id
         $kota = KotaModel::findOrFail($id);
-        $kota->update($request->only('nama_kota', 'judul', 'kelas', 'periode'));
+        
+        // Update data dengan semua field termasuk yang baru
+        $kota->update([
+            'nama_kota' => $request->nama_kota,
+            'judul' => $request->judul,
+            'kelas' => $request->kelas,
+            'periode' => $request->periode,
+            'prodi' => $request->prodi,
+            'kbk' => $request->kbk,
+            'topik' => $request->topik,
+            'tahun' => $request->tahun,
+            'jenis_ta' => $request->jenis_ta,
+            'metodologi' => $request->jenis_ta == 'development' ? $request->metodologi : null,
+        ]);
 
-        $userIds = array_merge($request->dosen, $request->mahasiswa);
+        // Update user relationships
+        $userIds = [];
+        foreach ($request->dosen as $dosenId) {
+            $userId = DB::table('users')->where('nomor_induk', $dosenId)->value('id');
+            if ($userId) {
+                $userIds[] = $userId;
+            }
+        }
+        
+        foreach ($request->mahasiswa as $mahasiswaId) {
+            $userId = DB::table('users')->where('nomor_induk', $mahasiswaId)->value('id');
+            if ($userId) {
+                $userIds[] = $userId;
+            }
+        }
+        
         $kota->users()->sync($userIds);
 
         // Set flash message
-        session()->flash('success', 'Data kota berhasil dirubah');
+        session()->flash('success', 'Data KoTA berhasil diperbarui');
 
         // Redirect ke halaman kota.index dengan pesan sukses
         return redirect()->route('kota');
@@ -424,7 +552,6 @@ class KotaController extends Controller
         $kota->delete();
 
         session()->flash('success', 'Data kota berhasil dihapus');
-
         
         return redirect()->route('kota')->with('toast_success', 'Data KoTA berhasil dihapus');
     }

@@ -167,8 +167,6 @@ class SubmissionController extends Controller
         return $this->updateTeks($request, $artefak_id);
     }
 
-
-
     public function destroy($id)
     {
         $kumpul = KotaHasArtefakModel::findOrFail($id);

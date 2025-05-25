@@ -49,6 +49,8 @@
                                 <input type="hidden" name="kategori" value="{{ request('kategori') }}">
                                 <input type="hidden" name="prodi" value="{{ request('prodi') }}">
                                 <input type="hidden" name="tahun" value="{{ request('tahun') }}">
+                                <input type="hidden" name="metodologi" value="{{ request('metodologi') }}">
+                                <input type="hidden" name="dosen" value="{{ request('dosen') }}">
                             </form>
                             
                             @if(request('search'))
@@ -91,6 +93,7 @@
                         <!-- Keep search term when filtering -->
                         <input type="hidden" name="search" value="{{ request('search') }}">
                         
+                        <!-- Filter Row 1 -->
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -99,7 +102,13 @@
                                         <option value="">Semua Kategori</option>
                                         @foreach($categories as $category)
                                             <option value="{{ $category->kategori }}" {{ request('kategori') == $category->kategori ? 'selected' : '' }}>
-                                                {{ $category->kategori }}
+                                                @if($category->kategori == '1')
+                                                    Riset
+                                                @elseif($category->kategori == '2')
+                                                    Develop
+                                                @else
+                                                    {{ $category->kategori }}
+                                                @endif
                                             </option>
                                         @endforeach
                                     </select>
@@ -139,21 +148,105 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>&nbsp;</label>
-                                    <button class="btn btn-primary btn-block" type="submit">
-                                        <i class="fas fa-filter mr-1"></i> Terapkan Filter
-                                    </button>
+                                    <label><i class="fas fa-cogs mr-1"></i>Metodologi SDLC</label>
+                                    <select name="metodologi" class="form-control" id="metodologi-filter">
+                                        <option value="">Semua Metodologi</option>
+                                        @foreach($metodologis as $metodologi)
+                                            <option value="{{ $metodologi->metodologi }}" {{ request('metodologi') == $metodologi->metodologi ? 'selected' : '' }}>
+                                                {{ $metodologi->metodologi }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Clear Filters Button -->
-                        @if(request()->hasAny(['kategori', 'prodi', 'tahun', 'search']))
+
+                        <!-- Filter Row 2 -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><i class="fas fa-chalkboard-teacher mr-1"></i>Dosen Pembimbing</label>
+                                    <select name="dosen" class="form-control" id="dosen-filter">
+                                        <option value="">Semua Dosen</option>
+                                        @foreach($dosens as $dosen)
+                                            <option value="{{ $dosen->id }}" {{ request('dosen') == $dosen->id ? 'selected' : '' }}>
+                                                {{ $dosen->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-filter mr-1"></i> Terapkan Filter
+                                        </button>
+                                        <a href="{{ route('katalog') }}" class="btn btn-secondary">
+                                            <i class="fas fa-times mr-1"></i> Reset Semua
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Filters Display -->
+                        @if(request()->hasAny(['kategori', 'prodi', 'tahun', 'metodologi', 'dosen', 'search']))
                             <div class="row">
                                 <div class="col-12">
-                                    <a href="{{ route('katalog') }}" class="btn btn-secondary btn-sm">
-                                        <i class="fas fa-times mr-1"></i>Hapus Semua Filter
-                                    </a>
+                                    <div class="alert alert-light py-2">
+                                        <strong><i class="fas fa-filter mr-1"></i>Filter Aktif:</strong>
+                                        @if(request('search'))
+                                            <span class="badge badge-primary mr-1">
+                                                <i class="fas fa-search mr-1"></i>Pencarian: {{ request('search') }}
+                                            </span>
+                                        @endif
+                                        @if(request('kategori'))
+                                            <span class="badge badge-info mr-1">
+                                                <i class="fas fa-tag mr-1"></i>
+                                                @if(request('kategori') == '1')
+                                                    Riset
+                                                @elseif(request('kategori') == '2')
+                                                    Develop
+                                                @else
+                                                    {{ request('kategori') }}
+                                                @endif
+                                            </span>
+                                        @endif
+                                        @if(request('prodi'))
+                                            <span class="badge badge-success mr-1">
+                                                <i class="fas fa-graduation-cap mr-1"></i>
+                                                @if(request('prodi') == '1')
+                                                    D3 Teknik Informatika
+                                                @elseif(request('prodi') == '2')
+                                                    D4 Teknik Informatika
+                                                @else
+                                                    {{ request('prodi') }}
+                                                @endif
+                                            </span>
+                                        @endif
+                                        @if(request('tahun'))
+                                            <span class="badge badge-warning mr-1">
+                                                <i class="fas fa-calendar mr-1"></i>{{ request('tahun') }}
+                                            </span>
+                                        @endif
+                                        @if(request('metodologi'))
+                                            <span class="badge badge-secondary mr-1">
+                                                <i class="fas fa-cogs mr-1"></i>{{ request('metodologi') }}
+                                            </span>
+                                        @endif
+                                        @if(request('dosen'))
+                                            @php
+                                                $selectedDosen = $dosens->where('id', request('dosen'))->first();
+                                            @endphp
+                                            @if($selectedDosen)
+                                                <span class="badge badge-dark mr-1">
+                                                    <i class="fas fa-chalkboard-teacher mr-1"></i>{{ $selectedDosen->name }}
+                                                </span>
+                                            @endif
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -176,20 +269,69 @@
             <div class="row">
                 @if($katalog->count() > 0)
                     @foreach($katalog as $item)
+                        @php
+                            // Get authors for this thesis
+                            $penulis = \App\Models\User::join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
+                                ->where('tbl_kota_has_user.id_kota', $item->id_kota)
+                                ->where('users.role', 3)
+                                ->pluck('name')
+                                ->toArray();
+                            
+                            // Get supervisors for this thesis
+                            $pembimbing = \App\Models\User::join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
+                                ->where('tbl_kota_has_user.id_kota', $item->id_kota)
+                                ->where('users.role', 2)
+                                ->pluck('name')
+                                ->toArray();
+                        @endphp
+                        
                         <div class="col-md-4 col-sm-6 mb-4">
                             <div class="card h-100 shadow-sm">
                                 <div class="card-header bg-primary text-white">
-                                    <h5 class="card-title mb-0 text-truncate" title="{{ $item->judul }}">
-                                        {{ \Illuminate\Support\Str::limit($item->judul, 40) }}
-                                    </h5>
+                                    <h6 class="card-title mb-0" title="{{ $item->judul }}"
+                                        style="
+                                            display: -webkit-box;
+                                            -webkit-line-clamp: 4;
+                                            -webkit-box-orient: vertical;
+                                            overflow: hidden;
+                                            text-overflow: ellipsis;
+                                        ">
+                                        {{ $item->judul }}
+                                    </h6>
                                 </div>
-                                <div class="card-body">
-                                    <div class="text-center mb-3">
-                                        <i class="fas fa-file-alt fa-3x text-info"></i>
-                                        <small class="d-block text-muted mt-1">Abstrak TA</small>
-                                    </div>
-                                    
+                                <div class="card-body">                            
                                     <p class="card-text mb-1">
+                                        <strong><i class="fas fa-layer-group mr-1"></i>Kategori:</strong> 
+                                        @if($item->kategori == '1')
+                                            Riset
+                                        @elseif($item->kategori == '2')
+                                            Develop
+                                        @else
+                                            {{ $item->kategori }}
+                                        @endif
+                                    </p>
+                                    
+                                    <!-- Tambahkan metodologi jika ada -->
+                                    @if(!empty($item->metodologi))
+                                        <p class="card-text mb-1">
+                                            <strong><i class="fas fa-cogs mr-1"></i>Metodologi:</strong> {{ $item->metodologi }}
+                                        </p>
+                                    @endif
+                                    
+                                    <p class="card-text mb-1"><i class="fas fa-graduation-cap mr-1"></i><strong>Program Studi:</strong> 
+                                        @if($item->prodi == '1')
+                                            D3 Teknik Informatika
+                                        @elseif($item->prodi == '2')
+                                            D4 Teknik Informatika
+                                        @else
+                                            {{ $item->prodi }}
+                                        @endif
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong><i class="fas fa-calendar mr-1"></i>Periode:</strong> 
+                                        {{ $item->periode }}
+                                    </p>
+                                      <p class="card-text mb-1">
                                         <strong><i class="fas fa-user mr-1"></i>Penulis:</strong> 
                                         @php
                                             $penulis = \App\Models\User::join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
@@ -201,26 +343,6 @@
                                         {{ $penulis ?: 'Tidak ada data' }}
                                     </p>
                                     
-                                    <p class="card-text mb-1">
-                                        <strong><i class="fas fa-layer-group mr-1"></i>Kategori:</strong> 
-                                        {{ $item->kategori }}
-                                    </p>
-                                    
-                                    <p class="card-text mb-1">
-                                        <strong><i class="fas fa-graduation-cap mr-1"></i>Program Studi:</strong> 
-                                        @if($item->prodi == '1')
-                                            D3 Teknik Informatika
-                                        @elseif($item->prodi == '2')
-                                            D4 Teknik Informatika
-                                        @else
-                                            {{ $item->prodi }}
-                                        @endif
-                                    </p>
-                                    
-                                    <p class="card-text mb-1">
-                                        <strong><i class="fas fa-calendar mr-1"></i>Periode:</strong> 
-                                        {{ $item->periode }}
-                                    </p>
                                     
                                     <!-- Show search relevance if searching -->
                                     @if(request('search'))
@@ -285,13 +407,30 @@
         </div>
     </div>
 </div>
+
+<!-- Modal untuk memperbesar poster -->
+<div class="modal fade" id="posterModal" tabindex="-1" role="dialog" aria-labelledby="posterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="posterModalLabel">Poster</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalPosterImg" src="" alt="Poster" style="max-width: 100%; height: auto;">
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
 $(document).ready(function() {
     // Auto-submit form when dropdown changes
-    $('#kategori-filter, #prodi-filter, #tahun-filter').change(function() {
+    $('#kategori-filter, #prodi-filter, #tahun-filter, #metodologi-filter, #dosen-filter').change(function() {
         $('#filter-form').submit();
     });
     

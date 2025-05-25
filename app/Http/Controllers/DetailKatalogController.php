@@ -53,11 +53,13 @@ class DetailKatalogController extends Controller
         // Format data for view
         $laporan = [
             'judul' => $kota->judul,
-            'abstrak' => $kota->abstrak,
             'penulis' => $namaPenulis,
             'tahun' => $kota->periode,
+            'abstrak' => $kota->abstrak,
             'program_studi' => $kota->kelas,
             'pembimbing' => $namaPembimbing,
+            'kategori' => $kota->kategori,
+            'metodologi' => $kota->metodologi,
             'penguji' => null, // If you have examiner data, add it here
             'kata_kunci' => null, // If you have keywords data, add it here
             'file_path' => $laporanTA ? $laporanTA->file_pengumpulan : null,
@@ -91,8 +93,8 @@ class DetailKatalogController extends Controller
 
                 $katalog->whereIn('id_kota', function ($query) use ($booleanQuery) {
                     $query->select('id_kota')
-                        ->from('tbl_kota_has_artefak')
-                        ->whereRaw("MATCH(teks_pengumpulan) AGAINST(? IN BOOLEAN MODE)", [$booleanQuery]);
+                        ->from('tbl_kota')
+                        ->whereRaw("MATCH(abstrak) AGAINST(? IN BOOLEAN MODE)", [$booleanQuery]);
                 });
             } else {
                 // Handle kasus ketika kurang dari 3 kata kunci

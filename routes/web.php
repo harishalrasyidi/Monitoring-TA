@@ -119,3 +119,4 @@ Route::get('/laporan-ta', [App\Http\Controllers\DetailKatalogController::class, 
 Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogController::class, 'show'])->name('laporan.show');
 // Route khusus untuk teks submission
 Route::put('/submissions/teks/{artefak_id}', [App\Http\Controllers\SubmissionController::class, 'updateTeks'])->name('submissions.updateTeks');
+
