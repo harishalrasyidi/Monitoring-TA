@@ -7,13 +7,14 @@ use App\Models\KotaTahapanProgress;
 use App\Models\MasterTahapanProgress;
 use App\Models\KotaHasUserModel;
 use App\Models\KotaHasPenguji;
+use App\Models\YudisiumModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
             $user = auth()->user();
@@ -129,40 +130,16 @@ class DashboardController extends Controller
                     $chartData[$tahapanNames[$index]] = $count;
                 }
                 
-                // Hitung selesai dan dalam progres dari SEMUA data (tidak tergantung pagination)
-                $selesai = 0;
-                $dalamProgres = 0;
-
-                $allKotaForCount = Kota::with(['tahapanProgress'])
-                    ->whereIn('id_kota', $kotaIdsBimbingan)
-                    ->get(); // Ambil semua data untuk perhitungan
-                
-                foreach ($allKotaForCount as $kota) {
-                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
-                    if ($tahapanProgress->isEmpty()) {
-                        $dalamProgres++;
-                        continue;
-                    }
-                    
-                    $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
-                    if ($sidangProgress && $sidangProgress->status === 'tuntas') {
-                        $selesai++;
-                    } else {
-                        $dalamProgres++;
-                    }
-                }
-
                 // Ambil data untuk pagination (terpisah dari perhitungan)
+                $perPage = $request->get('per_page', 10);
                 $kotaList = Kota::with(['tahapanProgress'])
                     ->whereIn('id_kota', $kotaIdsBimbingan)
-                    ->paginate(10);
+                    ->paginate($perPage);
                 
                 return view('beranda.pembimbing.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'totalKotaUji' => $totalKotaUji,
-                    'selesai' => $selesai,
-                    'dalamProgres' => $dalamProgres,
                     'chartData' => $chartData
                 ]);
             }
@@ -171,6 +148,19 @@ class DashboardController extends Controller
                 // Logika hanya untuk Koordinator
                 $totalKota = Kota::count();
                 
+                // Ambil data periode dan kelas unik
+                $periodes = Kota::select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
+                $kelasList = Kota::select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
+
+                // Filter query jika ada request periode atau kelas
+                $query = Kota::with(['tahapanProgress']);
+                if ($request->filled('periode')) {
+                    $query->where('periode', $request->periode);
+                }
+                if ($request->filled('kelas')) {
+                    $query->where('kelas', $request->kelas);
+                }
+
                 // Chart data dengan ID statis
                 $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
                 $tahapanIds = [1, 2, 3, 4];
@@ -178,42 +168,42 @@ class DashboardController extends Controller
                 
                 foreach ($tahapanIds as $index => $tahapanId) {
                     $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'tuntas')
-                        ->distinct('id_kota')
-                        ->count('id_kota');
-                    $chartData[$tahapanNames[$index]] = $count;
+                        ->where('status', 'tuntas');
+                    if ($request->filled('periode')) {
+                        $count = $count->whereHas('kota', function($q) use ($request) {
+                            $q->where('periode', $request->periode);
+                        });
+                    }
+                    if ($request->filled('kelas')) {
+                        $count = $count->whereHas('kota', function($q) use ($request) {
+                            $q->where('kelas', $request->kelas);
+                        });
+                    }
+                    $chartData[$tahapanNames[$index]] = $count->distinct('id_kota')->count('id_kota');
                 }
                 
-                // Hitung selesai dan dalam progres dari SEMUA data (tidak tergantung pagination)
-                $selesai = 0;
-                $dalamProgres = 0;
-                
-                $allKotaForCount = Kota::with(['tahapanProgress'])->get(); // Ambil semua data untuk perhitungan
-                
-                foreach ($allKotaForCount as $kota) {
-                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
-                    if ($tahapanProgress->isEmpty()) {
-                        $dalamProgres++;
-                        continue;
-                    }
-                    
-                    $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
-                    if ($sidangProgress && $sidangProgress->status === 'tuntas') {
-                        $selesai++;
-                    } else {
-                        $dalamProgres++;
-                    }
-                }
-
                 // Ambil data untuk pagination (terpisah dari perhitungan)
-                $kotaList = Kota::with(['tahapanProgress'])->paginate(10);
-                
+                $perPage = $request->get('per_page', 10);
+                $kotaList = $query->paginate($perPage);
+
+                // Hitung total KoTA untuk masing-masing kategori yudisium
+                $yudisiumModel = new YudisiumModel();
+                $totalYudisium1 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+                    ->where('kategori_yudisium', 1)->first()->jumlah ?? 0;
+                $totalYudisium2 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+                    ->where('kategori_yudisium', 2)->first()->jumlah ?? 0;
+                $totalYudisium3 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+                    ->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
-                    'selesai' => $selesai,
-                    'dalamProgres' => $dalamProgres,
-                    'chartData' => $chartData
+                    'chartData' => $chartData,
+                    'periodes' => $periodes,
+                    'kelasList' => $kelasList,
+                    'totalYudisium1' => $totalYudisium1,
+                    'totalYudisium2' => $totalYudisium2,
+                    'totalYudisium3' => $totalYudisium3,
                 ]);
             }
             
@@ -225,8 +215,6 @@ class DashboardController extends Controller
                 return view('beranda.koordinator.home', [
                     'kotaList' => collect([]),
                     'totalKota' => 0,
-                    'selesai' => 0,
-                    'dalamProgres' => 0,
                     'chartData' => [
                         'Seminar 1' => 0,
                         'Seminar 2' => 0,
@@ -239,8 +227,6 @@ class DashboardController extends Controller
                     'kotaList' => collect([]),
                     'totalKota' => 0,
                     'totalKotaUji' => 0,
-                    'selesai' => 0,
-                    'dalamProgres' => 0,
                     'chartData' => [
                         'Seminar 1' => 0,
                         'Seminar 2' => 0,
@@ -284,5 +270,27 @@ class DashboardController extends Controller
                 'total' => $kotaList->total()
             ]
         ]);
+    }
+
+    public function getKotaByYudisium(Request $request)
+    {
+        $kategori = $request->kategori;
+        $periode = $request->periode;
+        $kelas = $request->kelas;
+
+        $kotaList = \DB::table('tbl_yudisium')
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->where('tbl_yudisium.kategori_yudisium', $kategori);
+
+        if ($periode) {
+            $kotaList->where('tbl_kota.periode', $periode);
+        }
+        if ($kelas) {
+            $kotaList->where('tbl_kota.kelas', $kelas);
+        }
+
+        $kotaList = $kotaList->select('tbl_kota.nama_kota', 'tbl_kota.judul')->get();
+
+        return response()->json($kotaList);
     }
 }
