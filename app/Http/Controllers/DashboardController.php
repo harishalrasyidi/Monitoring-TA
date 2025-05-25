@@ -17,6 +17,23 @@ class DashboardController extends Controller
     {
         try {
             $user = auth()->user();
+            // Daftar artefak tiap seminar
+            $seminar1Artefak = [
+                'FTA 01', 'FTA 02', 'FTA 03', 'FTA 04', 'FTA 05a', 'Proposal Tugas Akhir'
+            ];
+
+            $seminar2Artefak = [
+                'FTA 06', 'FTA 07', 'FTA 08', 'FTA 09', 'FTA 06a', 'FTA 09a',
+                'SRS', 'SDD', 'Laporan Tugas Akhir'
+            ];
+
+            $seminar3Artefak = [
+                'FTA 10', 'FTA 11', 'FTA 12'
+            ];
+
+            $sidangArtefak = [
+                'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
+            ];
 
             if ($user->role == 3) {
                 $kotaIds = KotaHasUserModel::where('id_user', $user->id)
@@ -42,62 +59,46 @@ class DashboardController extends Controller
                     ->select('users.*')
                     ->get();
                 
-                // Daftar artefak tiap seminar
-            $seminar1Artefak = [
-                'FTA 01', 'FTA 02', 'FTA 03', 'FTA 04', 'FTA 05a', 'Proposal Tugas Akhir'
-            ];
+                
 
-            $seminar2Artefak = [
-                'FTA 06', 'FTA 07', 'FTA 08', 'FTA 09', 'FTA 06a', 'FTA 09a',
-                'SRS', 'SDD', 'Laporan Tugas Akhir'
-            ];
+                // Ambil artefak mahasiswa berdasarkan kota yang diikutinya
+                $seminar1 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $seminar1Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
 
-            $seminar3Artefak = [
-                'FTA 10', 'FTA 11', 'FTA 12'
-            ];
+                $seminar2 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $seminar2Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
 
-            $sidangArtefak = [
-                'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
-            ];
+                $seminar3 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $seminar3Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
 
-            // Ambil artefak mahasiswa berdasarkan kota yang diikutinya
-            $seminar1 = DB::table('tbl_kota_has_artefak as kha')
-                ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
-                ->whereIn('kha.id_kota', $kotaIds)
-                ->whereIn('a.nama_artefak', $seminar1Artefak)
-                ->select('a.nama_artefak', 'kha.*')
-                ->get();
+                $sidang = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $sidangArtefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();            
 
-            $seminar2 = DB::table('tbl_kota_has_artefak as kha')
-                ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
-                ->whereIn('kha.id_kota', $kotaIds)
-                ->whereIn('a.nama_artefak', $seminar2Artefak)
-                ->select('a.nama_artefak', 'kha.*')
-                ->get();
-
-            $seminar3 = DB::table('tbl_kota_has_artefak as kha')
-                ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
-                ->whereIn('kha.id_kota', $kotaIds)
-                ->whereIn('a.nama_artefak', $seminar3Artefak)
-                ->select('a.nama_artefak', 'kha.*')
-                ->get();
-
-            $sidang = DB::table('tbl_kota_has_artefak as kha')
-                ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
-                ->whereIn('kha.id_kota', $kotaIds)
-                ->whereIn('a.nama_artefak', $sidangArtefak)
-                ->select('a.nama_artefak', 'kha.*')
-                ->get();            
-
-                return view('beranda.mahasiswa.home', [
-                    'anggotaKelompok' => $anggotaKelompok,
-                    'dosbing' => $dosbing,
-                    'penguji' => $penguji,
-                    'seminar1' => $seminar1,
-                    'seminar2' => $seminar2,
-                    'seminar3' => $seminar3,
-                    'sidang' => $sidang,
-                ]);
+                    return view('beranda.mahasiswa.home', [
+                        'anggotaKelompok' => $anggotaKelompok,
+                        'dosbing' => $dosbing,
+                        'penguji' => $penguji,
+                        'seminar1' => $seminar1,
+                        'seminar2' => $seminar2,
+                        'seminar3' => $seminar3,
+                        'sidang' => $sidang,
+                    ]);
 
             }
 
