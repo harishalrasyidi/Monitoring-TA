@@ -147,27 +147,41 @@ class KatalogTAController extends Controller
         return view('katalog_ta.show', compact('kota', 'mahasiswa', 'dosen', 'artefakKota', 'tahapanProgres', 'persentaseProgress'));
     }
     
-    /**
+   /**
      * Tampilkan form request untuk mengakses detail kota/TA
      */
     public function showRequestForm($id)
     {
         $kota = KotaModel::with(['users'])->findOrFail($id);
         
-        // Pisahkan mahasiswa dan dosen
+        // Pisahkan mahasiswa dan dosen (untuk informasi referensi saja)
         $mahasiswa = $kota->users->where('role', 3);
         $dosen = $kota->users->where('role', 2);
         
-        return view('katalog_ta.request_form', compact('kota', 'mahasiswa', 'dosen'));
+        // ===== SOLUSI: Set koordinator info secara langsung =====
+        $koordinator = (object)[
+            'name' => 'Dr. Koordinator TA', // Ganti dengan nama sebenarnya
+            'email' => 'rindindriani@gmail.com', // Ganti dengan email koordinator sebenarnya
+            'status' => 'active'
+        ];
+        
+        // Atau dari environment
+        // $koordinator = (object)[
+        //     'name' => env('KOORDINATOR_TA_NAME', 'Koordinator TA Jurusan'),
+        //     'email' => env('KOORDINATOR_TA_EMAIL', 'koordinator@polban.ac.id'),
+        //     'status' => 'active'
+        // ];
+        
+        return view('katalog_ta.request_form', compact('kota', 'mahasiswa', 'dosen', 'koordinator'));
     }
     
     /**
-     * Proses request untuk mengakses informasi kota/TA menggunakan Laravel Mail
-     * UPDATED: Sesuai dengan form baru yang ada field tambahan
+     * Proses request untuk mengakses informasi kota/TA
+     * UPDATED: Kirim ke koordinator TA jurusan (sistem terpusat)
      */
     public function sendRequest(Request $request, $id)
     {
-        // Validasi input - UPDATED dengan field baru
+        // Validasi input tetap sama
         $validated = $request->validate([
             'tujuan_request' => 'required|string',
             'detail_tujuan' => 'required_if:tujuan_request,lainnya|nullable|string|max:500',
@@ -194,14 +208,42 @@ class KatalogTAController extends Controller
         $kota = KotaModel::with(['users'])->findOrFail($id);
         $requester = Auth::user();
         
-        // Ambil email mahasiswa dan dosen dari kota ini
-        $emailList = $kota->users->whereNotNull('email')->pluck('email')->filter()->unique()->toArray();
+        // ===== SOLUSI: Set koordinator email secara langsung atau dari environment =====
+        $koordinatorEmail = null;
+        $koordinatorName = 'Koordinator TA Jurusan';
         
-        if (empty($emailList)) {
-            return redirect()->back()->withInput()->with('error', 'Tidak ada anggota KoTA yang dapat dihubungi saat ini. Silakan coba lagi nanti.');
+        // Option 1: Hardcode email koordinator (Paling mudah untuk testing)
+        $koordinatorEmail = 'rindindriani@gmail.com'; // Ganti dengan email koordinator yang sebenarnya
+        $koordinatorName = 'Koordinator TA'; // Ganti dengan nama yang sebenarnya
+        
+        // Option 2: Dari environment variable (.env)
+        // $koordinatorEmail = env('KOORDINATOR_TA_EMAIL', 'rindi.hafizh@gmail.com');
+        // $koordinatorName = env('KOORDINATOR_TA_NAME', 'Koordinator TA Jurusan');
+        
+        // Option 3: Dari database (jika sudah ada user koordinator)
+        /*
+        try {
+            $koordinator = User::where('role', 4) // Role koordinator
+                            ->orWhere('email', 'koordinator@polban.ac.id')
+                            ->orWhere('jabatan', 'LIKE', '%koordinator%')
+                            ->first();
+            
+            if ($koordinator) {
+                $koordinatorEmail = $koordinator->email;
+                $koordinatorName = $koordinator->name;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error fetching koordinator from database', ['error' => $e->getMessage()]);
+        }
+        */
+        
+        // Validasi email koordinator
+        if (!$koordinatorEmail) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Email koordinator TA belum dikonfigurasi. Silakan hubungi administrator sistem.');
         }
         
-        // Mapping tujuan request untuk tampilan yang lebih user-friendly
+        // Mapping untuk display
         $tujuanMapping = [
             'referensi_penelitian' => 'Referensi untuk penelitian serupa',
             'studi_metodologi' => 'Mempelajari metodologi yang digunakan',
@@ -215,7 +257,6 @@ class KatalogTAController extends Controller
             'lainnya' => $validated['detail_tujuan'] ?? 'Lainnya'
         ];
         
-        // ADDED: Mapping untuk status pemohon
         $statusMapping = [
             'mahasiswa_aktif' => 'Mahasiswa Aktif (sedang menyusun TA)',
             'mahasiswa_alumni' => 'Alumni/Mahasiswa yang telah lulus',
@@ -224,7 +265,6 @@ class KatalogTAController extends Controller
             'peneliti' => 'Peneliti/Praktisi'
         ];
         
-        // ADDED: Mapping untuk prioritas
         $prioritasMapping = [
             'rendah' => 'Rendah (tidak mendesak)',
             'sedang' => 'Sedang (1-2 minggu)',
@@ -236,22 +276,26 @@ class KatalogTAController extends Controller
         $statusDisplay = $statusMapping[$validated['status_pemohon']] ?? $validated['status_pemohon'];
         $prioritasDisplay = $prioritasMapping[$validated['prioritas']] ?? $validated['prioritas'];
         
-        // Format deadline jika ada
+        // Format deadline
         $deadlineFormatted = null;
         if (!empty($validated['deadline_request'])) {
             $deadlineFormatted = \Carbon\Carbon::parse($validated['deadline_request'])->format('d F Y');
         }
         
-        // Siapkan data email - UPDATED dengan field baru
+        // Ambil info anggota KoTA (untuk informasi di email koordinator)
+        $mahasiswa = $kota->users->where('role', 3);
+        $dosen = $kota->users->where('role', 2);
+        
+        // Siapkan data email untuk koordinator
         $emailData = [
-            'subject' => "[{$prioritasDisplay}] Request Katalog KoTA: {$kota->nama_kota}",
+            'subject' => "[{$prioritasDisplay}] Request Katalog TA - {$kota->nama_kota}",
             'sender_name' => $requester->name,
             'sender_email' => $requester->email,
             'sender_nim' => $requester->nomor_induk ?? 'N/A',
             'tujuan_request' => $tujuanDisplay,
             'status_pemohon' => $statusDisplay,
             'prioritas' => $prioritasDisplay,
-            'prioritas_level' => $validated['prioritas'], // For styling purposes
+            'prioritas_level' => $validated['prioritas'],
             'deadline_request' => $deadlineFormatted,
             'institusi' => $validated['institusi'],
             'pesan' => $validated['pesan'] ?? '',
@@ -260,88 +304,93 @@ class KatalogTAController extends Controller
             'periode' => $kota->periode,
             'kelas' => $kota->kelas,
             'request_date' => now()->format('d F Y H:i'),
-            'request_id' => 'REQ-' . now()->format('YmdHis') . '-' . $id
+            'request_id' => 'REQ-' . now()->format('YmdHis') . '-' . $id,
+            'koordinator_name' => $koordinatorName,
+            'koordinator_email' => $koordinatorEmail,
+            // Info anggota KoTA untuk referensi koordinator
+            'mahasiswa_list' => $mahasiswa->map(function($mhs) {
+                return [
+                    'name' => $mhs->name,
+                    'nim' => $mhs->nomor_induk,
+                    'email' => $mhs->email
+                ];
+            })->toArray(),
+            'dosen_list' => $dosen->map(function($dsn) {
+                return [
+                    'name' => $dsn->name,
+                    'email' => $dsn->email
+                ];
+            })->toArray()
         ];
         
-        // Log aktivitas request - UPDATED
-        Log::info('Request katalog TA', [
+        // Log aktivitas request
+        Log::info('Request katalog TA ke koordinator (sistem terpusat)', [
             'requester_id' => $requester->id,
             'requester_email' => $requester->email,
             'kota_id' => $kota->id_kota,
             'kota_nama' => $kota->nama_kota,
             'tujuan' => $validated['tujuan_request'],
-            'status_pemohon' => $validated['status_pemohon'],
-            'prioritas' => $validated['prioritas'],
-            'institusi' => $validated['institusi'],
-            'deadline' => $validated['deadline_request'],
+            'koordinator_email' => $koordinatorEmail,
+            'sistem_terpusat' => true,
             'timestamp' => now()
         ]);
         
-        // Kirim email ke semua anggota kota
+        // ===== Kirim email ke koordinator TA menggunakan class yang sudah ada =====
         try {
-            $successCount = 0;
-            $failedEmails = [];
+            // Gunakan RequestKatalogEmail yang sudah ada
+            Mail::to($koordinatorEmail)->send(new RequestKatalogEmail($emailData));
             
-            foreach ($emailList as $email) {
-                try {
-                    Mail::to($email)->send(new RequestKatalogEmail($emailData));
-                    
-                    Log::info('Email request katalog TA berhasil dikirim', [
-                        'to' => $email,
-                        'subject' => $emailData['subject'],
-                        'from' => $requester->email,
-                        'kota' => $kota->nama_kota,
-                        'request_id' => $emailData['request_id']
-                    ]);
-                    $successCount++;
-                    
-                } catch (\Exception $e) {
-                    Log::error('Gagal mengirim email request katalog', [
-                        'to' => $email,
-                        'error' => $e->getMessage()
-                    ]);
-                    $failedEmails[] = $email;
-                }
-            }
+            Log::info('Email request katalog TA berhasil dikirim ke koordinator (sistem terpusat)', [
+                'to' => $koordinatorEmail,
+                'subject' => $emailData['subject'],
+                'from' => $requester->email,
+                'kota' => $kota->nama_kota,
+                'request_id' => $emailData['request_id']
+            ]);
             
             // Simpan ke database untuk tracking
             $this->saveRequestToDatabase($requester->id, $kota->id_kota, $validated, $emailData['request_id']);
             
-            if ($successCount > 0) {
-                $message = "Request berhasil dikirim ke {$successCount} anggota KoTA ({$kota->nama_kota}). ";
-                $message .= "Mereka akan menghubungi Anda di email {$requester->email} jika bersedia berbagi informasi.";
-                
-                // Tambahkan info deadline jika ada
-                if (!empty($deadlineFormatted)) {
-                    $message .= " Deadline yang Anda tentukan: {$deadlineFormatted}.";
-                }
-                
-                if (!empty($failedEmails)) {
-                    $message .= " Namun, ada " . count($failedEmails) . " email yang gagal dikirim.";
-                }
-                
-                return redirect()->route('katalog-ta.show', $id)->with('success', $message);
-            } else {
-                return redirect()->back()->withInput()
-                    ->with('error', 'Semua email gagal dikirim. Periksa konfigurasi email server atau coba lagi nanti.');
+            // Pesan sukses
+            $successMessage = "Request katalog TA berhasil dikirim ke Koordinator TA Jurusan ({$koordinatorName} - {$koordinatorEmail}). ";
+            $successMessage .= "Anda akan mendapat balasan melalui email {$requester->email} ";
+            
+            switch($validated['prioritas']) {
+                case 'urgent':
+                    $successMessage .= "dalam 24 jam.";
+                    break;
+                case 'tinggi':
+                    $successMessage .= "dalam 3 hari kerja.";
+                    break;
+                case 'sedang':
+                    $successMessage .= "dalam 1 minggu.";
+                    break;
+                default:
+                    $successMessage .= "sesuai kebijakan koordinator.";
             }
+            
+            if (!empty($deadlineFormatted)) {
+                $successMessage .= " Deadline kebutuhan Anda: {$deadlineFormatted}.";
+            }
+            
+            return redirect()->route('katalog-ta.show', $id)->with('success', $successMessage);
                 
         } catch (\Exception $e) {
-            Log::error('Error saat mengirim request katalog TA', [
+            Log::error('Error saat mengirim request katalog TA ke koordinator', [
                 'requester_id' => $requester->id,
                 'kota_id' => $kota->id_kota,
+                'koordinator_email' => $koordinatorEmail,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
             return redirect()->back()->withInput()
-                ->with('error', 'Terjadi kesalahan sistem saat mengirim request. Silakan coba lagi atau hubungi administrator.');
+                ->with('error', 'Gagal mengirim request ke koordinator TA. Silakan coba lagi atau hubungi administrator sistem.');
         }
     }
     
     /**
      * Simpan request ke database untuk tracking
-     * UPDATED: dengan field tambahan
      */
     private function saveRequestToDatabase($requesterId, $kotaId, $data, $requestId)
     {
@@ -361,12 +410,13 @@ class KatalogTAController extends Controller
                     'deadline_request' => $data['deadline_request'] ?? null,
                     'institusi' => $data['institusi'],
                     'pesan' => $data['pesan'] ?? null,
-                    'status' => 'sent',
+                    'status' => 'sent_to_koordinator',
+                    'sistem_terpusat' => true,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
                 
-                Log::info('Request tersimpan di database', [
+                Log::info('Request tersimpan di database (sistem terpusat)', [
                     'request_id' => $requestId,
                     'requester_id' => $requesterId,
                     'kota_id' => $kotaId
@@ -375,7 +425,6 @@ class KatalogTAController extends Controller
                 Log::info('Tabel tbl_katalog_requests belum ada, request tidak disimpan ke database');
             }
         } catch (\Exception $e) {
-            // Jika tabel belum ada atau ada error, hanya log saja
             Log::warning('Gagal menyimpan request ke database', [
                 'error' => $e->getMessage(),
                 'request_id' => $requestId,
@@ -384,8 +433,6 @@ class KatalogTAController extends Controller
             ]);
         }
     }
-    
-    // Method lainnya tetap sama seperti sebelumnya...
     
     /**
      * Download file artefak tertentu (hanya untuk anggota kota atau admin)

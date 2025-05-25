@@ -23,16 +23,54 @@
                     <div class="col-md-12">
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle mr-2"></i>
-                           <strong>Info:</strong> Request Anda akan dikirim ke <strong>anggota KoTA</strong> 
+                            <strong>Info:</strong> Request Anda akan dikirim ke <strong>Koordinator TA Jurusan</strong> 
                             untuk mendapatkan akses katalog TA. Email Anda (<strong>{{ Auth::user()->email }}</strong>) 
                             akan digunakan sebagai kontak balasan.
                         </div>
+
+                        <!-- Koordinator Info (NEW) -->
+                        @if(isset($koordinator) && $koordinator)
+                        <div class="card mb-3 bg-warning text-dark">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-user-tie mr-2"></i>Koordinator TA Jurusan
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Nama:</strong> {{ $koordinator->name }}</p>
+                                        <p><strong>Email:</strong> {{ $koordinator->email }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Jabatan:</strong> <span class="badge badge-dark">Koordinator TA</span></p>
+                                        <p><strong>Status:</strong> 
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-circle mr-1"></i>Aktif
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning mt-2 mb-0">
+                                    <small>
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        <strong>Sistem Terpusat:</strong> Semua request katalog TA akan diproses melalui koordinator 
+                                        untuk memastikan kualitas dan keamanan data.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <strong>Perhatian:</strong> Data koordinator TA jurusan belum tersedia. 
+                            Request akan diteruskan ke admin sistem.
+                        </div>
+                        @endif
                         
-                        <!-- Info KoTA -->
+                        <!-- Info KoTA (UPDATED untuk memperjelas bahwa ini hanya referensi) -->
                         <div class="card mb-3 bg-light">
                             <div class="card-body">
                                 <h5 class="card-title text-primary">
-                                    <i class="fas fa-info-circle mr-2"></i>Informasi KoTA
+                                    <i class="fas fa-info-circle mr-2"></i>Informasi Katalog TA yang Diminta
                                 </h5>
                                 <div class="row">
                                     <div class="col-md-6">
@@ -45,18 +83,18 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Anggota KoTA -->
+                                <!-- Anggota KoTA (Hanya untuk informasi referensi) -->
                                 <div class="mt-3">
                                     <h6><strong>Informasi Anggota KoTA:</strong></h6>
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle mr-1"></i>
-                                        Informasi ini hanya untuk referensi. Jika Anda mengenal anggota KoTA, 
-                                        Anda dapat menghubungi mereka secara langsung di luar sistem.
+                                        Informasi ini hanya untuk referensi koordinator TA. Jika Anda mengenal anggota KoTA secara personal, 
+                                        Anda tetap dapat menghubungi mereka di luar sistem ini.
                                     </small>
                                     <div class="row mt-2">
                                         @if($mahasiswa->count() > 0)
                                             <div class="col-md-6">
-                                                <p><strong>Mahasiswa:</strong></p>
+                                                <p><strong>Alumni (Mahasiswa):</strong></p>
                                                 <ul class="list-unstyled">
                                                     @foreach($mahasiswa as $mhs)
                                                         <li><i class="fas fa-user text-info mr-1"></i>{{ $mhs->name }} ({{ $mhs->nomor_induk }})</li>
