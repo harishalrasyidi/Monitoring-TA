@@ -80,7 +80,7 @@
                 <a href="{{ route('artefak') }}" class="btn btn-app">
                   <i class="fas fa-file-alt"></i> Artefak
                 </a>
-                <a href="{{ route('yudisium.index') }}" class="btn btn-app">
+                <a href="{{ route('yudisium.kelola') }}" class="btn btn-app">
                   <i class="fas fa-graduation-cap"></i> Yudisium
                 </a>
                 <a href="{{ route('yudisium.dashboard') }}" class="btn btn-app">
@@ -133,7 +133,7 @@
             <div class="icon">
               <i class="fas fa-graduation-cap"></i>
             </div>
-            <a href="{{ route('yudisium.index') }}" class="small-box-footer">
+            <a href="{{ route('yudisium.kelola') }}" class="small-box-footer">
               Lihat Detail <i class="fas fa-arrow-circle-right"></i>
             </a>
           </div>

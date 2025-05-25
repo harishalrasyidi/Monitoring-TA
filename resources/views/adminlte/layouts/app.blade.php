@@ -298,7 +298,7 @@
             <!-- Menu Yudisium untuk Koordinator dan Kaprodi -->
             @if (auth()->user()->role=="1" || auth()->user()->role=="4" || auth()->user()->role=="5")
             <li class="nav-item">
-                <a href="{{ route('yudisium.index') }}" class="nav-link">
+                <a href="{{ route('yudisium.kelola') }}" class="nav-link">
                     <i class="nav-icon fas fa-graduation-cap"></i>
                     <p>
                         Kelola Yudisium

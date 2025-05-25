@@ -52,7 +52,7 @@ class YudisiumController extends Controller
             ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
             ->select(
                 'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota',
+                'tbl_yudisium.id_kota as yudisium_id_kota',
                 'tbl_yudisium.kategori_yudisium',
                 'tbl_yudisium.tanggal_yudisium',
                 'tbl_yudisium.nilai_akhir',
@@ -116,7 +116,8 @@ class YudisiumController extends Controller
             ->get();
 
         // Mengembalikan view dengan data
-        return view('yudisium.index', compact('yudisium', 'periodeList', 'kelasList', 'distribusi', 'periode', 'kelas', 'kategori', 'status'));
+        // return view('yudisium.index', compact('yudisium', 'periodeList', 'kelasList', 'distribusi', 'periode', 'kelas', 'kategori', 'status'));
+        return view('yudisium.kelola', compact('yudisium', 'periodeList', 'kelasList', 'periode', 'kelas', 'kategori', 'status'));
     }
 
     /**
@@ -184,7 +185,7 @@ class YudisiumController extends Controller
             'keterangan' => 'Penambahan data yudisium baru',
         ]);
 
-        return redirect()->route('yudisium.index')->with('success', 'Data yudisium berhasil ditambahkan');
+        return redirect()->route('yudisium.kelola')->with('success', 'Data yudisium berhasil ditambahkan');
     }
 
     /**
@@ -208,7 +209,7 @@ class YudisiumController extends Controller
             ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
             ->select(
                 'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota',
+                'tbl_yudisium.id_kota as yudisium_id_kota',
                 'tbl_yudisium.kategori_yudisium',
                 'tbl_yudisium.tanggal_yudisium',
                 'tbl_yudisium.nilai_akhir',
@@ -242,7 +243,7 @@ class YudisiumController extends Controller
             ->first();
 
         if (!$yudisium) {
-            return redirect()->route('yudisium.index')->with('error', 'Data yudisium tidak ditemukan');
+            return redirect()->route('yudisium.kelola')->with('error', 'Data yudisium tidak ditemukan');
         }
 
         // Ambil log perubahan
@@ -279,7 +280,8 @@ class YudisiumController extends Controller
             }
         }
 
-        return view('yudisium.show', compact('yudisium', 'logs'));
+        // return view('yudisium.show', compact('yudisium', 'logs'));
+        return view('yudisium.detail', compact('yudisium', 'logs'));
     }
 
     /**
@@ -372,7 +374,7 @@ class YudisiumController extends Controller
             ->where('id_kota', $idKota)
             ->update(['status_yudisium' => null]);
 
-        return redirect()->route('yudisium.index')->with('success', 'Data yudisium berhasil dihapus');
+        return redirect()->route('yudisium.kelola')->with('success', 'Data yudisium berhasil dihapus');
     }
 
     /**
@@ -565,5 +567,84 @@ class YudisiumController extends Controller
         } else {
             return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini');
         }
+    }
+
+    /**
+ * Generate yudisium categories automatically.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\Response
+ */
+public function generate(Request $request) {
+    // Cek akses
+    $user = Auth::user();
+    if (!in_array($user->role, [1, 4, 5])) {
+        return redirect()->route('home')->with('error', 'Anda tidak memiliki akses untuk melakukan generate yudisium');
+    }
+
+    // Validasi input
+    $request->validate([
+        'periode_generate' => 'required'
+    ]);
+
+    $periode = $request->periode_generate;
+
+    // Ambil semua KoTA yang belum memiliki yudisium pada periode ini
+    $kotaList = DB::table('tbl_kota')
+        ->leftJoin('tbl_yudisium', 'tbl_kota.id_kota', '=', 'tbl_yudisium.id_kota')
+        ->where('tbl_kota.periode', $periode)
+        ->whereNull('tbl_yudisium.id_yudisium')
+        ->select('tbl_kota.*')
+        ->get();
+
+    // Kriteria yudisium (contoh, sesuaikan dengan kebijakan resmi)
+    $batasYudisium = Carbon::parse('2025-05-30'); // Contoh tenggat yudisium
+    $tanggalSekarang = Carbon::now();
+
+    foreach ($kotaList as $kota) {
+        // Simulasi nilai akhir (ganti dengan data sebenarnya jika ada)
+        $nilaiAkhir = rand(60, 100); // Contoh nilai acak, ganti dengan data dari tabel lain jika ada
+        $tanggalYudisium = $tanggalSekarang;
+
+        // Tentukan kategori
+        if ($nilaiAkhir >= 85 && $tanggalYudisium->lte($batasYudisium)) {
+            $kategoriYudisium = 1; // Yudisium 1
+        } elseif ($nilaiAkhir >= 75 && $tanggalYudisium->lte($batasYudisium->copy()->addDays(14))) {
+            $kategoriYudisium = 2; // Yudisium 2
+        } else {
+            $kategoriYudisium = 3; // Yudisium 3
+        }
+
+        // Simpan data yudisium
+        $yudisium = YudisiumModel::create([
+            'id_kota' => $kota->id_kota,
+            'kategori_yudisium' => $kategoriYudisium,
+            'tanggal_yudisium' => $tanggalYudisium,
+            'nilai_akhir' => $nilaiAkhir,
+            'status' => 'pending',
+            'keterangan' => 'Generated automatically',
+        ]);
+
+        // Update status_yudisium di tabel kota
+        DB::table('tbl_kota')
+            ->where('id_kota', $kota->id_kota)
+            ->update(['status_yudisium' => 'pending']);
+
+        // Buat log
+        YudisiumLogModel::create([
+            'id_yudisium' => $yudisium->id_yudisium,
+            'id_user' => Auth::id(),
+            'jenis_perubahan' => 'Generate Otomatis',
+            'nilai_lama' => null,
+            'nilai_baru' => json_encode([
+                'kategori_yudisium' => $kategoriYudisium,
+                'nilai_akhir' => $nilaiAkhir,
+                'tanggal_yudisium' => $tanggalYudisium->toDateString(),
+            ]),
+            'keterangan' => 'Generate kategori yudisium otomatis',
+        ]);
+    }
+
+    return redirect()->route('yudisium.kelola')->with('success', 'Kategori yudisium berhasil di-generate.');
     }
 }
