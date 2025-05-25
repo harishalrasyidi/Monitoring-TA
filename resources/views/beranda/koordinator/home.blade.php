@@ -8,8 +8,9 @@
 
   <!-- Kartu Ringkasan -->
   <div class="row text-center">
+    <!-- Card Total KoTA -->
     <div class="col-md-3">
-      <div class="card card-yudisium" data-kategori="1" style="cursor:pointer">
+      <div class="card">
         <div class="card-body">
           <i class="fas fa-users fa-2x text-primary mb-2"></i>
           <h6>Total KoTA</h6>
@@ -17,32 +18,13 @@
         </div>
       </div>
     </div>
+    <!-- Card Daftar Yudisium -->
     <div class="col-md-3">
-      <div class="card card-yudisium" data-kategori="1" style="cursor:pointer">
-        <div class="card-body">
-          <i class="fas fa-certificate fa-2x text-success mb-2"></i>
-          <h6>Yudisium 1</h6>
-          <h3>{{ $totalYudisium1 }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card card-yudisium" data-kategori="2" style="cursor:pointer">
-        <div class="card-body">
-          <i class="fas fa-certificate fa-2x text-warning mb-2"></i>
-          <h6>Yudisium 2</h6>
-          <h3>{{ $totalYudisium2 }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card card-yudisium" data-kategori="3" style="cursor:pointer">
-        <div class="card-body">
-          <i class="fas fa-certificate fa-2x text-danger mb-2"></i>
-          <h6>Yudisium 3</h6>
-          <h3>{{ $totalYudisium3 }}</h3>
-        </div>
-      </div>
+          <div class="d-flex flex-column align-items-start mt-3">
+            <button type="button" class="btn btn-success mb-2 btn-yudisium" data-kategori="1">Yudisium 1</button>
+            <button type="button" class="btn btn-warning mb-2 btn-yudisium" data-kategori="2">Yudisium 2</button>
+            <button type="button" class="btn btn-danger mb-2 btn-yudisium" data-kategori="3">Yudisium 3</button>
+          </div>
     </div>
   </div>
 
@@ -181,16 +163,12 @@
       window.location.href = url.toString();
     });
 
-    document.querySelectorAll('.card-yudisium').forEach(function(card) {
-      card.addEventListener('click', function() {
+    document.querySelectorAll('.btn-yudisium').forEach(function(btn) {
+      btn.addEventListener('click', function() {
         var kategori = this.getAttribute('data-kategori');
         var periode = "{{ request('periode') }}";
         var kelas = "{{ request('kelas') }}";
-        var modalType = kategori;
-        if (kategori == 1) modalType = '1';
-        if (kategori == 2) modalType = '2';
-        if (kategori == 3) modalType = '3';
-        document.getElementById('modalYudisiumType').innerText = modalType;
+        document.getElementById('modalYudisiumType').innerText = kategori;
 
         fetch(`/koordinator/yudisium-list?kategori=${kategori}&periode=${periode}&kelas=${kelas}`)
           .then(response => response.json())
