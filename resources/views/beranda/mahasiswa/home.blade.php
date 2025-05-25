@@ -2,459 +2,404 @@
 
 @section('content')
 
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col">
-                        <h1 class="m-0">Detail Kelompok Tugas Akhir</h1>
-                    </div>
-                    @if (auth()->user()->role == "1" || auth()->user()->role == "3")
-                    <div class="col d-grid gap-2 d-md-flex justify-content-md-end">
-                        <span class="badge badge-pill badge-success" style="font-size: 1.0em;">
-                            <i class="nav-icon fas fa-check"></i>
-                            Sudah Mengumpulkan
-                        </span>
-                        <span class="badge badge-pill badge-secondary" style="font-size: 1.0em;">
-                            <i class="nav-icon fas fa-times"></i>
-                            Belum Mengumpulkan
-                        </span>
-                    </div>
-                    @endif
-                </div><!-- /.row -->
-            <hr/>
-        </div><!-- /.container-fluid -->
+<div class="content-wrapper">
+  <h3 class="mb-4">Dashboard Mahasiswa</h3>
+  <hr>
+
+  <!-- Kartu Ringkasan -->
+  <div class="row text-center">
+    <div class="col-md-3">
+      <div class="card clickable-card" data-toggle="modal" data-target="#anggotaModal" style="cursor: pointer;">
+        <div class="card-body">
+          <i class="fas fa-users fa-2x text-primary mb-2"></i>
+          <h6>Anggota Kelompok</h6>
+          <h3>{{ $anggotaKelompok->count() }}</h3>
+        </div>
+      </div>
     </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
-    <div class="content">
-        <!-- Begin Page Content -->
-        <div class="container-fluid">
-            @foreach ($kotas as $kota)
-                <h3><strong>KoTA {{ $kota->nama_kota }}</strong></h3>
-                <h4>{{ $kota->judul }}</h4>
-                <br>
-                <div class="row">
-                    <div class="col">
-                        <h4>Mahasiswa</h4>
-                        <ul>
-                            @foreach($mahasiswa as $mhs)
-                                <li><h5>{{ $mhs->name }}</h5></li>
-                            @endforeach
-                        </ul>
-                    </div> 
-                    <div class="col">
-                        <h4>NIM</h4>
-                        <ul>
-                            @foreach($mahasiswa as $mhs)
-                                <li><h5>{{ $mhs->nomor_induk }}</h5></li>
-                            @endforeach
-                        </ul>
-                    </div>  
-                    <div class="col">
-                        <h4>Dosen Pembimbing</h4>
-                        <ul>
-                            @foreach($dosen as $dsn)
-                                @if($dsn)
-                                    <li><h5>{{ $dsn->name }}</h5></li>
-                                @else
-                                    <li>Data tidak ditemukan</li>
-                                @endif
-                            @endforeach
-                        </ul>
-                    </div>
-                    <div class="col">
-                        <h4>NIP</h4>
-                        <ul>
-                            @foreach($dosen as $dsn)
-                                @if($dsn)
-                                    <li><h5>{{ $dsn->nomor_induk }}</h5></li>
-                                @else
-                                    <li>Data tidak ditemukan</li>
-                                @endif
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                <br>
-                <br> 
-            @endforeach
+    <div class="col-md-3">
+      <div class="card clickable-card" data-toggle="modal" data-target="#dosbingModal" style="cursor: pointer;">
+        <div class="card-body">
+          <i class="fas fa-chalkboard-teacher fa-2x text-success mb-2"></i>
+          <h6>Dosen Pembimbing</h6>
+          <h3>{{ $dosbing->count() }}</h3>
         </div>
+      </div>
     </div>
-        @foreach($mastertahapan as $tahapan)
-            @if($tahapan->id == 1)
-                <div class="alert" role="alert" style="background-color: #D2DCF2;">
-                    <div class="row">
-                        <div class="col">{{ $tahapan->nama_progres }}</div>
-                        <div class="col-5 d-md-flex justify-content-md-end">
-                            @foreach($tahapan_progres as $item)
-                                @if($item->id_master_tahapan_progres == 1)
-                                    <form action="{{ route('kota.status') }}" method="POST" id="statusForm_{{ $item->id }}">
-                                        @csrf
-                                        <input type="hidden" name="id_kota" value="{{ $item->id_kota }}">
-                                        <input type="hidden" name="id_master_tahapan_progres" value="{{ $item->id_master_tahapan_progres }}">
-                                        <div class="form-group">
-                                            <select class="form-control-sm" id="statusControlSelect_{{ $item->id }}" name="status" onchange="submitForm('{{ $item->id }}')">
-                                                <option value="selesai" class="badge badge-primary" {{ $item->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                                <option value="on_progres" class="badge badge-warning" {{ $item->status == 'on_progres' ? 'selected' : '' }}>On-Progres</option>
-                                            </select>
-                                        </div>
-                                    </form>
-                                @endif
-                            @endforeach
-                            @if (auth()->user()->role == "1" || auth()->user()->role == "2")
-                                <div>
-                                    @foreach($tahapan_progres as $item)
-                                        @if($item->id_master_tahapan_progres == 2)
-                                            @if($item->status == 'belum-disetujui')
-                                                <span id="selectedBadge" class="badge bg-danger">Belum Disetujui</span>
-                                            @elseif($item->status == 'disetujui')
-                                                <span id="selectedBadge" class="badge bg-success">Disetujui</span>
-                                            @elseif($item->status == 'selesai')
-                                                <span id="selectedBadge" class="badge bg-primary">Selesai</span>
-                                            @elseif($item->status == 'on_progres')
-                                                <span id="selectedBadge" class="badge bg-warning">On Progres</span>
-                                            @endif
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col justify-content-md-end">
-                            <div class="progress" style="height: 25px;">
-                                <div class="progress-bar" role="progressbar" style="width: {{ number_format($selesaiPercentage1, 1) }}%;" aria-valuenow="{{ number_format($selesaiPercentage1, 1) }}" aria-valuemin="0" aria-valuemax="100">{{ number_format($selesaiPercentage1, 1) }}%</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-        @endforeach
-        @if (auth()->user()->role == "1" || auth()->user()->role == "3")
-        <div class="container-fluid">
-            <div class="row row-cols-auto">
-                @foreach ($seminar1 as $masterArtefak)
-                    @php
-                        $isSubmitted = false;
-                        $submittedFile = null;
-                        foreach ($artefakKota as $artefak) {
-                            if ($artefak->nama_artefak == $masterArtefak->nama_artefak) {
-                                $isSubmitted = true;
-                                $submittedFile = $artefak->file_pengumpulan; // Ambil path file pengumpulan
-                                $submittedFileId = $artefak->nama_artefak;
-                                break;
-                            }
-                        }
-                    @endphp
-                    <div class="row">
-                        <div class="col mr-2">
-                            @if ($isSubmitted)
-                                <a href="{{ route('home.showFile', $submittedFileId) }}">
-                                <span class="badge badge-pill badge-success">
-                                    <i class="nav-icon fas fa-file"></i>
-                                        {{ $masterArtefak->nama_artefak }}
-                                    </span>
-                                </a>
-                            @else
-                                <span class="badge badge-pill badge-secondary">
-                                    <i class="nav-icon fas fa-file"></i>
-                                    {{ $masterArtefak->nama_artefak }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+    <div class="col-md-3">
+      <div class="card clickable-card" data-toggle="modal" data-target="#pengujiModal" style="cursor: pointer;">
+        <div class="card-body">
+          <i class="fas fa-user-tie fa-2x text-warning mb-2"></i>
+          <h6>Dosen Penguji</h6>
+          <h3>{{ $penguji->count() }}</h3>
         </div>
-        @endif
-        
-        <br>
-        
-        <div class="alert" role="alert" style="background-color: #D2DCF2;">
-            <div class="row">
-                <div class="col">
-                    Seminar 2
-                </div>
-                <div class="col-5 d-md-flex justify-content-md-end">
-                    <div class="mr-2">
-                        <span class="badge bg-light text-dark me-3">
-                            Jumlah Bimbingan : {{ $progressStage1Count }}
-                        </span>
-                    </div>
-                    @if (auth()->user()->role == "2")
-                        <div class="form-group">
-                            <select class="form-control-sm" id="statusControlSelect" onchange="changeBackgroundColor1()">
-                                <option value="belum-disetujui" class="badge badge-danger selected">Belum Disetujui</option>
-                                <option value="disetujui" class="badge badge-success">Disetujui</option>
-                                <option value="selesai" class="badge badge-primary">Selesai</option>
-                            </select>
-                        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <i class="fas fa-file-alt fa-2x text-info mb-2"></i>
+          <h6>Total Artefak</h6>
+          <h3>{{ $seminar1->count() + $seminar2->count() + $seminar3->count() + $sidang->count() }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Artefak per Tahapan -->
+  <div class="row mt-4">
+    <!-- Seminar 1 -->
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <strong>Artefak Seminar 1</strong>
+        </div>
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama Artefak</th>
+                <th>Status</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($seminar1 as $no => $artefak)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $artefak->nama_artefak }}</td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                      <span class="badge badge-success">Sudah Upload</span>
+                    @else
+                      <span class="badge badge-warning">Belum Upload</span>
                     @endif
-                    @if (auth()->user()->role == "1" || auth()->user()->role == "3")
-                        <div>
-                        @foreach($tahapan_progres as $item)
-                        @if($item->id_master_tahapan_progres == 2)
-                            @if($item->status == 'belum-disetujui')
-                            <span id="selectedBadge" class="badge bg-danger">Belum Disetujui</span>
-                            @elseif($item->status == 'disetujui')
-                            <span id="selectedBadge" class="badge bg-success">Disetujui</span>
-                            @elseif($item->status == 'selesai')
-                            <span id="selectedBadge" class="badge bg-primary">Selesai</span>
-                            @elseif($item->status == 'on_progres')
-                            <span id="selectedBadge" class="badge bg-warning">On Progres</span>
-                            @endif
-                        @endif
-                        @endforeach
-                        </div>
+                  </td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
+                      </a>
+                    @else
+                      -
                     @endif
-                    </div>
-                <div class="col justify-content-md-end">
-                    <div class="progress"  style="height: 25px;">
-                        <div class="progress-bar" role="progressbar" style="width: {{ number_format($selesaiPercentage2, 1) }}%;" aria-valuenow="{{ number_format($selesaiPercentage2, 1) }}" aria-valuemin="0" aria-valuemax="100">{{ number_format($selesaiPercentage2, 1) }}%</div>
-                    </div>
-                </div>
-            </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
-        @if (auth()->user()->role == "1" || auth()->user()->role == "3")
-        <div class="container-fluid">
-            <div class="row row-cols-auto">
-                @foreach ($seminar2 as $masterArtefak)
-                    @php
-                        $isSubmitted = false;
-                        foreach ($artefakKota as $artefak) {
-                            if ($artefak->nama_artefak == $masterArtefak->nama_artefak) {
-                                $isSubmitted = true;
-                                $submittedFileId = $artefak->nama_artefak;
-                                break;
-                            }
-                        }
-                    @endphp
-                    <div class="row">
-                        <div class="col mr-2">
-                            @if ($isSubmitted)
-                                <a href="{{ route('home.showFile', $submittedFileId) }}">
-                                <span class="badge badge-pill badge-success">
-                                    <i class="nav-icon fas fa-file"></i>
-                                        {{ $masterArtefak->nama_artefak }}
-                                    </span>
-                                </a>
-                            @else
-                                <span class="badge badge-pill badge-secondary">
-                                    <i class="nav-icon fas fa-file"></i>
-                                    {{ $masterArtefak->nama_artefak }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+      </div>
+    </div>
+
+    <!-- Seminar 2 -->
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <strong>Artefak Seminar 2</strong>
         </div>
-        @endif
-        
-        <br>
-        
-        <div class="alert" role="alert" style="background-color: #D2DCF2;">
-            <div class="row">
-                <div class="col">
-                    Seminar 3
-                </div>
-                <div class="col-5 d-md-flex justify-content-md-end">
-                    <div class="mr-2">
-                        <span class="badge bg-light text-dark me-3">
-                            Jumlah Bimbingan : {{ $progressStage2Count }}
-                        </span>
-                    </div>
-                    @if (auth()->user()->role == "2")
-                        <div class="form-group">
-                            <select class="form-control-sm" id="statusControlSelect" onchange="changeBackgroundColor1()">
-                                <option value="belum-disetujui" class="badge badge-danger selected">Belum Disetujui</option>
-                                <option value="disetujui" class="badge badge-success">Disetujui</option>
-                                <option value="selesai" class="badge badge-primary">Selesai</option>
-                            </select>
-                        </div>
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama Artefak</th>
+                <th>Status</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($seminar2 as $no => $artefak)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $artefak->nama_artefak }}</td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                      <span class="badge badge-success">Sudah Upload</span>
+                    @else
+                      <span class="badge badge-warning">Belum Upload</span>
                     @endif
-                    @if (auth()->user()->role == "1" || auth()->user()->role == "3")
-                        <div>
-                        @foreach($tahapan_progres as $item)
-                        @if($item->id_master_tahapan_progres == 3)
-                            @if($item->status == 'belum-disetujui')
-                            <span id="selectedBadge" class="badge bg-danger">Belum Disetujui</span>
-                            @elseif($item->status == 'disetujui')
-                            <span id="selectedBadge" class="badge bg-success">Disetujui</span>
-                            @elseif($item->status == 'selesai')
-                            <span id="selectedBadge" class="badge bg-primary">Selesai</span>
-                            @elseif($item->status == 'on_progres')
-                            <span id="selectedBadge" class="badge bg-warning">On Progres</span>
-                            @endif
-                        @endif
-                        @endforeach
-                        </div>
+                  </td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
+                      </a>
+                    @else
+                      -
                     @endif
-                </div>
-                <div class="col justify-content-md-end">
-                    <div class="progress"  style="height: 25px;">
-                    <div class="progress-bar" role="progressbar" style="width: {{ number_format($selesaiPercentage3, 1) }}%;" aria-valuenow="{{ number_format($selesaiPercentage3, 1) }}" aria-valuemin="0" aria-valuemax="100">{{ number_format($selesaiPercentage3, 1) }}%</div>
-                    </div>
-                </div>
-            </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
-        @if (auth()->user()->role=="1" || auth()->user()->role == "3")
-        <div class="container-fluid">
-            <div class="row row-cols-auto">
-                @foreach ($seminar3 as $masterArtefak)
-                    @php
-                        $isSubmitted = false;
-                        foreach ($artefakKota as $artefak) {
-                            if ($artefak->nama_artefak == $masterArtefak->nama_artefak) {
-                                $isSubmitted = true;
-                                $submittedFileId = $artefak->nama_artefak;
-                                break;
-                            }
-                        }
-                    @endphp
-                    <div class="row">
-                        <div class="col mr-2">
-                            @if ($isSubmitted)
-                                <a href="{{ route('home.showFile', $submittedFileId) }}">
-                                <span class="badge badge-pill badge-success">
-                                    <i class="nav-icon fas fa-file"></i>
-                                        {{ $masterArtefak->nama_artefak }}
-                                    </span>
-                                </a>
-                            @else
-                                <span class="badge badge-pill badge-secondary">
-                                    <i class="nav-icon fas fa-file"></i>
-                                    {{ $masterArtefak->nama_artefak }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <!-- Seminar 3 -->
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <strong>Artefak Seminar 3</strong>
         </div>
-        @endif
-
-        <br>
-
-        <div class="alert" role="alert" style="background-color: #D2DCF2;">
-            <div class="row">
-                <div class="col">
-                    Sidang
-                </div>
-                <div class="col-5 d-md-flex justify-content-md-end">
-                    <div class="mr-2">
-                        <span class="badge bg-light text-dark me-3">
-                            Jumlah Bimbingan : {{ $progressStage3Count }}
-                        </span>
-                    </div>
-                    @if (auth()->user()->role == "2")
-                        <div class="form-group">
-                            <select class="form-control-sm" id="statusControlSelect" onchange="changeBackgroundColor3()">
-                                <option value="belum-disetujui" class="badge badge-danger selected">Belum Disetujui</option>
-                                <option value="disetujui" class="badge badge-success">Disetujui</option>
-                                <option value="selesai" class="badge badge-primary">Selesai</option>
-                            </select>
-                        </div>
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama Artefak</th>
+                <th>Status</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($seminar3 as $no => $artefak)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $artefak->nama_artefak }}</td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                      <span class="badge badge-success">Sudah Upload</span>
+                    @else
+                      <span class="badge badge-warning">Belum Upload</span>
                     @endif
-                    @if (auth()->user()->role == "1" || auth()->user()->role == "3")
-                        <div>
-                        @foreach($tahapan_progres as $item)
-                        @if($item->id_master_tahapan_progres == 4)
-                            @if($item->status == 'belum-disetujui')
-                            <span id="selectedBadge" class="badge bg-danger">Belum Disetujui</span>
-                            @elseif($item->status == 'disetujui')
-                            <span id="selectedBadge" class="badge bg-success">Disetujui</span>
-                            @elseif($item->status == 'selesai')
-                            <span id="selectedBadge" class="badge bg-primary">Selesai</span>
-                            @elseif($item->status == 'on_progres')
-                            <span id="selectedBadge" class="badge bg-warning">On Progres</span>
-                            @endif
-                        @endif
-                        @endforeach
-                        </div>
+                  </td>
+                  <td>
+                   @if($artefak->file_pengumpulan)
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
+                      </a>
+                    @else
+                      -
                     @endif
-                </div>
-                <div class="col justify-content-md-end">
-                    <div class="progress"  style="height: 25px;">
-                    <div class="progress-bar" role="progressbar" style="width: {{ number_format($selesaiPercentage4, 1) }}%;" aria-valuenow="{{ number_format($selesaiPercentage4, 1) }}%;" aria-valuemin="0" aria-valuemax="100">{{ number_format($selesaiPercentage4, 1) }}%</div>
-                    </div>
-                </div>
-            </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
-        @if (auth()->user()->role=="1" || auth()->user()->role == "3")
-        <div class="container-fluid">
-            <div class="row row-cols-auto">
-                @foreach ($sidang as $masterArtefak)
-                    @php
-                        $isSubmitted = false;
-                        foreach ($artefakKota as $artefak) {
-                            if ($artefak->nama_artefak == $masterArtefak->nama_artefak) {
-                                $isSubmitted = true;
-                                $submittedFileId = $artefak->nama_artefak;
-                                break;
-                            }
-                        }
-                    @endphp
-                    <div class="row">
-                        <div class="col mr-2">
-                            @if ($isSubmitted)
-                                <a href="{{ route('home.showFile', $submittedFileId) }}">
-                                <span class="badge badge-pill badge-success">
-                                    <i class="nav-icon fas fa-file"></i>
-                                        {{ $masterArtefak->nama_artefak }}
-                                    </span>
-                                </a>
-                            @else
-                                <span class="badge badge-pill badge-secondary">
-                                    <i class="nav-icon fas fa-file"></i>
-                                    {{ $masterArtefak->nama_artefak }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+      </div>
+    </div>
+
+    <!-- Sidang -->
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <strong>Artefak Sidang</strong>
         </div>
-        @endif
-        <br>
-        <br>
-        <br>
+        <div class="card-body table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama Artefak</th>
+                <th>Status</th>
+                <th>File</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($sidang as $no => $artefak)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $artefak->nama_artefak }}</td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                      <span class="badge badge-success">Sudah Upload</span>
+                    @else
+                      <span class="badge badge-warning">Belum Upload</span>
+                    @endif
+                  </td>
+                  <td>
+                    @if($artefak->file_pengumpulan)
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
+                      </a>
+                    @else
+                      -
+                    @endif
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Panggil fungsi changeBackgroundColor() untuk setiap elemen select dengan ID dinamis
-        var selects = document.querySelectorAll('[id^="statusControlSelect_"]');
-        selects.forEach(function(select) {
-            select.addEventListener('change', function() {
-                changeBackgroundColor(select); // Kirim elemen select sebagai parameter
-            });
-            changeBackgroundColor(select); // Panggil fungsi sekali saat halaman dimuat
-        });
-    });
+<!-- Modal Anggota Kelompok -->
+<div class="modal fade" id="anggotaModal" tabindex="-1" role="dialog" aria-labelledby="anggotaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="anggotaModalLabel">
+          <i class="fas fa-users text-primary"></i> Anggota Kelompok
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>NIM</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($anggotaKelompok as $no => $anggota)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $anggota->name }}</td>
+                  <td>{{ $anggota->nomor_induk ?? '-' }}</td>
+                  <td>{{ $anggota->email }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="4" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-    function changeBackgroundColor(selectElement) {
-        var selectedOption = selectElement.options[selectElement.selectedIndex];
+<!-- Modal Dosen Pembimbing -->
+<div class="modal fade" id="dosbingModal" tabindex="-1" role="dialog" aria-labelledby="dosbingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dosbingModalLabel">
+          <i class="fas fa-chalkboard-teacher text-success"></i> Dosen Pembimbing
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($dosbing as $no => $dosen)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $dosen->name }}</td>
+                  <td>{{ $dosen->email }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="3" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // Hapus kelas latar belakang sebelumnya
-        selectElement.classList.remove("bg-danger", "bg-success", "bg-primary");
+<!-- Modal Dosen Penguji -->
+<div class="modal fade" id="pengujiModal" tabindex="-1" role="dialog" aria-labelledby="pengujiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pengujiModalLabel">
+          <i class="fas fa-user-tie text-warning"></i> Dosen Penguji
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="thead-light">
+              <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($penguji as $no => $dosen)
+                <tr>
+                  <td>{{ $no+1 }}</td>
+                  <td>{{ $dosen->name }}</td>
+                  <td>{{ $dosen->email }}</td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="3" class="text-center">Data belum ada</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // Tambahkan kelas latar belakang sesuai dengan opsi yang dipilih
-        if (selectedOption.value === "belum-disetujui") {
-            selectElement.classList.add("bg-danger");
-        } else if (selectedOption.value === "disetujui") {
-            selectElement.classList.add("bg-success");
-        } else if (selectedOption.value === "selesai") {
-            selectElement.classList.add("bg-primary");
-        } else if (selectedOption.value === "on_progres") {
-            selectElement.classList.add("bg-warning");
-        }
-    }
+@endsection
 
-    function submitForm(id) {
-        document.getElementById('statusForm_' + id).submit();
-    }
+@section('styles')
+<style>
+.clickable-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
 
-</script>
+.clickable-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.clickable-card:active {
+  transform: translateY(0);
+}
+</style>
 @endsection

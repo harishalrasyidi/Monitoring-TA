@@ -153,11 +153,8 @@
               </td>
               <td>
                 <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-sm btn-info" title="Lihat Detail">
+                  <button type="button" class="btn btn-sm btn-info" title="Lihat Artefak">
                     <i class="fas fa-eye"></i>
-                  </button>
-                  <button type="button" class="btn btn-sm btn-primary" title="Bimbingan">
-                    <i class="fas fa-comments"></i>
                   </button>
                 </div>
               </td>
@@ -243,59 +240,79 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    var options = {
-      chart: { 
-        type: 'bar', 
-        height: 350,
-        toolbar: {
-          show: true
-        }
-      },
-      series: [{
-        name: 'Jumlah KoTA Tuntas',
-        data: {!! json_encode(array_values($chartData)) !!}
-      }],
-      xaxis: {
-        categories: {!! json_encode(array_keys($chartData)) !!},
-        title: {
-          text: 'Tahapan'
-        }
-      },
-      yaxis: {
-        title: {
-          text: 'Jumlah KoTA'
-        }
-      },
-      colors: ['#007bff', '#17a2b8', '#ffc107', '#28a745'],
-      plotOptions: {
-        bar: {
-          borderRadius: 4,
-          horizontal: false,
-          dataLabels: {
-            position: 'top'
-          }
-        }
-      },
-      dataLabels: {
-        enabled: true,
-        offsetY: -20,
-        style: {
-          fontSize: '12px',
-          colors: ["#304758"]
-        }
-      },
-      title: {
-        text: 'Progress Tahapan KoTA Bimbingan',
-        align: 'center'
-      },
-      grid: {
-        show: true,
-        borderColor: '#e7e7e7'
+  var options = {
+    chart: { 
+      type: 'bar', 
+      height: 350,
+      toolbar: {
+        show: true
       }
-    };
-    var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
-    chart.render();
-  });
+    },
+    series: [{
+      name: 'Jumlah KoTA Tuntas',
+      data: {!! json_encode(array_values($chartData)) !!}
+    }],
+    xaxis: {
+      categories: {!! json_encode(array_keys($chartData)) !!},
+      title: {
+        text: 'Tahapan'
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Jumlah KoTA'
+      },
+      labels: {
+        formatter: function (val) {
+          return Math.floor(val); // Pastikan Y-axis hanya menampilkan integer
+        }
+      },
+      forceNiceScale: false,
+      decimalsInFloat: 0, // Tidak ada desimal
+      tickAmount: undefined, // Biarkan ApexCharts menentukan jumlah tick otomatis
+      min: 0, // Mulai dari 0
+      stepSize: 1 // Step dari 0 langsung ke 1, 2, 3, dst
+    },
+    colors: ['#28a745'], // Warna hijau untuk semua bar
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        horizontal: false,
+        dataLabels: {
+          position: 'top'
+        }
+      }
+    },
+    dataLabels: {
+      enabled: true,
+      offsetY: -20,
+      style: {
+        fontSize: '12px',
+        colors: ["#304758"]
+      },
+      formatter: function (val) {
+        return Math.floor(val); // Tampilkan data label sebagai integer
+      }
+    },
+    title: {
+      text: 'Progress Tahapan KoTA Bimbingan',
+      align: 'center'
+    },
+    grid: {
+      show: true,
+      borderColor: '#e7e7e7'
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return Math.floor(val) + " KoTA"; // Tooltip juga integer
+        }
+      }
+    }
+  };
+  var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
+  chart.render();
+});
 
   // Fungsi untuk menampilkan modal
   function showKotaUjiModal() {
@@ -338,58 +355,77 @@
     });
   }
 
-  // Fungsi untuk render tabel
-  function renderKotaUjiTable(data, pagination) {
+    function renderKotaUjiTable(data, pagination) {
     let html = '';
     data.forEach((kota, index) => {
-      const no = ((pagination.current_page - 1) * pagination.per_page) + index + 1;
-      
-      // Tentukan tahapan terakhir
-      let tahapanTerakhir = 'Belum Dimulai';
-      let statusBadge = 'secondary';
-      
-      if (kota.tahapan_progress && kota.tahapan_progress.length > 0) {
-        const lastProgress = kota.tahapan_progress[kota.tahapan_progress.length - 1];
-        const tahapanNames = ['', 'Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
-        tahapanTerakhir = tahapanNames[lastProgress.id_master_tahapan_progres] || 'Unknown';
+        const no = ((pagination.current_page - 1) * pagination.per_page) + index + 1;
         
-        if (lastProgress.status === 'tuntas') {
-          statusBadge = 'success';
-        } else if (lastProgress.status === 'progress') {
-          statusBadge = 'warning';
+        // Tentukan tahapan terakhir yang TUNTAS
+        let tahapanTerakhir = 'Belum Dimulai';
+        let statusBadge = 'secondary';
+        
+        if (kota.tahapan_progress && kota.tahapan_progress.length > 0) {
+        const tahapanNames = ['', 'Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+        
+        // Cari tahapan tertinggi yang statusnya TUNTAS
+        let lastCompletedStage = 0;
+        
+        kota.tahapan_progress.forEach(progress => {
+            if (progress.status === 'tuntas' && progress.id_master_tahapan_progres > lastCompletedStage) {
+            lastCompletedStage = progress.id_master_tahapan_progres;
+            }
+        });
+        
+        // Jika ada tahapan yang tuntas, tampilkan tahapan terakhir yang tuntas
+        if (lastCompletedStage > 0) {
+            tahapanTerakhir = tahapanNames[lastCompletedStage] || 'Unknown';
+            statusBadge = 'success'; // Tahapan yang sudah tuntas
+        } else {
+            // Jika tidak ada yang tuntas, cek apakah ada yang progress
+            const hasProgress = kota.tahapan_progress.some(progress => progress.status === 'progress');
+            if (hasProgress) {
+            // Cari tahapan terendah yang sedang progress
+            const progressStages = kota.tahapan_progress
+                .filter(progress => progress.status === 'progress')
+                .sort((a, b) => a.id_master_tahapan_progres - b.id_master_tahapan_progres);
+            
+            if (progressStages.length > 0) {
+                tahapanTerakhir = tahapanNames[progressStages[0].id_master_tahapan_progres] || 'Unknown';
+                statusBadge = 'warning'; // Sedang progress
+            }
+            }
         }
-      }
-      
-      // Status keseluruhan
-      let overallStatus = 'Dalam Progres';
-      let overallBadge = 'warning';
-      
-      if (kota.tahapan_progress) {
+        }
+        
+        // Status keseluruhan
+        let overallStatus = 'Dalam Progres';
+        let overallBadge = 'warning';
+        
+        if (kota.tahapan_progress) {
         const sidangProgress = kota.tahapan_progress.find(tp => tp.id_master_tahapan_progres === 4);
         if (sidangProgress && sidangProgress.status === 'tuntas') {
-          overallStatus = 'Selesai';
-          overallBadge = 'success';
+            overallStatus = 'Selesai';
+            overallBadge = 'success';
         }
-      }
+        }
 
-      html += `
+        html += `
         <tr>
-          <td class="text-center">${no}</td>
-          <td><strong>${kota.nama_kota}</strong></td>
-          <td><small class="text-muted">${kota.judul || '-'}</small></td>
-          <td>
+            <td class="text-center">${no}</td>
+            <td><strong>${kota.nama_kota}</strong></td>
+            <td><small class="text-muted">${kota.judul || '-'}</small></td>
+            <td>
             <span class="badge badge-${statusBadge}">${tahapanTerakhir}</span>
-          </td>
-          <td>
+            </td>
+            <td>
             <span class="badge badge-${overallBadge}">${overallStatus}</span>
-          </td>
-          
+            </td>
         </tr>
-      `;
+        `;
     });
     
     $('#kotaUjiTableBody').html(html);
-  }
+    }
 
   function renderKotaUjiPagination(pagination) {
     let html = '';

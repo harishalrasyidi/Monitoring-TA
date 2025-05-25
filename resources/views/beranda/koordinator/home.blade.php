@@ -9,7 +9,7 @@
   <!-- Kartu Ringkasan -->
   <div class="row text-center">
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="1" style="cursor:pointer">
         <div class="card-body">
           <i class="fas fa-users fa-2x text-primary mb-2"></i>
           <h6>Total KoTA</h6>
@@ -18,20 +18,29 @@
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="1" style="cursor:pointer">
         <div class="card-body">
-          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-          <h6>Selesai Semua Tahapan</h6>
-          <h3>{{ $selesai }}</h3>
+          <i class="fas fa-certificate fa-2x text-success mb-2"></i>
+          <h6>Yudisium 1</h6>
+          <h3>{{ $totalYudisium1 }}</h3>
         </div>
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="2" style="cursor:pointer">
         <div class="card-body">
-          <i class="fas fa-spinner fa-2x text-warning mb-2"></i>
-          <h6>Dalam progres</h6>
-          <h3>{{ $dalamProgres }}</h3>
+          <i class="fas fa-certificate fa-2x text-warning mb-2"></i>
+          <h6>Yudisium 2</h6>
+          <h3>{{ $totalYudisium2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card card-yudisium" data-kategori="3" style="cursor:pointer">
+        <div class="card-body">
+          <i class="fas fa-certificate fa-2x text-danger mb-2"></i>
+          <h6>Yudisium 3</h6>
+          <h3>{{ $totalYudisium3 }}</h3>
         </div>
       </div>
     </div>
@@ -41,14 +50,23 @@
   <div class="card mt-4">
     <div class="card-header">
       <strong>Statistik Status Tahapan KoTA</strong>
-      <div class="float-right">
-        <select class="form-control d-inline w-auto mr-2">
-          <option>Tahun</option>
+      <form method="GET" id="filterForm" class="form-inline float-right">
+        <label class="mr-2">Tahun:</label>
+        <select name="periode" class="form-control mr-2" onchange="this.form.submit()">
+          <option value="">Semua</option>
+          @foreach($periodes as $periode)
+            <option value="{{ $periode }}" {{ request('periode') == $periode ? 'selected' : '' }}>{{ $periode }}</option>
+          @endforeach
         </select>
-        <select class="form-control d-inline w-auto">
-          <option>Kelas</option>
+        <label class="mr-2">Kelas:</label>
+        <select name="kelas" class="form-control mr-2" onchange="this.form.submit()">
+          <option value="">Semua</option>
+          @foreach($kelasList as $kelas)
+            <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+          @endforeach
         </select>
-      </div>
+        <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+      </form>
     </div>
     <div class="card-body">
       <div id="tahapanChart"></div>
@@ -118,9 +136,26 @@
           @endforelse
         </tbody>
       </table>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex align-items-center">
+          <span class="mr-2">Tampilkan</span>
+          <select class="form-control form-control-sm" id="perPage" style="width: 70px">
+            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+          </select>
+          <span class="ml-2">data per halaman</span>
+        </div>
+        <div>
+          {{ $kotaList->appends(['per_page' => request('per_page')])->links() }}
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+@include('beranda.koordinator.yudisium_modal')
 
 @endsection
 
@@ -139,6 +174,42 @@
     };
     var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
     chart.render();
+
+    document.getElementById('perPage').addEventListener('change', function() {
+      var url = new URL(window.location.href);
+      url.searchParams.set('per_page', this.value);
+      window.location.href = url.toString();
+    });
+
+    document.querySelectorAll('.card-yudisium').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var kategori = this.getAttribute('data-kategori');
+        var periode = "{{ request('periode') }}";
+        var kelas = "{{ request('kelas') }}";
+        var modalType = kategori;
+        if (kategori == 1) modalType = '1';
+        if (kategori == 2) modalType = '2';
+        if (kategori == 3) modalType = '3';
+        document.getElementById('modalYudisiumType').innerText = modalType;
+
+        fetch(`/koordinator/yudisium-list?kategori=${kategori}&periode=${periode}&kelas=${kelas}`)
+          .then(response => response.json())
+          .then(data => {
+            var tbody = document.getElementById('modalYudisiumTableBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="2" class="text-center">Tidak ada data</td></tr>';
+            } else {
+              data.forEach(function(item) {
+                var row = `<tr><td>${item.nama_kota}</td><td>${item.judul}</td></tr>`;
+                tbody.innerHTML += row;
+              });
+            }
+            $('#modalYudisiumList').modal('show');
+          });
+      });
+    });
   });
 </script>
+
 
