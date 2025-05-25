@@ -30,6 +30,8 @@ class DatabaseSeeder extends Seeder
             MasterMetodologiSeeder::class,
             JadwalKesediaanPengujiSeeder::class,
             TblKotaHasArtefakSeeder::class,
+            YudisiumSeeder::class,
+            YudisiumLogSeeder::class,
         ]);
     }
 }

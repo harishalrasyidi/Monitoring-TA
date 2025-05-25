@@ -17,38 +17,29 @@
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body">
-          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-          <h6>Selesai Semua Tahapan</h6>
-          <h3>{{ $selesai }}</h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body">
-          <i class="fas fa-spinner fa-2x text-warning mb-2"></i>
-          <h6>Dalam progres</h6>
-          <h3>{{ $dalamProgres }}</h3>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Statistik Tahapan KoTA -->
   <div class="card mt-4">
     <div class="card-header">
       <strong>Statistik Status Tahapan KoTA</strong>
-      <div class="float-right">
-        <select class="form-control d-inline w-auto mr-2">
-          <option>Tahun</option>
+      <form method="GET" id="filterForm" class="form-inline float-right">
+        <label class="mr-2">Tahun:</label>
+        <select name="periode" class="form-control mr-2" onchange="this.form.submit()">
+          <option value="">Semua</option>
+          @foreach($periodes as $periode)
+            <option value="{{ $periode }}" {{ request('periode') == $periode ? 'selected' : '' }}>{{ $periode }}</option>
+          @endforeach
         </select>
-        <select class="form-control d-inline w-auto">
-          <option>Kelas</option>
+        <label class="mr-2">Kelas:</label>
+        <select name="kelas" class="form-control mr-2" onchange="this.form.submit()">
+          <option value="">Semua</option>
+          @foreach($kelasList as $kelas)
+            <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
+          @endforeach
         </select>
-      </div>
+        <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+      </form>
     </div>
     <div class="card-body">
       <div id="tahapanChart"></div>
@@ -72,6 +63,7 @@
             <th>Seminar 3</th>
             <th>Sidang</th>
             <th>Status</th>
+            <th>Artefak</th>
           </tr>
         </thead>
         <tbody>
@@ -83,13 +75,11 @@
                 <small>{{ $kota->judul }}</small>
               </td>
               @php
-                // Urutkan progres berdasarkan id_master_tahapan_progres
                 $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
                 $status = [];
                 foreach($tahapan as $tp) {
                   $status[] = $tp->status;
                 }
-                // Jika tahapan kurang dari 4, tambahkan '-'
                 for($i = count($status); $i < 4; $i++) $status[] = '-';
               @endphp
               <td>{{ $status[0] ?? '-' }}</td>
@@ -106,14 +96,34 @@
                   <span class="badge badge-warning">Dalam Progres</span>
                 @endif
               </td>
+              <td>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                  Lihat Detail
+                </a> 
+              </td>
             </tr>
           @empty
             <tr>
-              <td colspan="7" class="text-center">Data tidak ditemukan</td>
+              <td colspan="8" class="text-center">Data tidak ditemukan</td>
             </tr>
           @endforelse
         </tbody>
       </table>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex align-items-center">
+          <span class="mr-2">Tampilkan</span>
+          <select class="form-control form-control-sm" id="perPage" style="width: 70px">
+            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+          </select>
+          <span class="ml-2">data per halaman</span>
+        </div>
+        <div>
+          {{ $kotaList->appends(['per_page' => request('per_page')])->links() }}
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -135,6 +145,12 @@
     };
     var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
     chart.render();
+
+    document.getElementById('perPage').addEventListener('change', function() {
+      var url = new URL(window.location.href);
+      url.searchParams.set('per_page', this.value);
+      window.location.href = url.toString();
+    });
   });
 </script>
 
