@@ -16,6 +16,7 @@ class KotaModel extends Model
     protected $fillable = [
         'nama_kota',
         'judul',
+        'abstrak',
         'kelas', 
         'periode', 
         'kategori',

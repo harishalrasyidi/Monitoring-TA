@@ -26,7 +26,7 @@ class KatalogController extends Controller
             ->join('tbl_artefak', 'tbl_kota_has_artefak.id_artefak', '=', 'tbl_artefak.id_artefak')
             ->join('tbl_kota', 'tbl_kota_has_artefak.id_kota', '=', 'tbl_kota.id_kota')
             ->select('tbl_kota_has_artefak.*', 'tbl_artefak.nama_artefak', 'tbl_artefak.deskripsi', 
-                    'tbl_kota.nama_kota', 'tbl_kota.judul', 'tbl_kota.kelas', 'tbl_kota.periode', 'tbl_kota.kategori', 'tbl_kota.prodi');
+                    'tbl_kota.nama_kota', 'tbl_kota.judul', 'tbl_kota.kelas', 'tbl_kota.periode', 'tbl_kota.kategori', 'tbl_kota.abstrak', 'tbl_kota.prodi');
     
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
