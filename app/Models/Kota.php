@@ -26,5 +26,5 @@ class Kota extends Model
     {
         return $this->hasMany(KotaHasArtefakModel::class, 'id_kota');
     }
-
+    
 } 

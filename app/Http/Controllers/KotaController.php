@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\KotaModel;
+use App\Models\YudisiumModel;
 use App\Models\User;
 use App\Models\KotaHasUserModel;
 use App\Models\KotaHasArtefakModel;
@@ -83,7 +84,7 @@ class KotaController extends Controller
         return view('kota.create', compact('dosen', 'mahasiswa'));
     }
     
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
             'nama_kota' => 'required',
@@ -92,6 +93,7 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1|max:3',
             'dosen' => 'required|array|min:2|max:2',
+            'penguji' => 'required|array|min:1',
         ]);
         
         // Check if the Kota already exists
@@ -129,6 +131,15 @@ class KotaController extends Controller
                 'id_user' => $id_user
             ]);
         }
+
+        // Save Penguji to tbl_kota_has_penguji
+        foreach ($request->penguji as $pengujiId) {
+            $id_user = DB::table('users')->where('nomor_induk', $pengujiId)->value('id');
+            DB::table('tbl_kota_has_penguji')->insert([
+                'id_kota' => $id_kota,
+                'id_user' => $id_user
+            ]);
+        }
         
         // Tambahkan data ke tabel tbl_kota_has_tahapan_progres
         $initialTahapanProgres = [
@@ -145,8 +156,6 @@ class KotaController extends Controller
         
         session()->flash('success', 'Data KoTA berhasil ditambahkan');
         return redirect()->route('kota');
-        
-        
     }
     
     public function detail($id)
