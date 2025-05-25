@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Katalog KoTA</title>
+    <title>Request Katalog TA - Koordinator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -75,8 +75,14 @@
             color: white;
             text-decoration: none;
             border-radius: 8px;
-            margin: 10px 0;
+            margin: 10px 5px;
             font-weight: bold;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-danger {
+            background-color: #dc3545;
         }
         .contact-info {
             background-color: #e9ecef;
@@ -111,12 +117,26 @@
             font-weight: bold;
             width: 30%;
         }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f1f3f4;
+            border-radius: 8px;
+        }
+        .anggota-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #6c757d;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🎓 Request Katalog KoTA</h1>
-        <p>Permintaan Akses Informasi Tugas Akhir</p>
+        <h1>🎓 Request Katalog TA</h1>
+        <p>Permintaan Akses ke Koordinator TA Jurusan</p>
         <p><small>{{ $data['request_date'] }}</small></p>
         @if(!empty($data['request_id']))
         <p><small>ID Request: {{ $data['request_id'] }}</small></p>
@@ -124,9 +144,9 @@
     </div>
 
     <div class="content">
-        <p><strong>Halo Anggota KoTA,</strong></p>
+        <p><strong>Yth. Koordinator TA Jurusan,</strong></p>
         
-        <p>Anda menerima permintaan akses katalog KoTA berikut:</p>
+        <p>Anda menerima permintaan akses katalog TA dari mahasiswa/pemohon berikut:</p>
 
         <!-- Priority Alert -->
         @if(!empty($data['prioritas_level']))
@@ -178,7 +198,7 @@
         </div>
 
         <div class="katalog-info">
-            <h3>📚 Detail KoTA yang Diminta</h3>
+            <h3>📚 Detail Katalog TA yang Diminta</h3>
             <table class="table-info">
                 <tr>
                     <td>Nama KoTA:</td>
@@ -199,6 +219,36 @@
             </table>
         </div>
 
+        <!-- Info Anggota KoTA untuk Referensi Koordinator -->
+        @if(!empty($data['mahasiswa_list']) || !empty($data['dosen_list']))
+        <div class="anggota-info">
+            <h3>👥 Referensi Anggota KoTA</h3>
+            <small class="text-muted">Informasi anggota yang terlibat dalam TA ini (untuk referensi koordinator)</small>
+            
+            @if(!empty($data['mahasiswa_list']))
+            <div style="margin-top: 10px;">
+                <strong>Alumni (Mahasiswa):</strong>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    @foreach($data['mahasiswa_list'] as $mhs)
+                    <li>{{ $mhs['name'] }} ({{ $mhs['nim'] }}) - {{ $mhs['email'] }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+            
+            @if(!empty($data['dosen_list']))
+            <div style="margin-top: 10px;">
+                <strong>Dosen Pembimbing:</strong>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    @foreach($data['dosen_list'] as $dsn)
+                    <li>{{ $dsn['name'] }} - {{ $dsn['email'] }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+        </div>
+        @endif
+
         <div class="info-box">
             <h3>🎯 Tujuan Request</h3>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-style: italic; border-left: 4px solid #007bff;">
@@ -217,59 +267,83 @@
 
         <hr style="margin: 30px 0; border: 1px solid #dee2e6;">
 
-        <h3>🤝 Bagaimana Cara Merespons?</h3>
-        <p>Jika Anda bersedia berbagi informasi katalog TA ini, silakan hubungi pemohon langsung melalui:</p>
-        
-        <div style="text-align: center; margin: 20px 0;">
-            @php
-                $subjectLine = "Re: Request Katalog KoTA - {$data['kota_nama']}";
-                if (!empty($data['request_id'])) {
-                    $subjectLine .= " (ID: {$data['request_id']})";
-                }
-                
-                $emailBody = "Halo {$data['sender_name']},%0D%0A%0D%0A";
-                $emailBody .= "Terima kasih atas request Anda untuk akses katalog KoTA '{$data['kota_nama']}'.%0D%0A%0D%0A";
-                $emailBody .= "Saya bersedia membantu dengan kebutuhan Anda terkait: {$data['tujuan_request']}.%0D%0A%0D%0A";
-                $emailBody .= "[SILAKAN TULIS RESPON ANDA DI SINI]%0D%0A%0D%0A";
-                $emailBody .= "Hormat kami,%0D%0AAnggota KoTA {$data['kota_nama']}";
-            @endphp
+        <div class="action-buttons">
+            <h3>⚡ Aksi yang Dapat Dilakukan</h3>
+            <p>Sebagai Koordinator TA, Anda dapat:</p>
             
-            <a href="mailto:{{ $data['sender_email'] }}?subject={{ urlencode($subjectLine) }}&body={{ $emailBody }}" class="btn">
-                📧 Balas Email Ini
-            </a>
+            <div style="margin: 20px 0;">
+                @php
+                    $approveSubject = "Re: Request Katalog TA - {$data['kota_nama']} [APPROVED]";
+                    $approveBody = "Halo {$data['sender_name']},%0D%0A%0D%0ARequest Anda untuk akses katalog TA '{$data['kota_nama']}' telah disetujui.%0D%0A%0D%0ASilakan download file katalog melalui link berikut:%0D%0A[MASUKKAN LINK DOWNLOAD DI SINI]%0D%0A%0D%0AHormat kami,%0D%0AKoordinator TA Jurusan";
+                    
+                    $infoSubject = "Re: Request Katalog TA - {$data['kota_nama']} [INFO DIPERLUKAN]";
+                    $infoBody = "Halo {$data['sender_name']},%0D%0A%0D%0ATerima kasih atas request katalog TA '{$data['kota_nama']}'.%0D%0A%0D%0AUntuk memproses request Anda, kami memerlukan informasi tambahan:%0D%0A1. [SEBUTKAN INFO YANG DIPERLUKAN]%0D%0A2. [SEBUTKAN INFO LAINNYA]%0D%0A%0D%0ASilakan balas email ini dengan informasi tersebut.%0D%0A%0D%0AHormat kami,%0D%0AKoordinator TA Jurusan";
+                    
+                    $rejectSubject = "Re: Request Katalog TA - {$data['kota_nama']} [DITOLAK]";
+                    $rejectBody = "Halo {$data['sender_name']},%0D%0A%0D%0AMohon maaf, request Anda untuk akses katalog TA '{$data['kota_nama']}' tidak dapat kami setujui saat ini.%0D%0A%0D%0AAlasan: [SEBUTKAN ALASAN]%0D%0A%0D%0AAnda dapat menghubungi kami jika ada pertanyaan lebih lanjut.%0D%0A%0D%0AHormat kami,%0D%0AKoordinator TA Jurusan";
+                @endphp
+                
+                <a href="mailto:{{ $data['sender_email'] }}?subject={{ urlencode($approveSubject) }}&body={{ $approveBody }}" class="btn btn-success">
+                    ✅ Setujui & Kirim Link Download
+                </a>
+                
+                <a href="mailto:{{ $data['sender_email'] }}?subject={{ urlencode($infoSubject) }}&body={{ $infoBody }}" class="btn">
+                    ❓ Minta Info Tambahan
+                </a>
+                
+                <a href="mailto:{{ $data['sender_email'] }}?subject={{ urlencode($rejectSubject) }}&body={{ $rejectBody }}" class="btn btn-danger">
+                    ❌ Tolak Request
+                </a>
+            </div>
         </div>
 
         <div class="info-box">
-            <h3>📋 Panduan Respon</h3>
-            <p><strong>Catatan Penting:</strong></p>
+            <h3>📋 Panduan untuk Koordinator TA</h3>
+            <p><strong>Langkah-langkah Pemrosesan Request:</strong></p>
+            <ol>
+                <li><strong>Verifikasi Identitas:</strong> Pastikan pemohon adalah mahasiswa/dosen yang valid</li>
+                <li><strong>Cek Kelengkapan Data:</strong> Pastikan tujuan request jelas dan sesuai kebijakan</li>
+                <li><strong>Evaluasi Prioritas:</strong> 
+                    <ul>
+                        <li>🔴 Urgent: Respon dalam 24 jam</li>
+                        <li>🟠 Tinggi: Respon dalam 3 hari</li>
+                        <li>🟡 Sedang: Respon dalam 1 minggu</li>
+                        <li>🟢 Rendah: Respon fleksibel</li>
+                    </ul>
+                </li>
+                <li><strong>Koordinasi dengan Anggota:</strong> Jika perlu, hubungi alumni/dosen pembimbing untuk konfirmasi</li>
+                <li><strong>File Sharing:</strong> Gunakan platform resmi untuk berbagi file (Drive institusi, dll)</li>
+                <li><strong>Dokumentasi:</strong> Catat semua request dan response untuk audit</li>
+            </ol>
+        </div>
+
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107;">
+            <h4>⚠️ Catatan Penting untuk Koordinator</h4>
             <ul>
-                <li>✅ Anda tidak wajib untuk merespons atau berbagi informasi</li>
-                <li>🔒 Jika berkenan berbagi, pastikan tidak ada informasi sensitif atau pribadi</li>
-                <li>📁 Anda bisa berbagi dokumen yang sudah dipublikasikan atau diizinkan untuk dibagi</li>
-                <li>💬 Pertimbangkan untuk berdiskusi terlebih dahulu sebelum berbagi file</li>
-                @if(!empty($data['deadline_request']))
-                <li>⏰ Perhatikan deadline pemohon: <strong>{{ $data['deadline_request'] }}</strong></li>
-                @endif
-                <li>📋 Referensi ID Request: <strong>{{ $data['request_id'] ?? 'N/A' }}</strong></li>
+                <li>✅ Pastikan file yang dibagikan tidak mengandung informasi pribadi/sensitif</li>
+                <li>📋 Konfirmasi bahwa file sudah mendapat persetujuan untuk dibagikan</li>
+                <li>🔒 Gunakan watermark atau pembatasan akses jika diperlukan</li>
+                <li>📊 Request ID: <strong>{{ $data['request_id'] ?? 'N/A' }}</strong> (untuk tracking)</li>
+                <li>🏛️ Sesuai kebijakan institusi tentang berbagi data akademik</li>
+                <li>👥 Koordinator memiliki wewenang penuh untuk menyetujui/menolak request</li>
             </ul>
         </div>
 
         <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745;">
-            <h4>💡 Tips Berbagi Informasi</h4>
+            <h4>💡 Tips untuk Koordinator</h4>
             <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>Bagikan abstrak atau ringkasan penelitian</li>
-                <li>Berikan referensi literatur yang digunakan</li>
-                <li>Jelaskan metodologi secara umum</li>
-                <li>Diskusikan pembelajaran yang diperoleh</li>
-                <li>Gunakan platform berbagi yang aman (Google Drive, dll)</li>
+                <li>Berikan akses sesuai dengan tujuan yang disebutkan pemohon</li>
+                <li>Untuk request penelitian, pertimbangkan memberikan abstrak atau ringkasan</li>
+                <li>Untuk request metodologi, berikan panduan umum tanpa detail sensitif</li>
+                <li>Gunakan sistem tracking untuk mencatat semua approval/rejection</li>
+                <li>Koordinasi dengan bagian akademik jika ada kebijakan khusus</li>
             </ul>
         </div>
     </div>
 
     <div class="footer">
-        <p><strong>🏢 Sistem Katalog TA</strong></p>
-        <p>Email ini dikirim otomatis dari sistem. Harap tidak membalas ke alamat ini.</p>
-        <p>Jika ada pertanyaan teknis, silakan hubungi administrator sistem.</p>
+        <p><strong>🏢 Sistem Katalog TA - Koordinator Panel</strong></p>
+        <p>Email ini dikirim otomatis dari sistem. Untuk bantuan teknis, hubungi IT Support.</p>
         <p>&copy; {{ date('Y') }} Sistem Informasi Katalog TA</p>
     </div>
 </body>
