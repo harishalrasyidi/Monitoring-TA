@@ -17,6 +17,33 @@
         </div>
       </div>
     </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <i class="fas fa-certificate fa-2x text-success mb-2"></i>
+          <h6>Yudisium 1</h6>
+          <h3>{{ $totalYudisium1 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <i class="fas fa-certificate fa-2x text-warning mb-2"></i>
+          <h6>Yudisium 2</h6>
+          <h3>{{ $totalYudisium2 }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <i class="fas fa-certificate fa-2x text-danger mb-2"></i>
+          <h6>Yudisium 3</h6>
+          <h3>{{ $totalYudisium3 }}</h3>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Statistik Tahapan KoTA -->

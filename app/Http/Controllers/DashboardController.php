@@ -7,6 +7,7 @@ use App\Models\KotaTahapanProgress;
 use App\Models\MasterTahapanProgress;
 use App\Models\KotaHasUserModel;
 use App\Models\KotaHasPenguji;
+use App\Models\YudisiumModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -184,12 +185,24 @@ class DashboardController extends Controller
                 $perPage = $request->get('per_page', 10);
                 $kotaList = $query->paginate($perPage);
 
+                // Hitung total KoTA untuk masing-masing kategori yudisium
+                $yudisiumModel = new YudisiumModel();
+                $totalYudisium1 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+                    ->where('kategori_yudisium', 1)->first()->jumlah ?? 0;
+                $totalYudisium2 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+                    ->where('kategori_yudisium', 2)->first()->jumlah ?? 0;
+                $totalYudisium3 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+                    ->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'chartData' => $chartData,
                     'periodes' => $periodes,
-                    'kelasList' => $kelasList
+                    'kelasList' => $kelasList,
+                    'totalYudisium1' => $totalYudisium1,
+                    'totalYudisium2' => $totalYudisium2,
+                    'totalYudisium3' => $totalYudisium3,
                 ]);
             }
             
