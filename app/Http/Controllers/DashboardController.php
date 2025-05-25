@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
             ];
 
-            if ($user->role == 3) {
+                        if ($user->role == 3) {
                 $kotaIds = KotaHasUserModel::where('id_user', $user->id)
                     ->pluck('id_kota');
 
@@ -130,16 +130,40 @@ class DashboardController extends Controller
                     $chartData[$tahapanNames[$index]] = $count;
                 }
                 
+                // Hitung selesai dan dalam progres dari SEMUA data (tidak tergantung pagination)
+                $selesai = 0;
+                $dalamProgres = 0;
+
+                $allKotaForCount = Kota::with(['tahapanProgress'])
+                    ->whereIn('id_kota', $kotaIdsBimbingan)
+                    ->get(); // Ambil semua data untuk perhitungan
+                
+                foreach ($allKotaForCount as $kota) {
+                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    if ($tahapanProgress->isEmpty()) {
+                        $dalamProgres++;
+                        continue;
+                    }
+                    
+                    $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
+                    if ($sidangProgress && $sidangProgress->status === 'tuntas') {
+                        $selesai++;
+                    } else {
+                        $dalamProgres++;
+                    }
+                }
+
                 // Ambil data untuk pagination (terpisah dari perhitungan)
-                $perPage = $request->get('per_page', 10);
                 $kotaList = Kota::with(['tahapanProgress'])
                     ->whereIn('id_kota', $kotaIdsBimbingan)
-                    ->paginate($perPage);
+                    ->paginate(10);
                 
                 return view('beranda.pembimbing.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'totalKotaUji' => $totalKotaUji,
+                    'selesai' => $selesai,
+                    'dalamProgres' => $dalamProgres,
                     'chartData' => $chartData
                 ]);
             }
