@@ -78,7 +78,8 @@
                   </td>
                   <td>
                     @if($artefak->file_pengumpulan)
-                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        <i class="fas fa-download"></i> Download
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
                       </a>
                     @else
                       -
@@ -87,7 +88,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="4" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>
@@ -126,8 +127,8 @@
                   </td>
                   <td>
                     @if($artefak->file_pengumpulan)
-                      <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="fas fa-download"></i> Download
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
                       </a>
                     @else
                       -
@@ -136,7 +137,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="4" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>
@@ -176,9 +177,9 @@
                     @endif
                   </td>
                   <td>
-                    @if($artefak->file_pengumpulan)
-                      <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="fas fa-download"></i> Download
+                   @if($artefak->file_pengumpulan)
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
                       </a>
                     @else
                       -
@@ -187,7 +188,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="4" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>
@@ -226,8 +227,8 @@
                   </td>
                   <td>
                     @if($artefak->file_pengumpulan)
-                      <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="fas fa-download"></i> Download
+                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                            <i class="fas fa-eye"></i> Lihat
                       </a>
                     @else
                       -
@@ -236,7 +237,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="4" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>
@@ -280,7 +281,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="4" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="4" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>
@@ -325,7 +326,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="3" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="3" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>
@@ -370,7 +371,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="3" class="text-center">Data tidak ditemukan</td>
+                  <td colspan="3" class="text-center">Data belum ada</td>
                 </tr>
               @endforelse
             </tbody>

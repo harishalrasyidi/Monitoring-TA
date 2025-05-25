@@ -24,7 +24,7 @@ class Kota extends Model
 
     public function artefakRelasi()
     {
-        return $this->hasMany(KotaHasArtefakModel::class, 'id_kota');
+        return $this->hasMany(KotaHasArtefakModel::class, 'id_kota', 'id_kota');
     }
     
 } 

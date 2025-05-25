@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="{{ asset('assets/AdminLTE-3.2.0/plugins/summernote/summernote-bs4.min.css') }}">
 {{-- apexchart --}}
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  
 </head>
 <body class="hold-transition sidebar-mini">
   <div class="wrapper">

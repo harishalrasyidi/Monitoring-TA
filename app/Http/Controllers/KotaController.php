@@ -439,9 +439,9 @@ class KotaController extends Controller
     }
 
     public function showArtefak($id)
-    {
+    {   
         $kota = Kota::with([
-            'artefakRelasi.artefakMaster' // jika kamu punya relasi seperti ini
+            'artefakRelasi.artefak.master' // ✅ ini relasi yang valid
         ])->findOrFail($id);
 
         return view('artefak.artefak-detail', compact('kota'));
