@@ -73,14 +73,35 @@ class DetailKatalogController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+
+    public function index(Request $request)
     {
-        // Get all thesis with report documents
-        $laporanList = KotaModel::join('tbl_kota_has_artefak', 'tbl_kota.id_kota', '=', 'tbl_kota_has_artefak.id_kota')
-            ->where('tbl_kota_has_artefak.id_artefak', 7) // PDF Laporan TA
-            ->select('tbl_kota.*', 'tbl_kota_has_artefak.file_pengumpulan', 'tbl_kota_has_artefak.waktu_pengumpulan')
-            ->get();
-            
-        return view('katalog.index', compact('laporanList'));
+        $search = $request->input('search');
+        $katalog = KotaModel::query();
+
+        if ($search) {
+            $words = array_filter(explode(' ', $search), function ($word) {
+                return strlen($word) >= 3;
+            });
+
+            if (count($words) >= 3) {
+                $booleanQuery = implode(' ', array_map(function ($word) {
+                    return '+' . $word;
+                }, $words));
+
+                $katalog->whereIn('id_kota', function ($query) use ($booleanQuery) {
+                    $query->select('id_kota')
+                        ->from('tbl_kota_has_artefak')
+                        ->whereRaw("MATCH(teks_pengumpulan) AGAINST(? IN BOOLEAN MODE)", [$booleanQuery]);
+                });
+            } else {
+                // Handle kasus ketika kurang dari 3 kata kunci
+                $katalog->whereRaw('0 = 1'); // Tidak mengembalikan hasil
+            }
+        }
+
+        $katalogList = $katalog->paginate(10);
+
+        return view('katalog.index', compact('katalogList'));
     }
 }
