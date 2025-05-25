@@ -270,4 +270,26 @@ class DashboardController extends Controller
             ]
         ]);
     }
+
+    public function getKotaByYudisium(Request $request)
+    {
+        $kategori = $request->kategori;
+        $periode = $request->periode;
+        $kelas = $request->kelas;
+
+        $kotaList = \DB::table('tbl_yudisium')
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->where('tbl_yudisium.kategori_yudisium', $kategori);
+
+        if ($periode) {
+            $kotaList->where('tbl_kota.periode', $periode);
+        }
+        if ($kelas) {
+            $kotaList->where('tbl_kota.kelas', $kelas);
+        }
+
+        $kotaList = $kotaList->select('tbl_kota.nama_kota', 'tbl_kota.judul')->get();
+
+        return response()->json($kotaList);
+    }
 }

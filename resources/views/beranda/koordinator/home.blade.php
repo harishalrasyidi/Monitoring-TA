@@ -9,7 +9,7 @@
   <!-- Kartu Ringkasan -->
   <div class="row text-center">
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="1" style="cursor:pointer">
         <div class="card-body">
           <i class="fas fa-users fa-2x text-primary mb-2"></i>
           <h6>Total KoTA</h6>
@@ -18,7 +18,7 @@
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="1" style="cursor:pointer">
         <div class="card-body">
           <i class="fas fa-certificate fa-2x text-success mb-2"></i>
           <h6>Yudisium 1</h6>
@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="2" style="cursor:pointer">
         <div class="card-body">
           <i class="fas fa-certificate fa-2x text-warning mb-2"></i>
           <h6>Yudisium 2</h6>
@@ -36,7 +36,7 @@
       </div>
     </div>
     <div class="col-md-3">
-      <div class="card">
+      <div class="card card-yudisium" data-kategori="3" style="cursor:pointer">
         <div class="card-body">
           <i class="fas fa-certificate fa-2x text-danger mb-2"></i>
           <h6>Yudisium 3</h6>
@@ -155,6 +155,8 @@
   </div>
 </div>
 
+@include('beranda.koordinator.yudisium_modal')
+
 @endsection
 
 <script>
@@ -178,6 +180,36 @@
       url.searchParams.set('per_page', this.value);
       window.location.href = url.toString();
     });
+
+    document.querySelectorAll('.card-yudisium').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var kategori = this.getAttribute('data-kategori');
+        var periode = "{{ request('periode') }}";
+        var kelas = "{{ request('kelas') }}";
+        var modalType = kategori;
+        if (kategori == 1) modalType = '1';
+        if (kategori == 2) modalType = '2';
+        if (kategori == 3) modalType = '3';
+        document.getElementById('modalYudisiumType').innerText = modalType;
+
+        fetch(`/koordinator/yudisium-list?kategori=${kategori}&periode=${periode}&kelas=${kelas}`)
+          .then(response => response.json())
+          .then(data => {
+            var tbody = document.getElementById('modalYudisiumTableBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="2" class="text-center">Tidak ada data</td></tr>';
+            } else {
+              data.forEach(function(item) {
+                var row = `<tr><td>${item.nama_kota}</td><td>${item.judul}</td></tr>`;
+                tbody.innerHTML += row;
+              });
+            }
+            $('#modalYudisiumList').modal('show');
+          });
+      });
+    });
   });
 </script>
+
 

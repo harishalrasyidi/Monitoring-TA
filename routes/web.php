@@ -3,6 +3,7 @@
 use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Controllers\Mahasiswa\DashboardController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -125,3 +126,5 @@ Route::put('/yudisium/{id}/update', [App\Http\Controllers\YudisiumController::cl
 Route::delete('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class, 'destroy'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.destroy');
 Route::get('/yudisium/export/excel', [App\Http\Controllers\YudisiumController::class, 'export'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.export');
 Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 'status'])->middleware(['auth', 'role:2,3'])->name('yudisium.status');
+
+Route::get('/koordinator/yudisium-list', [DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium.list');
