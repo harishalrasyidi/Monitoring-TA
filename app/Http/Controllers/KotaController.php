@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\KotaModel;
+use App\Models\YudisiumModel;
 use App\Models\User;
 use App\Models\KotaHasUserModel;
 use App\Models\KotaHasArtefakModel;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Illuminate\Support\Facades\Log;
-
+use App\Models\Kota;
 
 class KotaController extends Controller
 {
@@ -83,7 +84,7 @@ class KotaController extends Controller
         return view('kota.create', compact('dosen', 'mahasiswa'));
     }
     
-    public function store(Request $request)
+        public function store(Request $request)
     {
         $request->validate([
             'nama_kota' => 'required',
@@ -92,6 +93,7 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1|max:3',
             'dosen' => 'required|array|min:2|max:2',
+            'penguji' => 'required|array|min:1',
         ]);
         
         // Check if the Kota already exists
@@ -129,6 +131,15 @@ class KotaController extends Controller
                 'id_user' => $id_user
             ]);
         }
+
+        // Save Penguji to tbl_kota_has_penguji
+        foreach ($request->penguji as $pengujiId) {
+            $id_user = DB::table('users')->where('nomor_induk', $pengujiId)->value('id');
+            DB::table('tbl_kota_has_penguji')->insert([
+                'id_kota' => $id_kota,
+                'id_user' => $id_user
+            ]);
+        }
         
         // Tambahkan data ke tabel tbl_kota_has_tahapan_progres
         $initialTahapanProgres = [
@@ -145,8 +156,6 @@ class KotaController extends Controller
         
         session()->flash('success', 'Data KoTA berhasil ditambahkan');
         return redirect()->route('kota');
-        
-        
     }
     
     public function detail($id)
@@ -428,4 +437,67 @@ class KotaController extends Controller
         
         return redirect()->route('kota')->with('toast_success', 'Data KoTA berhasil dihapus');
     }
+
+    public function showArtefak($id)
+    {   
+        $kota = DB::table('tbl_kota')->where('id_kota', $id)->first();
+        
+        if (!$kota) {
+            abort(404, 'Kota tidak ditemukan');
+        }
+
+        $seminar1Artefak = [
+            'FTA 01', 'FTA 02', 'FTA 03', 'FTA 04', 'FTA 05a', 'Proposal Tugas Akhir'
+        ];
+
+        $seminar2Artefak = [
+            'FTA 06', 'FTA 07', 'FTA 08', 'FTA 09', 'FTA 06a', 'FTA 09a',
+            'SRS', 'SDD', 'Laporan Tugas Akhir'
+        ];
+
+        $seminar3Artefak = [
+            'FTA 10', 'FTA 11', 'FTA 12'
+        ];
+
+        $sidangArtefak = [
+            'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
+        ];
+
+        $seminar1 = DB::table('tbl_kota_has_artefak as kha')
+            ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+            ->where('kha.id_kota', $id) 
+            ->whereIn('a.nama_artefak', $seminar1Artefak)
+            ->select('a.nama_artefak', 'kha.*')
+            ->get();
+
+        $seminar2 = DB::table('tbl_kota_has_artefak as kha')
+            ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+            ->where('kha.id_kota', $id)  
+            ->whereIn('a.nama_artefak', $seminar2Artefak)
+            ->select('a.nama_artefak', 'kha.*')
+            ->get();
+
+        $seminar3 = DB::table('tbl_kota_has_artefak as kha')
+            ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+            ->where('kha.id_kota', $id)
+            ->whereIn('a.nama_artefak', $seminar3Artefak)
+            ->select('a.nama_artefak', 'kha.*')
+            ->get();
+
+        $sidang = DB::table('tbl_kota_has_artefak as kha')
+            ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+            ->where('kha.id_kota', $id)  
+            ->whereIn('a.nama_artefak', $sidangArtefak)
+            ->select('a.nama_artefak', 'kha.*')
+            ->get(); 
+
+        return view('artefak.artefak-detail', [
+            'kota' => $kota,        
+            'seminar1' => $seminar1,
+            'seminar2' => $seminar2,
+            'seminar3' => $seminar3,
+            'sidang' => $sidang,
+        ]);
+    }
+
 }

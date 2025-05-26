@@ -260,7 +260,7 @@ class HomeController extends Controller
                         ->where('tbl_artefak.nama_artefak', $nama_artefak)
                         ->select('tbl_kota_has_artefak.file_pengumpulan', 'tbl_kota_has_artefak.id_kota')
                         ->first();
-
+        dd($artefak);
         // Ambil path file dari database
         $filePath = $artefak->file_pengumpulan;
         $idKota = $artefak->id_kota;

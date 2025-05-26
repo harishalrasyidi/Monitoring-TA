@@ -33,4 +33,42 @@ class KotaModel extends Model
             return DB::table($this->table)->where('id_kota', $id)->first();
         }
     }
+
+    /**
+     * Get the yudisium associated with the kota.
+     */
+    public function yudisium()
+    {
+        return $this->hasOne(YudisiumModel::class, 'id_kota', 'id_kota');
+    }
+
+    public function resumeBimbingan()
+{
+    return $this->hasMany(KotaHasResumeBimbinganModel::class, 'id_kota');
+}
+
+
+    // Tambahan 
+    // public function users()
+    // {
+    //     return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+    //                 ->withPivot('role')
+    //                 ->wherePivot('role', 3); // Opsional, filter role mahasiswa
+    // }
+
+    // public function dosens()
+    // {
+    //     return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+    //         ->where('role', 1); // Dosen
+    // }
+
+    // public function tahapanProgress()
+    // {
+    //     return $this->hasMany(TahapanProgress::class, 'id_kota', 'id_kota');
+    // }
+
+    // public function resumeBimbingan()
+    // {
+    //     return $this->hasMany(KotaHasResumeBimbinganModel::class, 'id_kota', 'id_kota');
+    // }
 }

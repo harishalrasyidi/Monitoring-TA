@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
+// use App\Http\Controllers\Mahasiswa\DashboardController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,13 +22,14 @@ use Illuminate\Support\Facades\Route;
 
 
 //Home
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
-
+Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
+Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('kota.artefak.detail');
 
 //Kota
-Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2'])->name('kota');
+Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
 Route::get('/kota/create', [App\Http\Controllers\KotaController::class, 'create'])->middleware(['auth', 'role:1,2'])->name('kota.create'); //menambahkan data
 Route::get('/kota/{id}', [App\Http\Controllers\KotaController::class, 'detail'])->middleware(['auth', 'role:1,2'])->name('kota.detail');
 Route::post('/kota/store', [App\Http\Controllers\KotaController::class, 'store'])->middleware(['auth', 'role:1,2'])->name('kota.store');
@@ -111,4 +115,16 @@ Route::post('/resume/search', [App\Http\Controllers\ResumeBimbinganController::c
 Route::delete('/resume/{id}', [App\Http\Controllers\ResumeBimbinganController::class, 'destroy'])->middleware(['auth', 'role:2,3'])->name('resume.destroy');
 Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\ResumeBimbinganController::class, 'generatePdf'])->middleware(['auth', 'role:3'])->name('resume.generatePdf');
 
+// Yudisium
+Route::get('/yudisium', [App\Http\Controllers\YudisiumController::class, 'index'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.index');
+Route::get('/yudisium/dashboard', [App\Http\Controllers\YudisiumController::class, 'dashboard'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.dashboard');
+Route::get('/yudisium/create', [App\Http\Controllers\YudisiumController::class, 'create'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.create');
+Route::post('/yudisium/store', [App\Http\Controllers\YudisiumController::class, 'store'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.store');
+Route::get('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class, 'show'])->middleware(['auth'])->name('yudisium.show');
+Route::get('/yudisium/{id}/edit', [App\Http\Controllers\YudisiumController::class, 'edit'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.edit');
+Route::put('/yudisium/{id}/update', [App\Http\Controllers\YudisiumController::class, 'update'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.update');
+Route::delete('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class, 'destroy'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.destroy');
+Route::get('/yudisium/export/excel', [App\Http\Controllers\YudisiumController::class, 'export'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.export');
+Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 'status'])->middleware(['auth', 'role:2,3'])->name('yudisium.status');
 
+Route::get('/koordinator/yudisium-list', [DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium.list');
