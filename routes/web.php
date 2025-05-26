@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Controllers\Mahasiswa\DashboardController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardController
 
 /*
 |--------------------------------------------------------------------------
