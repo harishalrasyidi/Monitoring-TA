@@ -52,7 +52,7 @@ class YudisiumController extends Controller
             ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
             ->select(
                 'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota as yudisium_id_kota',
+                'tbl_kota.nama_kota as kota_nama_kota',
                 'tbl_yudisium.kategori_yudisium',
                 'tbl_yudisium.tanggal_yudisium',
                 'tbl_yudisium.nilai_akhir',
@@ -60,7 +60,7 @@ class YudisiumController extends Controller
                 'tbl_yudisium.keterangan',
                 'tbl_yudisium.created_at',
                 'tbl_yudisium.updated_at',
-                'tbl_kota.nama_kota',
+                'tbl_yudisium.id_kota as yudisium_id_kota',
                 'tbl_kota.judul',
                 'tbl_kota.kelas',
                 'tbl_kota.periode',
@@ -69,7 +69,7 @@ class YudisiumController extends Controller
             )
             ->groupBy(
                 'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota',
+                'kota_nama_kota',
                 'tbl_yudisium.kategori_yudisium',
                 'tbl_yudisium.tanggal_yudisium',
                 'tbl_yudisium.nilai_akhir',
@@ -77,7 +77,7 @@ class YudisiumController extends Controller
                 'tbl_yudisium.keterangan',
                 'tbl_yudisium.created_at',
                 'tbl_yudisium.updated_at',
-                'tbl_kota.nama_kota',
+                'yudisium_id_kota',
                 'tbl_kota.judul',
                 'tbl_kota.kelas',
                 'tbl_kota.periode'
@@ -246,7 +246,7 @@ class YudisiumController extends Controller
             return redirect()->route('yudisium.kelola')->with('error', 'Data yudisium tidak ditemukan');
         }
 
-        // Ambil log perubahan
+        // Log
         $logs = DB::table('tbl_yudisium_log')
             ->join('users', 'tbl_yudisium_log.id_user', '=', 'users.id')
             ->where('tbl_yudisium_log.id_yudisium', $id)
@@ -254,7 +254,6 @@ class YudisiumController extends Controller
             ->orderBy('tbl_yudisium_log.waktu_perubahan', 'desc')
             ->get();
 
-        // Periksa apakah user adalah mahasiswa yang terkait dengan KoTA ini
         $isRelatedMahasiswa = false;
         if ($user->role == 3) {
             $isRelatedMahasiswa = DB::table('tbl_kota_has_user')
@@ -267,7 +266,6 @@ class YudisiumController extends Controller
             }
         }
 
-        // Periksa apakah user adalah dosen pembimbing yang terkait dengan KoTA ini
         $isRelatedDosen = false;
         if ($user->role == 2) {
             $isRelatedDosen = DB::table('tbl_kota_has_user')

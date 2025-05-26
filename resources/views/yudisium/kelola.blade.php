@@ -23,6 +23,9 @@
     </div>
     <!-- /.content-header -->
 
+    {{-- @php
+    dump($yudisium->first());
+    @endphp --}}
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
@@ -149,7 +152,7 @@
                             @forelse($yudisium as $index => $item)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td>{{ $item->nama_kota }}</td>
+                                <td>{{ $item->judul }}</td>
                                 <td>
                                     @if($item->kelas == '1') D3-A
                                     @elseif($item->kelas == '2') D3-B
@@ -230,7 +233,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nama KoTA</label>
-                                <input type="text" class="form-control" id="nama_kota" readonly>
+                                <input type="text" class="form-control" id="kota_nama_kota" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -354,7 +357,6 @@ $(function () {
         theme: 'bootstrap4'
     });
 
-    // Generate Yudisium Button
     $('#btnGenerateYudisium').click(function() {
         $('#generateYudisiumModal').modal('show');
     });
@@ -363,13 +365,12 @@ $(function () {
     $('#editYudisiumModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget);
         var id = button.data('id');
-        
-        // Fetch data dari backend (simulasi, ganti dengan AJAX jika diperlukan)
+
         var data = {
             @foreach($yudisium as $item)
             '{{ $item->id_yudisium }}': {
                 id_yudisium: '{{ $item->id_yudisium }}',
-                nama_kota: '{{ $item->nama_kota }}',
+                kota_nama_kota: '{{ $item->kota_nama_kota }}',
                 kelas: '{{ $item->kelas == "1" ? "D3-A" : ($item->kelas == "2" ? "D3-B" : ($item->kelas == "3" ? "D4-A" : ($item->kelas == "4" ? "D4-B" : $item->kelas))) }}',
                 nilai_akhir: '{{ $item->nilai_akhir ?? "" }}',
                 tanggal_yudisium: '{{ $item->tanggal_yudisium }}',
@@ -384,7 +385,7 @@ $(function () {
         var yudisiumData = data[id];
         
         modal.find('#id_yudisium').val(yudisiumData.id_yudisium);
-        modal.find('#nama_kota').val(yudisiumData.nama_kota);
+        modal.find('#kota_nama_kota').val(yudisiumData.kota_nama_kota);
         modal.find('#kelas').val(yudisiumData.kelas);
         modal.find('#nilai_akhir').val(yudisiumData.nilai_akhir);
         modal.find('#tanggal_yudisium').val(yudisiumData.tanggal_yudisium);
