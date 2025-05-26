@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
             ];
 
-                        if ($user->role == 3) {
+            if ($user->role == 3) {
                 $kotaIds = KotaHasUserModel::where('id_user', $user->id)
                     ->pluck('id_kota');
 
@@ -302,7 +302,7 @@ class DashboardController extends Controller
         $periode = $request->periode;
         $kelas = $request->kelas;
 
-        $kotaList = \DB::table('tbl_yudisium')
+        $kotaList = DB::table('tbl_yudisium')
             ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
             ->where('tbl_yudisium.kategori_yudisium', $kategori);
 
