@@ -103,7 +103,72 @@ class DashboardController extends Controller
 
             }
 
-            
+            if ($user->role == 3) {
+                $kotaIds = KotaHasUserModel::where('id_user', $user->id)
+                    ->pluck('id_kota');
+
+                $anggotaKelompok = DB::table('users')
+                    ->join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
+                    ->whereIn('tbl_kota_has_user.id_kota', $kotaIds)
+                    ->where('users.role', 3)
+                    ->select('users.*')
+                    ->get();
+                
+                $dosbing = DB::table('users')
+                    ->join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
+                    ->whereIn('tbl_kota_has_user.id_kota', $kotaIds)
+                    ->where('users.role', 2)
+                    ->select('users.*')
+                    ->get();
+
+                $penguji = DB::table('users')
+                    ->join('tbl_kota_has_penguji', 'users.id', '=', 'tbl_kota_has_penguji.id_user')
+                    ->whereIn('tbl_kota_has_penguji.id_kota', $kotaIds)
+                    ->select('users.*')
+                    ->get();
+                
+                
+
+                // Ambil artefak mahasiswa berdasarkan kota yang diikutinya
+                $seminar1 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $seminar1Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
+
+                $seminar2 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $seminar2Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
+
+                $seminar3 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $seminar3Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
+
+                $sidang = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('kha.id_kota', $kotaIds)
+                    ->whereIn('a.nama_artefak', $sidangArtefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();            
+
+                    return view('beranda.mahasiswa.home', [
+                        'anggotaKelompok' => $anggotaKelompok,
+                        'dosbing' => $dosbing,
+                        'penguji' => $penguji,
+                        'seminar1' => $seminar1,
+                        'seminar2' => $seminar2,
+                        'seminar3' => $seminar3,
+                        'sidang' => $sidang,
+                    ]);
+
+            }
             if ($user->role == 2) {
                 $kotaIdsBimbingan = KotaHasUserModel::where('id_user', $user->id)
                     ->pluck('id_kota')
@@ -123,7 +188,7 @@ class DashboardController extends Controller
                 
                 foreach ($tahapanIds as $index => $tahapanId) {
                     $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'tuntas')
+                        ->where('status', 'selesai')
                         ->whereIn('id_kota', $kotaIdsBimbingan)
                         ->distinct('id_kota')
                         ->count('id_kota');
@@ -146,7 +211,7 @@ class DashboardController extends Controller
                     }
                     
                     $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
-                    if ($sidangProgress && $sidangProgress->status === 'tuntas') {
+                    if ($sidangProgress && $sidangProgress->status === 'selesai') {
                         $selesai++;
                     } else {
                         $dalamProgres++;
@@ -192,7 +257,7 @@ class DashboardController extends Controller
                 
                 foreach ($tahapanIds as $index => $tahapanId) {
                     $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'tuntas');
+                        ->where('status', 'selesai');
                     if ($request->filled('periode')) {
                         $count = $count->whereHas('kota', function($q) use ($request) {
                             $q->where('periode', $request->periode);
@@ -219,6 +284,21 @@ class DashboardController extends Controller
                 $totalYudisium3 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
                     ->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
 
+                // Menghitung jumlah KoTA yang selesai semua tahapan
+                $selesai = $query->whereHas('tahapanProgress', function($q) {
+                    $q->where('status', 'selesai');
+                }, '=', 4)->count();
+
+                // Menghitung jumlah KoTA yang masih dalam progres
+                $dalamProgres = $totalKota - $selesai;
+
+                // Menghitung total KoTA yang diuji (misalnya, yang sudah mencapai tahapan Sidang)
+                $totalKotaUji = $query->whereHas('tahapanProgress', function($q) {
+                    $q->where('status', 'selesai')->whereHas('masterTahapan', function($q) {
+                        $q->where('nama_progres', 'Sidang');
+                    });
+                })->count();
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
@@ -228,6 +308,9 @@ class DashboardController extends Controller
                     'totalYudisium1' => $totalYudisium1,
                     'totalYudisium2' => $totalYudisium2,
                     'totalYudisium3' => $totalYudisium3,
+                    'selesai' => $selesai,
+                    'dalamProgres' => $dalamProgres,
+                    'totalKotaUji' => $totalKotaUji,
                 ]);
             }
             
