@@ -111,15 +111,28 @@ Route::post('/resume/search', [App\Http\Controllers\ResumeBimbinganController::c
 Route::delete('/resume/{id}', [App\Http\Controllers\ResumeBimbinganController::class, 'destroy'])->middleware(['auth', 'role:2,3'])->name('resume.destroy');
 Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\ResumeBimbinganController::class, 'generatePdf'])->middleware(['auth', 'role:3'])->name('resume.generatePdf');
 
-// Pembimbing Routes
 
-
-
-//Katalog
-Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
+//Katalog TA Routes
+Route::middleware(['auth'])->group(function () {
+    // Request form untuk mengakses informasi kota/TA
+    Route::get('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'showRequestForm'])
+        ->name('katalog.request-form');
+    
+    // Send request untuk mengakses informasi kota/TA
+    Route::post('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'sendRequest'])
+        ->name('katalog.send-request');
+});
 
 Route::get('/laporan-ta', [App\Http\Controllers\DetailKatalogController::class, 'index'])->name('laporan.index');
 Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogController::class, 'show'])->name('laporan.show');
 // Route khusus untuk teks submission
 Route::put('/submissions/teks/{artefak_id}', [App\Http\Controllers\SubmissionController::class, 'updateTeks'])->name('submissions.updateTeks');
+Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
 
+Auth::routes();

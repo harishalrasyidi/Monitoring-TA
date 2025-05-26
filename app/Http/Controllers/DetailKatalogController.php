@@ -52,6 +52,7 @@ class DetailKatalogController extends Controller
         
         // Format data for view
         $laporan = [
+            'id_kota' => $kota->id_kota,
             'judul' => $kota->judul,
             'penulis' => $namaPenulis,
             'tahun' => $kota->periode,
