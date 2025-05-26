@@ -165,7 +165,7 @@
                                 @enderror
                                 <small class="form-text text-muted">
                                     Pilih tujuan yang paling sesuai dengan kebutuhan Anda. Ini akan membantu 
-                                    anggota KoTA dalam memproses permintaan Anda.
+                                    Koordinator TA dalam memproses permintaan Anda.
                                 </small>
                             </div>
                             
@@ -214,7 +214,7 @@
                                     </div>
                                 @enderror
                                 <small class="form-text text-muted">
-                                    Status ini membantu anggota KoTA dalam menentukan prioritas dan jenis akses yang diberikan.
+                                    Status ini membantu Koordinator TA dalam menentukan prioritas dan jenis akses yang diberikan.
                                 </small>
                             </div>
 
@@ -243,7 +243,7 @@
                                     </div>
                                 @enderror
                                 <small class="form-text text-muted">
-                                    Prioritas ini membantu anggota KoTA dalam mengatur urutan pemrosesan request.
+                                    Prioritas ini membantu Koordinator TA dalam mengatur urutan pemrosesan request.
                                 </small>
                             </div>
 
@@ -284,7 +284,7 @@
                                 <label for="pesan">Pesan Tambahan (Opsional)</label>
                                 <textarea name="pesan" id="pesan" rows="3" 
                                     class="form-control @error('pesan') is-invalid @enderror" 
-                                    placeholder="Pesan tambahan untuk anggota KoTA..."
+                                    placeholder="Pesan tambahan untuk Koordinator TA..."
                                     maxlength="1000">{{ old('pesan') }}</textarea>
                                 @error('pesan')
                                     <div class="invalid-feedback">
@@ -293,7 +293,7 @@
                                 @enderror
                                 <small class="form-text text-muted">
                                     Anda dapat menambahkan informasi seperti konteks penelitian, pertanyaan spesifik, 
-                                    atau detail lainnya yang membantu anggota KoTA memahami request Anda. Maksimal 1000 karakter.
+                                    atau detail lainnya yang membantu Koordinator TA memahami request Anda. Maksimal 1000 karakter.
                                 </small>
                             </div>
                             
@@ -416,7 +416,7 @@
                 title: 'Konfirmasi Request',
                 html: `
                     <div class="text-left">
-                        <p>Email request akan dikirim ke anggota KoTA:</p>
+                        <p>Email request akan dikirim ke Koordinator TA:</p>
                         <p><strong>{{ $kota->nama_kota }}</strong></p>
                         <p><strong>Judul:</strong> {{ $kota->judul }}</p>
                         <p><strong>Tujuan:</strong> ${selectedText}</p>
