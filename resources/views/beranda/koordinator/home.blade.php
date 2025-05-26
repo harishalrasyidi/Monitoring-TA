@@ -18,13 +18,30 @@
         </div>
       </div>
     </div>
-    <!-- Card Daftar Yudisium -->
     <div class="col-md-3">
-          <div class="d-flex flex-column align-items-start mt-3">
-            <button type="button" class="btn btn-success mb-2 btn-yudisium" data-kategori="1">Yudisium 1</button>
-            <button type="button" class="btn btn-warning mb-2 btn-yudisium" data-kategori="2">Yudisium 2</button>
-            <button type="button" class="btn btn-danger mb-2 btn-yudisium" data-kategori="3">Yudisium 3</button>
-          </div>
+      <div class="card">
+        <div class="card-body">
+          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+          <h6>Selesai Semua Tahapan</h6>
+          <h3>{{ $selesai }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <i class="fas fa-spinner fa-2x text-warning mb-2"></i>
+          <h6>Dalam Progres</h6>
+          <h3>{{ $dalamProgres }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="d-flex flex-column align-items-start mt-3">
+        <button type="button" class="btn btn-success mb-2 btn-yudisium" data-kategori="1">Yudisium 1</button>
+        <button type="button" class="btn btn-warning mb-2 btn-yudisium" data-kategori="2">Yudisium 2</button>
+        <button type="button" class="btn btn-danger mb-2 btn-yudisium" data-kategori="3">Yudisium 3</button>
+      </div>
     </div>
   </div>
 
@@ -99,7 +116,7 @@
                 @php
                   $last = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
                 @endphp
-                @if($last && $last->status === 'tuntas' && optional($last->masterTahapan)->nama_progres === 'Sidang')
+                @if($last && $last->status === 'selesai' && optional($last->masterTahapan)->nama_progres === 'Sidang')
                   <span class="badge badge-success">Selesai</span>
                 @else
                   <span class="badge badge-warning">Dalam Progres</span>

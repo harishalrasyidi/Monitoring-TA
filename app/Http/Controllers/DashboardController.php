@@ -102,8 +102,6 @@ class DashboardController extends Controller
                     ]);
 
             }
-
-            
             if ($user->role == 2) {
                 $kotaIdsBimbingan = KotaHasUserModel::where('id_user', $user->id)
                     ->pluck('id_kota')
@@ -192,7 +190,7 @@ class DashboardController extends Controller
                 
                 foreach ($tahapanIds as $index => $tahapanId) {
                     $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'tuntas');
+                        ->where('status', 'selesai');
                     if ($request->filled('periode')) {
                         $count = $count->whereHas('kota', function($q) use ($request) {
                             $q->where('periode', $request->periode);
@@ -219,6 +217,21 @@ class DashboardController extends Controller
                 $totalYudisium3 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
                     ->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
 
+                // Menghitung jumlah KoTA yang selesai semua tahapan
+                $selesai = $query->whereHas('tahapanProgress', function($q) {
+                    $q->where('status', 'selesai');
+                }, '=', 4)->count();
+
+                // Menghitung jumlah KoTA yang masih dalam progres
+                $dalamProgres = $totalKota - $selesai;
+
+                // Menghitung total KoTA yang diuji (misalnya, yang sudah mencapai tahapan Sidang)
+                $totalKotaUji = $query->whereHas('tahapanProgress', function($q) {
+                    $q->where('status', 'selesai')->whereHas('masterTahapan', function($q) {
+                        $q->where('nama_progres', 'Sidang');
+                    });
+                })->count();
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
@@ -228,6 +241,9 @@ class DashboardController extends Controller
                     'totalYudisium1' => $totalYudisium1,
                     'totalYudisium2' => $totalYudisium2,
                     'totalYudisium3' => $totalYudisium3,
+                    'selesai' => $selesai,
+                    'dalamProgres' => $dalamProgres,
+                    'totalKotaUji' => $totalKotaUji,
                 ]);
             }
             
