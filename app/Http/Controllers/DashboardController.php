@@ -123,7 +123,7 @@ class DashboardController extends Controller
                 
                 foreach ($tahapanIds as $index => $tahapanId) {
                     $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'tuntas')
+                        ->where('status', 'selesai')
                         ->whereIn('id_kota', $kotaIdsBimbingan)
                         ->distinct('id_kota')
                         ->count('id_kota');
@@ -146,7 +146,7 @@ class DashboardController extends Controller
                     }
                     
                     $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
-                    if ($sidangProgress && $sidangProgress->status === 'tuntas') {
+                    if ($sidangProgress && $sidangProgress->status === 'selesai') {
                         $selesai++;
                     } else {
                         $dalamProgres++;
