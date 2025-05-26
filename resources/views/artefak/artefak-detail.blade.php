@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="content-wrapper">
-  <h3 class="mb-4">Detail Artefak</h3>
+  <h3 class="mb-4">Detail Artefak - {{ $kota->nama_kota }}</h3>
   <hr>
 
   @php
@@ -38,14 +38,14 @@
                   @if($item->file_pengumpulan)
                     <a href="{{ asset('storage/' . $item->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">Lihat File</a>
                   @else
-                    Belum Ada
+                    <span class="text-muted">Belum Ada</span>
                   @endif
                 </td>
-                <td>{{ $item->waktu_pengumpulan ?? '-' }}</td>
+                <td>{{ $item->waktu_pengumpulan ? date('d-m-Y H:i', strtotime($item->waktu_pengumpulan)) : '-' }}</td>
               </tr>
             @empty
               <tr>
-                <td colspan="6" class="text-center">Belum ada artefak untuk {{ $namaTahapan }}</td>
+                <td colspan="4" class="text-center">Belum ada artefak untuk {{ $namaTahapan }}</td>
               </tr>
             @endforelse
           </tbody>
