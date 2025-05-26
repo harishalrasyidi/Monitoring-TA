@@ -232,6 +232,31 @@ class DashboardController extends Controller
                     });
                 })->count();
 
+                $seminar1 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('a.nama_artefak', $seminar1Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
+
+                $seminar2 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('a.nama_artefak', $seminar2Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
+
+                $seminar3 = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('a.nama_artefak', $seminar3Artefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get();
+
+                $sidang = DB::table('tbl_kota_has_artefak as kha')
+                    ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
+                    ->whereIn('a.nama_artefak', $sidangArtefak)
+                    ->select('a.nama_artefak', 'kha.*')
+                    ->get(); 
+                
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
@@ -244,6 +269,7 @@ class DashboardController extends Controller
                     'selesai' => $selesai,
                     'dalamProgres' => $dalamProgres,
                     'totalKotaUji' => $totalKotaUji,
+                    
                 ]);
             }
             
