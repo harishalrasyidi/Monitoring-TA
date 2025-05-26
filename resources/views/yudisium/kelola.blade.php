@@ -23,9 +23,6 @@
     </div>
     <!-- /.content-header -->
 
-    {{-- @php
-    dump($yudisium->first());
-    @endphp --}}
     <!-- Main content -->
     <section class="content">
         <div class="container-fluid">
@@ -125,9 +122,9 @@
                             <a href="{{ route('yudisium.create') }}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-plus mr-2"></i> Tambah Data
                             </a>
-                            <button type="button" class="btn btn-success btn-sm" id="btnGenerateYudisium">
+                            {{-- <button type="button" class="btn btn-success btn-sm" id="btnGenerateYudisium">
                                 <i class="fas fa-sync-alt mr-2"></i> Refresh
-                            </button>
+                            </button> --}}
                             <a href="{{ route('yudisium.export') }}" class="btn btn-success btn-sm">
                                 <i class="fas fa-file-excel mr-1"></i> Export Excel
                             </a>
@@ -182,9 +179,9 @@
                                         <a href="{{ route('yudisium.detail', $item->id_yudisium) }}" class="btn btn-sm btn-info">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editYudisiumModal" data-id="{{ $item->id_yudisium }}">
+                                        <a href="{{ route('yudisium.edit', $item->id_yudisium) }}" class="btn btn-sm btn-warning">
                                             <i class="fas fa-edit"></i>
-                                        </button>
+                                        </a>
                                         <form action="{{ route('yudisium.destroy', $item->id_yudisium) }}" method="POST" 
                                               onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
                                             @csrf
@@ -214,86 +211,7 @@
 </div>
 <!-- /.content-wrapper -->
 
-<!-- Edit Yudisium Modal -->
-<div class="modal fade" id="editYudisiumModal" tabindex="-1" role="dialog" aria-labelledby="editYudisiumModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title" id="editYudisiumModalLabel">Edit Status Yudisium</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
-            </div>
-            <form action="{{ route('yudisium.update', '__ID__') }}" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="modal-body">
-                    <input type="hidden" name="id_yudisium" id="id_yudisium">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Nama KoTA</label>
-                                <input type="text" class="form-control" id="kota_nama_kota" readonly>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Kelas</label>
-                                <input type="text" class="form-control" id="kelas" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Nilai TA</label>
-                                <input type="number" step="0.01" class="form-control" name="nilai_akhir" id="nilai_akhir">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Tanggal Yudisium</label>
-                                <input type="date" class="form-control" name="tanggal_yudisium" id="tanggal_yudisium">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Kategori Yudisium</label>
-                                <select class="form-control select2" name="kategori_yudisium" id="kategori_yudisium">
-                                    <option value="1">Yudisium 1</option>
-                                    <option value="2">Yudisium 2</option>
-                                    <option value="3">Yudisium 3</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select class="form-control select2" name="status" id="status">
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Keterangan</label>
-                        <textarea class="form-control" name="keterangan" id="keterangan" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Generate Yudisium Modal -->
+{{-- <!-- Generate Yudisium Modal -->
 <div class="modal fade" id="generateYudisiumModal" tabindex="-1" role="dialog" aria-labelledby="generateYudisiumModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -317,7 +235,7 @@
                         <select class="form-control select2" name="periode_generate" required>
                             <option value="">Pilih Periode</option>
                             @foreach($periodeList as $p)
-                            <option value="{{ $p }}">{{ $p }}</option>
+                            <option value="{{ $p }}"    >{{ $p }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -331,7 +249,7 @@
             </form>
         </div>
     </div>
-</div>
+</div> --}}
 @endsection
 
 @section('css')
@@ -353,100 +271,16 @@
 <script src="{{ asset('plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 <script>
 $(function () {
+    console.log('JavaScript loaded successfully.');
+
     $('.select2').select2({
         theme: 'bootstrap4'
     });
 
-    $('#btnGenerateYudisium').click(function() {
-        $('#generateYudisiumModal').modal('show');
-    });
-
-    // Edit Modal
-    $('#editYudisiumModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget);
-        var id = button.data('id');
-
-        var data = {
-            @foreach($yudisium as $item)
-            '{{ $item->id_yudisium }}': {
-                id_yudisium: '{{ $item->id_yudisium }}',
-                kota_nama_kota: '{{ $item->kota_nama_kota }}',
-                kelas: '{{ $item->kelas == "1" ? "D3-A" : ($item->kelas == "2" ? "D3-B" : ($item->kelas == "3" ? "D4-A" : ($item->kelas == "4" ? "D4-B" : $item->kelas))) }}',
-                nilai_akhir: '{{ $item->nilai_akhir ?? "" }}',
-                tanggal_yudisium: '{{ $item->tanggal_yudisium }}',
-                kategori_yudisium: '{{ $item->kategori_yudisium }}',
-                status: '{{ $item->status }}',
-                keterangan: '{{ $item->keterangan ?? "" }}'
-            },
-            @endforeach
-        };
-        
-        var modal = $(this);
-        var yudisiumData = data[id];
-        
-        modal.find('#id_yudisium').val(yudisiumData.id_yudisium);
-        modal.find('#kota_nama_kota').val(yudisiumData.kota_nama_kota);
-        modal.find('#kelas').val(yudisiumData.kelas);
-        modal.find('#nilai_akhir').val(yudisiumData.nilai_akhir);
-        modal.find('#tanggal_yudisium').val(yudisiumData.tanggal_yudisium);
-        modal.find('#kategori_yudisium').val(yudisiumData.kategori_yudisium).trigger('change');
-        modal.find('#status').val(yudisiumData.status).trigger('change');
-        modal.find('#keterangan').val(yudisiumData.keterangan);
-        
-        // Update action form dengan ID yang benar
-        var form = modal.find('form');
-        var actionUrl = "{{ route('yudisium.update', ':id') }}".replace(':id', id);
-        form.attr('action', actionUrl);
-    });
-
-    // Form submit handling with SweetAlert
-    $('form').on('submit', function(e) {
-        if ($(this).attr('action').includes("{{ route('yudisium.update', '') }}")) {
-            e.preventDefault();
-            
-            Swal.fire({
-                title: 'Simpan perubahan?',
-                text: "Perubahan data yudisium akan disimpan",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, simpan!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                    Swal.fire(
-                        'Tersimpan!',
-                        'Data yudisium berhasil diperbarui.',
-                        'success'
-                    );
-                }
-            });
-        } else if ($(this).attr('action') === "{{ route('yudisium.generate') }}") {
-            e.preventDefault();
-            
-            Swal.fire({
-                title: 'Generate yudisium?',
-                text: "Sistem akan mengkategorikan mahasiswa berdasarkan kriteria yang telah ditentukan",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, generate!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.submit();
-                    Swal.fire(
-                        'Berhasil!',
-                        'Kategori yudisium berhasil di-generate.',
-                        'success'
-                    );
-                }
-            });
-        }
-    });
+    // $('#btnGenerateYudisium').click(function() {
+    //     console.log('Generate button clicked.');
+    //     $('#generateYudisiumModal').modal('show');
+    // });
 });
 </script>
 @endsection

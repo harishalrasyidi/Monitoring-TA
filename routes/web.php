@@ -122,4 +122,4 @@ Route::get('/yudisium/export/excel', [App\Http\Controllers\YudisiumController::c
 Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 'status'])->middleware(['auth', 'role:2,3'])->name('yudisium.status');
 Route::get('/yudisium/kelola', [App\Http\Controllers\YudisiumController::class, 'index'])->name('yudisium.kelola');
 Route::get('/yudisium/detail/{id}', [App\Http\Controllers\YudisiumController::class, 'show'])->name('yudisium.detail');
-Route::post('/yudisium/generate', [App\Http\Controllers\YudisiumController::class, 'generate'])->name('yudisium.generate');
+// Route::post('/yudisium/generate', [App\Http\Controllers\YudisiumController::class, 'generate'])->name('yudisium.generate');

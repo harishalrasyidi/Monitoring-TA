@@ -12,7 +12,7 @@
         </div><!-- /.col -->
         <div class="col d-flex justify-content-end">
           <div class="btn-group">
-            <a href="{{ route('yudisium.index') }}" class="btn btn-secondary">Kembali</a>
+            <a href="{{ route('yudisium.kelola') }}" class="btn btn-secondary">Kembali</a>
           </div>
         </div><!-- /.col -->
       </div><!-- /.row -->
@@ -34,7 +34,7 @@
             @method('PUT')
             <div class="form-group">
               <label>KoTA</label>
-              <input type="text" class="form-control" value="{{ $kota->nama_kota }} - {{ $kota->judul }}" disabled>
+              <input type="text" class="form-control" value="{{ $yudisium->judul }}" disabled>
               <small class="text-muted">KoTA tidak dapat diubah</small>
             </div>
             
@@ -90,7 +90,7 @@
             
             <div class="form-group">
               <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-              <a href="{{ route('yudisium.index') }}" class="btn btn-default">Batal</a>
+              <a href="{{ route('yudisium.kelola') }}" class="btn btn-default">Batal</a>
             </div>
           </form>
         </div>
