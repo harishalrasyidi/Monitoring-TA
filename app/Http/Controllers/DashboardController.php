@@ -168,13 +168,6 @@ class DashboardController extends Controller
             
             if ($user->role == 1) {
                 // Logika hanya untuk Koordinator
-                $totalKota = Kota::count();
-                
-                // Ambil data periode dan kelas unik
-                $periodes = Kota::select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
-                $kelasList = Kota::select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
-
-                // Filter query jika ada request periode atau kelas
                 $query = Kota::with(['tahapanProgress']);
                 if ($request->filled('periode')) {
                     $query->where('periode', $request->periode);
@@ -183,25 +176,28 @@ class DashboardController extends Controller
                     $query->where('kelas', $request->kelas);
                 }
 
-                // Chart data dengan ID statis
+                // Perhitungan card harus dari $query yang sudah difilter
+                $totalKota = $query->count();
+
+                // Ambil data periode dan kelas unik
+                $periodes = Kota::select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
+                $kelasList = Kota::select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
+
+                // Ambil semua KoTA yang sudah difilter
+                $allKota = $query->with(['tahapanProgress.masterTahapan'])->get();
+
                 $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
-                $tahapanIds = [1, 2, 3, 4];
-                $chartData = [];
-                
-                foreach ($tahapanIds as $index => $tahapanId) {
-                    $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'selesai');
-                    if ($request->filled('periode')) {
-                        $count = $count->whereHas('kota', function($q) use ($request) {
-                            $q->where('periode', $request->periode);
-                        });
+                $chartData = array_fill_keys($tahapanNames, 0);
+
+                foreach ($allKota as $kota) {
+                    // Ambil tahapan terakhir (id terbesar)
+                    $lastTahapan = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+                    if ($lastTahapan && $lastTahapan->status === 'selesai') {
+                        $namaTahapan = optional($lastTahapan->masterTahapan)->nama_progres;
+                        if (isset($chartData[$namaTahapan])) {
+                            $chartData[$namaTahapan]++;
+                        }
                     }
-                    if ($request->filled('kelas')) {
-                        $count = $count->whereHas('kota', function($q) use ($request) {
-                            $q->where('kelas', $request->kelas);
-                        });
-                    }
-                    $chartData[$tahapanNames[$index]] = $count->distinct('id_kota')->count('id_kota');
                 }
                 
                 // Ambil data untuk pagination (terpisah dari perhitungan)

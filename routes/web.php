@@ -1,9 +1,9 @@
 <?php
 
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Controllers\Mahasiswa\DashboardController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,9 +25,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
+Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
 Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('kota.artefak.detail');
-Route::get('/file/{nama_artefak}', [HomeController::class, 'showFile'])->name('file.show');
-
 
 //Kota
 Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
@@ -127,5 +126,6 @@ Route::put('/yudisium/{id}/update', [App\Http\Controllers\YudisiumController::cl
 Route::delete('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class, 'destroy'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.destroy');
 Route::get('/yudisium/export/excel', [App\Http\Controllers\YudisiumController::class, 'export'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.export');
 Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 'status'])->middleware(['auth', 'role:2,3'])->name('yudisium.status');
-
-Route::middleware(['auth'])->get('/dashboard-mahasiswa', [App\Http\Controllers\Mahasiswa\DashboardController::class, 'dashboardMahasiswa'])->name('mahasiswa.dashboard');
+Route::get('/koordinator/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getKotaByYudisium'])
+    ->middleware(['auth', 'role:1'])
+    ->name('koordinator.yudisium-list');
