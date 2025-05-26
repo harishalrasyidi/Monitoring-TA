@@ -190,7 +190,7 @@
                 @endif
               </td>
               <td>
-                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalYudisiumList">
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
                   Lihat Detail
                 </a> 
               </td>
