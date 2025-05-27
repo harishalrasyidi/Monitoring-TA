@@ -113,6 +113,7 @@ Route::get('/resume/generate-pdf/{sesi_bimbingan}', [App\Http\Controllers\Resume
 
 
 //Katalog TA Routes
+//Katalog TA Routes
 Route::middleware(['auth'])->group(function () {
     // Request form untuk mengakses informasi kota/TA
     Route::get('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'showRequestForm'])
@@ -128,11 +129,3 @@ Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogControlle
 // Route khusus untuk teks submission
 Route::put('/submissions/teks/{artefak_id}', [App\Http\Controllers\SubmissionController::class, 'updateTeks'])->name('submissions.updateTeks');
 Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
-Route::post('/logout', function () {
-    Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-    return redirect('/');
-})->name('logout');
-
-Auth::routes();

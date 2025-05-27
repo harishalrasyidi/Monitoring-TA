@@ -109,7 +109,7 @@ class KatalogController extends Controller
         return view('katalog.katalog', compact('prodis', 'katalog', 'categories', 'years', 'metodologis', 'dosens'));
     }
 
-    /**
+     /**
      * Tampilkan form request untuk mengakses detail kota/TA
      */
     public function showRequestForm($id)
