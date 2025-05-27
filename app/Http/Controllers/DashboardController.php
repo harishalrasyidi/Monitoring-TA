@@ -166,7 +166,73 @@ class DashboardController extends Controller
                 ]);
             }
             
-            if ($user->role == 1) {
+            if ($user->role == 5) {
+                $kotaIdsBimbingan = Kota::whereIn('kelas', [1, 2])
+                    ->pluck('id_kota')
+                    ->toArray();
+
+                
+                
+                $totalKota = count($kotaIdsBimbingan);
+
+                $kotaIdsUji = KotaHasPenguji::where('id_user', $user->id)
+                    ->pluck('id_kota')
+                    ->toArray();
+                
+                $totalKotaUji = count($kotaIdsUji);
+                
+                $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+                $tahapanIds = [1, 2, 3, 4];
+                $chartData = [];
+                
+                foreach ($tahapanIds as $index => $tahapanId) {
+                    $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
+                        ->where('status', 'selesai')
+                        ->whereIn('id_kota', $kotaIdsBimbingan)
+                        ->distinct('id_kota')
+                        ->count('id_kota');
+                    $chartData[$tahapanNames[$index]] = $count;
+                }
+                
+                // Hitung selesai dan dalam progres dari SEMUA data (tidak tergantung pagination)
+                $selesai = 0;
+                $dalamProgres = 0;
+
+                $allKotaForCount = Kota::with(['tahapanProgress'])
+                    ->whereIn('id_kota', $kotaIdsBimbingan)
+                    ->get(); // Ambil semua data untuk perhitungan
+                
+                foreach ($allKotaForCount as $kota) {
+                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    if ($tahapanProgress->isEmpty()) {
+                        $dalamProgres++;
+                        continue;
+                    }
+                    
+                    $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
+                    if ($sidangProgress && $sidangProgress->status === 'selesai') {
+                        $selesai++;
+                    } else {
+                        $dalamProgres++;
+                    }
+                }
+
+                // Ambil data untuk pagination (terpisah dari perhitungan)
+                $kotaList = Kota::with(['tahapanProgress'])
+                    ->whereIn('id_kota', $kotaIdsBimbingan)
+                    ->paginate(10);
+                
+                return view('beranda.pembimbing.home', [
+                    'kotaList' => $kotaList,
+                    'totalKota' => $totalKota,
+                    'totalKotaUji' => $totalKotaUji,
+                    'selesai' => $selesai,
+                    'dalamProgres' => $dalamProgres,
+                    'chartData' => $chartData
+                ]);
+            }
+
+            if ($user->role == 5) {
                 // Logika hanya untuk Koordinator
                 $query = Kota::with(['tahapanProgress']);
                 if ($request->filled('periode')) {
@@ -253,7 +319,7 @@ class DashboardController extends Controller
                     ->get(); 
                 
 
-                return view('beranda.koordinator.home', [
+                return view('beranda.kaprodi.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'chartData' => $chartData,
@@ -297,7 +363,11 @@ class DashboardController extends Controller
                     ]
                 ]);
             }
-            return abort(500, 'Terjadi kesalahan.');
+
+            // Tambahkan sebelum bagian role 4 di DashboardController.php
+
+            
+            // return abort(500, 'Terjadi kesalahan.');
         }
     }
 

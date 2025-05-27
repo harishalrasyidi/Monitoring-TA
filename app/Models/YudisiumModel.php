@@ -76,4 +76,33 @@ class YudisiumModel extends Model
         
         return $query->get();
     }
+
+    public function getDistribusiYudisiumByKelas($periode = null, $kelasList = [])
+    {
+        $query = DB::table('tbl_kota as k')
+            ->join('tbl_kota_has_tahapan_progres as ktp', 'k.id_kota', '=', 'ktp.id_kota')
+            ->join('tbl_kota_has_tahapan_progres as mtp', 'ktp.id_master_tahapan_progres', '=', 'mtp.id_master_tahapan_progres')
+            ->where('ktp.status', 'selesai')
+            ->where('mtp.nama_progres', 'Sidang');
+        
+        if (!empty($kelasList)) {
+            $query->whereIn('k.kelas', $kelasList);
+        }
+        
+        if ($periode) {
+            $query->where('k.periode', $periode);
+        }
+        
+        return $query->select(
+                DB::raw('CASE 
+                    WHEN ktp.nilai_angka >= 3.51 THEN 1
+                    WHEN ktp.nilai_angka >= 2.76 AND ktp.nilai_angka <= 3.50 THEN 2
+                    WHEN ktp.nilai_angka <= 2.75 THEN 3
+                    ELSE 0
+                END as kategori_yudisium'),
+                DB::raw('COUNT(*) as jumlah')
+            )
+            ->groupBy('kategori_yudisium')
+            ->get();
+    }
 }

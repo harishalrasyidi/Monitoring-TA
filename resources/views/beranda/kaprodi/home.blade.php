@@ -2,344 +2,265 @@
 
 @section('content')
 
-<!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper">
-  <!-- Content Header (Page header) -->
-  <div class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col">
-          <h1 class="m-0">Dashboard Kaprodi</h1>
-        </div><!-- /.col -->
-        <div class="col d-flex justify-content-end">
-        <div class="btn-group mr-2">
-            <!-- Messages Dropdown Menu -->
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    Periode
-                </button>
-                <ul class="dropdown-menu">
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2023]) }}" class="dropdown-item">2023</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2024]) }}" class="dropdown-item">2024</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2025]) }}" class="dropdown-item">2025</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2026]) }}" class="dropdown-item">2026</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2027]) }}" class="dropdown-item">2027</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2028]) }}" class="dropdown-item">2028</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2029]) }}" class="dropdown-item">2029</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'periode', 'direction' => 'asc', 'value' => 2030]) }}" class="dropdown-item">2026</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="btn-group mr-2">   
-            <!-- Messages Dropdown Menu -->
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    Kelas
-                </button>
-                <ul class="dropdown-menu">
-                  <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 1]) }}" class="dropdown-item">D3-A</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 2]) }}" class="dropdown-item">D3-B</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 3]) }}" class="dropdown-item">D4-A</a></li>
-                  <li><a href="{{ route('kota', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 4]) }}" class="dropdown-item">D4-B</a></li>
-                </ul>
-            </div>
-        </div>
-        </div><!-- /.col -->
-      </div><!-- /.row -->
-      <hr>
-    </div><!-- /.container-fluid -->
+<div class="content-wrapper p-4">
+  <h3 class="mb-4">Dashboard Kaprodi</h3>
+  <hr>
+
+  <!-- Filter Tahun & Kelas (opsional, bisa dihilangkan jika ingin otomatis berdasarkan role kaprodi) -->
+  <div class="mb-4">
+    <form method="GET" id="filterForm" class="form-inline">
+      <label class="mr-2">Tahun:</label>
+      <select name="periode" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="">Semua</option>
+        @foreach($periodes as $periode)
+          <option value="{{ $periode }}" {{ request('periode') == $periode ? 'selected' : '' }}>{{ $periode }}</option>
+        @endforeach
+      </select>
+      <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+    </form>
   </div>
-  <!-- /.content-header -->
 
-  <!-- Main content -->
-  <div class="content">
-    <!-- Begin Page Content -->
-    <div class="container-fluid">
-      <!-- Quick Access Buttons -->
-      <div class="row mb-4">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">Menu Cepat</h3>
+  <!-- Kartu Ringkasan -->
+  <div class="row text-center align-items-stretch">
+    <!-- Card Total KoTA -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <i class="fas fa-users fa-2x text-primary mb-2"></i>
+          <h6>Total KoTA</h6>
+          <h3>{{ $totalKota }}</h3>
+        </div>
+      </div>
+    </div>  
+    <!-- Card Selesai Semua Tahapan -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+          <h6>Selesai Semua Tahapan</h6>
+          <h3>{{ $selesai }}</h3>
+        </div>
+      </div>
+    </div>
+    <!-- Card Dalam Progres -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <i class="fas fa-spinner fa-2x text-warning mb-2"></i>
+          <h6>Dalam Progres</h6>
+          <h3>{{ $dalamProgres }}</h3>
+        </div>
+      </div>
+    </div>
+    <!-- Card Yudisium -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body p-3 d-flex flex-column justify-content-center">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-success d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="1">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 1</div>
+                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium1 }}</div>
+              </div>
             </div>
-            <div class="card-body">
-              <div class="btn-group">
-                <a href="{{ route('kota') }}" class="btn btn-app">
-                  <i class="fas fa-book"></i> Data KoTA
-                </a>
-                <a href="{{ route('timeline') }}" class="btn btn-app">
-                  <i class="fas fa-calendar-alt"></i> Timeline
-                </a>
-                <a href="{{ route('yudisium.index') }}" class="btn btn-app">
-                  <i class="fas fa-graduation-cap"></i> Yudisium
-                </a>
-                <a href="{{ route('yudisium.dashboard') }}" class="btn btn-app">
-                  <i class="fas fa-chart-pie"></i> Dashboard Yudisium
-                </a>
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-warning d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="2">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 2</div>
+                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium2 }}</div>
+              </div>
+            </div>
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-danger d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="3">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 3</div>
+                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium3 }}</div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>  
+  </div>
 
-      <!-- Metrics Row -->
-      <div class="row">
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-info">
-            <div class="inner">
-              <h3>{{ $totalKoTA ?? '40' }}</h3>
-              <p>Total KoTA</p>
-            </div>
-            <div class="icon">
-              <i class="fas fa-book"></i>
-            </div>
-            <a href="{{ route('kota') }}" class="small-box-footer">
-              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
-            </a>
-          </div>
-        </div>
-        
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-success">
-            <div class="inner">
-              <h3>{{ $totalYudisium1 ?? '12' }}</h3>
-              <p>Yudisium 1</p>
-            </div>
-            <div class="icon">
-              <i class="fas fa-trophy"></i>
-            </div>
-            <a href="{{ route('yudisium.index', ['kategori' => 1]) }}" class="small-box-footer">
-              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
-            </a>
-          </div>
-        </div>
-        
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-warning">
-            <div class="inner">
-              <h3>{{ $totalYudisium2 ?? '18' }}</h3>
-              <p>Yudisium 2</p>
-            </div>
-            <div class="icon">
-              <i class="fas fa-medal"></i>
-            </div>
-            <a href="{{ route('yudisium.index', ['kategori' => 2]) }}" class="small-box-footer">
-              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
-            </a>
-          </div>
-        </div>
-        
-        <div class="col-lg-3 col-6">
-          <div class="small-box bg-danger">
-            <div class="inner">
-              <h3>{{ $totalYudisium3 ?? '10' }}</h3>
-              <p>Yudisium 3</p>
-            </div>
-            <div class="icon">
-              <i class="fas fa-graduation-cap"></i>
-            </div>
-            <a href="{{ route('yudisium.index', ['kategori' => 3]) }}" class="small-box-footer">
-              Lihat Detail <i class="fas fa-arrow-circle-right"></i>
-            </a>
-          </div>
-        </div>
-      </div>
+  <!-- Statistik Tahapan KoTA -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <strong>Statistik Status Tahapan KoTA</strong>
+    </div>
+    <div class="card-body">
+      <div id="tahapanChart"></div>
+    </div>
+  </div>
 
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title"><strong>Distribusi Kategori Yudisium</strong></h2>
-            </div>
-            <div class="card-body">
-              <canvas id="pieChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-            </div>
-          </div>
+  <!-- List KoTA -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <strong>List KoTA</strong>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>No</th>
+            <th>Kelompok</th>
+            <th>Seminar 1</th>
+            <th>Seminar 2</th>
+            <th>Seminar 3</th>
+            <th>Sidang</th>
+            <th>Status</th>
+            <th>Artefak</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($kotaList as $no => $kota)
+            <tr>
+              <td>{{ $kotaList->firstItem() + $no }}</td>
+              <td>
+                <strong>{{ $kota->nama_kota }}</strong><br>
+                <small class="text-muted">{{ $kota->judul }}</small>
+              </td>
+              @php
+                $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                $status = [];
+                foreach($tahapan as $tp) {
+                  $status[] = $tp->status;
+                }
+                for($i = count($status); $i < 4; $i++) $status[] = '-';
+              @endphp
+              <td>
+                @if(($status[0] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[0] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[1] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[1] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[2] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[2] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[3] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[3] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @php
+                  $last = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+                @endphp
+                @if($last && $last->status === 'selesai' && optional($last->masterTahapan)->nama_progres === 'Sidang')
+                  <span class="badge badge-success">Selesai</span>
+                @else
+                  <span class="badge badge-warning">Dalam Progres</span>
+                @endif
+              </td>
+              <td>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalYudisiumList">
+                  Lihat Detail
+                </a> 
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="8" class="text-center">Data tidak ditemukan</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex align-items-center">
+          <span class="mr-2">Tampilkan</span>
+          <select class="form-control form-control-sm" id="perPage" style="width: 70px">
+            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+          </select>
+          <span class="ml-2">data per halaman</span>
         </div>
-
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title"><strong>Distribusi Status Yudisium</strong></h2>
-            </div>
-            <div class="card-body">
-              <canvas id="pieChart1" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title"><strong>Distribusi Kelas</strong></h2>
-            </div>
-            <div class="card-body">
-              <canvas id="pieChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title"><strong>Progres Seminar TA</strong></h3>
-            </div>
-            <div class="card-body">
-              <div class="chart">
-                <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-              </div>
-            </div>
-          </div>
+        <div>
+          {{ $kotaList->appends(['per_page' => request('per_page')])->links() }}
         </div>
       </div>
     </div>
   </div>
-  
+</div>
 
+@include('beranda.kaprodi.yudisium_modal')
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-
-        //-------------
-        //- PIE CHART - Distribusi Kategori Yudisium
-        //-------------
-        var pieChartCanvas = document.getElementById('pieChart').getContext('2d');
-        var pieData = {
-            labels: ['Yudisium 1', 'Yudisium 2', 'Yudisium 3'],
-            datasets: [{
-                label: 'Kategori Yudisium',
-                data: [12, 18, 10], // Data statis, idealnya diambil dari database
-                backgroundColor: [
-                    'rgba(0, 165, 90, 0.8)',  // Hijau untuk Yudisium 1
-                    'rgba(243, 156, 18, 0.8)', // Kuning untuk Yudisium 2
-                    'rgba(221, 75, 57, 0.8)'   // Merah untuk Yudisium 3
-                ],
-                borderColor: [
-                    'rgba(0, 165, 90, 1)',
-                    'rgba(243, 156, 18, 1)',
-                    'rgba(221, 75, 57, 1)'
-                ],
-                borderWidth: 1
-            }]
-        };
-        var pieOptions = {
-            maintainAspectRatio: false,
-            responsive: true,
-        };
-
-        // Create pie chart
-        new Chart(pieChartCanvas, {
-            type: 'pie',
-            data: pieData,
-            options: pieOptions
-        });
-
-        //-------------
-        //- PIE CHART 1 - Status Yudisium
-        //-------------
-        var pieChartCanvas1 = document.getElementById('pieChart1').getContext('2d');
-        var pieData1 = {
-            labels: ['Pending', 'Approved', 'Rejected'],
-            datasets: [{
-                label: 'Status Yudisium',
-                data: [15, 20, 5], // Data statis, idealnya diambil dari database
-                backgroundColor: [
-                    'rgba(243, 156, 18, 0.8)', // Kuning untuk Pending
-                    'rgba(0, 165, 90, 0.8)',   // Hijau untuk Approved
-                    'rgba(221, 75, 57, 0.8)'   // Merah untuk Rejected
-                ],
-                borderColor: [
-                    'rgba(243, 156, 18, 1)',
-                    'rgba(0, 165, 90, 1)',
-                    'rgba(221, 75, 57, 1)'
-                ],
-                borderWidth: 1
-            }]
-        };
-        var pieOptions1 = {
-            maintainAspectRatio: false,
-            responsive: true,
-        };
-
-        // Create pie chart
-        new Chart(pieChartCanvas1, {
-            type: 'pie',
-            data: pieData1,
-            options: pieOptions1
-        });
-
-        //-------------
-        //- PIE CHART 2 - Distribusi Kelas
-        //-------------
-        var pieChartCanvas2 = document.getElementById('pieChart2').getContext('2d');
-        var pieData2 = {
-            labels: ['D3-A', 'D3-B', 'D4-A', 'D4-B'],
-            datasets: [{
-                label: 'Kelas',
-                data: [10, 10, 10, 10], // Data statis, idealnya diambil dari database
-                backgroundColor: [
-                    'rgba(60, 141, 188, 0.8)',
-                    'rgba(0, 192, 239, 0.8)',
-                    'rgba(0, 166, 90, 0.8)',
-                    'rgba(96, 92, 168, 0.8)'
-                ],
-                borderColor: [
-                    'rgba(60, 141, 188, 1)',
-                    'rgba(0, 192, 239, 1)',
-                    'rgba(0, 166, 90, 1)',
-                    'rgba(96, 92, 168, 1)'
-                ],
-                borderWidth: 1
-            }]
-        };
-        var pieOptions2 = {
-            maintainAspectRatio: false,
-            responsive: true,
-        };
-
-        // Create pie chart
-        new Chart(pieChartCanvas2, {
-            type: 'pie',
-            data: pieData2,
-            options: pieOptions2
-        });
-
-
-        //-------------
-        //- BAR CHART - Progres TA
-        //-------------
-        var barChartCanvas = document.getElementById('barChart').getContext('2d');
-        var barChartData = {
-            labels: ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'],
-            datasets: [{
-                label: 'Selesai',
-                data: [40, 30, 20, 10], // Data statis, idealnya diambil dari database
-                backgroundColor: 'rgba(60, 141, 188, 0.8)',
-                borderColor: 'rgba(60, 141, 188, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'On Progress',
-                data: [0, 10, 20, 30], // Data statis, idealnya diambil dari database
-                backgroundColor: 'rgba(0, 166, 90, 0.8)',
-                borderColor: 'rgba(0, 166, 90, 1)',
-                borderWidth: 1
-            }]
-        };
-        var barChartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            datasetFill: false
-        };
-
-        // Create bar chart
-        new Chart(barChartCanvas, {
-            type: 'bar',
-            data: barChartData,
-            options: barChartOptions
-        });
-
-      });
-  </script>
-  
 @endsection
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var options = {
+      chart: { type: 'bar', height: 350 },
+      series: [{
+        name: 'Jumlah Mahasiswa',
+        data: {!! json_encode(array_values($chartData)) !!}
+      }],
+      xaxis: {
+        categories: {!! json_encode(array_keys($chartData)) !!}
+      },
+      colors: ['#28a745', '#ffc107', '#dc3545', '#007bff']
+    };
+    var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
+    chart.render();
+
+    document.getElementById('perPage').addEventListener('change', function() {
+      var url = new URL(window.location.href);
+      url.searchParams.set('per_page', this.value);
+      window.location.href = url.toString();
+    });
+
+    document.querySelectorAll('.btn-yudisium').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var kategori = this.getAttribute('data-kategori');
+        var periode = "{{ request('periode') }}";
+        document.getElementById('modalYudisiumType').innerText = kategori;
+
+        fetch(`/kaprodi/yudisium-list?kategori=${kategori}&periode=${periode}`)
+          .then(response => response.json())
+          .then(data => {
+            var tbody = document.getElementById('modalYudisiumTableBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="2" class="text-center">Tidak ada data</td></tr>';
+            } else {
+              data.forEach(function(item) {
+                var row = `<tr><td>${item.nama_kota}</td><td>${item.judul}</td></tr>`;
+                tbody.innerHTML += row;
+              });
+            }
+            $('#modalYudisiumList').modal('show');
+          });
+      });
+    });
+  });
+</script>
