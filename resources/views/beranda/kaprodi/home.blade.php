@@ -70,7 +70,7 @@
                 <a href="{{ route('timeline') }}" class="btn btn-app">
                   <i class="fas fa-calendar-alt"></i> Timeline
                 </a>
-                <a href="{{ route('yudisium.index') }}" class="btn btn-app">
+                <a href="{{ route('yudisium.kelola') }}" class="btn btn-app">
                   <i class="fas fa-graduation-cap"></i> Yudisium
                 </a>
                 <a href="{{ route('yudisium.dashboard') }}" class="btn btn-app">
@@ -108,7 +108,7 @@
             <div class="icon">
               <i class="fas fa-trophy"></i>
             </div>
-            <a href="{{ route('yudisium.index', ['kategori' => 1]) }}" class="small-box-footer">
+            <a href="{{ route('yudisium.kelola', ['kategori' => 1]) }}" class="small-box-footer">
               Lihat Detail <i class="fas fa-arrow-circle-right"></i>
             </a>
           </div>
@@ -123,7 +123,7 @@
             <div class="icon">
               <i class="fas fa-medal"></i>
             </div>
-            <a href="{{ route('yudisium.index', ['kategori' => 2]) }}" class="small-box-footer">
+            <a href="{{ route('yudisium.kelola', ['kategori' => 2]) }}" class="small-box-footer">
               Lihat Detail <i class="fas fa-arrow-circle-right"></i>
             </a>
           </div>
@@ -138,7 +138,7 @@
             <div class="icon">
               <i class="fas fa-graduation-cap"></i>
             </div>
-            <a href="{{ route('yudisium.index', ['kategori' => 3]) }}" class="small-box-footer">
+            <a href="{{ route('yudisium.kelola', ['kategori' => 3]) }}" class="small-box-footer">
               Lihat Detail <i class="fas fa-arrow-circle-right"></i>
             </a>
           </div>

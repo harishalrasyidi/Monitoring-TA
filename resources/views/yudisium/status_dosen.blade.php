@@ -66,8 +66,9 @@
                   </td>
                   <td>
                     @if($item->id_yudisium)
-                    <a href="{{ route('yudisium.show', $item->id_yudisium) }}" class="btn btn-sm btn-info">Detail</a>
+                    <a href="{{ route('yudisium.detail', $item->id_yudisium) }}" class="btn btn-sm btn-info">Detail</a>
                     @else
+                    
                     <button class="btn btn-sm btn-secondary" disabled>Tidak tersedia</button>
                     @endif
                   </td>
@@ -83,6 +84,6 @@
         </div>
       </div>
     </div>
-  </section>
+  </section>  
 </div>
 @endsection

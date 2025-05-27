@@ -34,7 +34,7 @@
             @method('PUT')
             <div class="form-group">
               <label>KoTA</label>
-              <input type="text" class="form-control" value="{{ $yudisium->judul }}" disabled>
+              <input type="text" class="form-control" value="{{$kota->judul }}" placeholder="{{ $kota->judul }}" disabled>
               <small class="text-muted">KoTA tidak dapat diubah</small>
             </div>
             
