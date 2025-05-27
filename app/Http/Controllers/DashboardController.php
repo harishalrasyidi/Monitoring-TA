@@ -334,7 +334,14 @@ class DashboardController extends Controller
                     ->pluck('id_kota')
                     ->toArray();
                 
-                $totalKotaUji = count($kotaIdsUji);
+                $queryUji = Kota::whereIn('id_kota', $kotaIdsUji);
+                if ($request->filled('periode')) {
+                    $queryUji->where('periode', $request->periode);
+                }
+                if ($request->filled('kelas')) {
+                    $queryUji->where('kelas', $request->kelas);
+                }
+                $totalKotaUji = $queryUji->count();
                 
                 // Query dasar untuk KoTA yang dibimbing
                 $query = Kota::with(['tahapanProgress.masterTahapan'])
@@ -547,6 +554,14 @@ class DashboardController extends Controller
 
         $query = Kota::with(['tahapanProgress'])
             ->whereIn('id_kota', $kotaIdsUji);
+
+        if ($request->filled('periode')) {
+            $query->where('periode', $request->periode);
+        }
+
+        if ($request->filled('kelas')) {
+            $query->where('kelas', $request->kelas);
+        }
 
         if ($search) {
             $query->where(function($q) use ($search) {

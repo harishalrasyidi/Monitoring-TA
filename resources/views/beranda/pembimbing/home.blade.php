@@ -350,6 +350,9 @@
     $('#emptyKotaUji').hide();
     $('#kotaUjiPagination').hide();
 
+    const periode = $('select[name="periode"]').val();
+    const kelas = $('select[name="kelas"]').val();
+
     // Simulasi AJAX call - ganti dengan endpoint yang sebenarnya
     $.ajax({
       url: '{{ route("dashboard.kota-uji") }}', // Buat route ini di controller
@@ -357,7 +360,9 @@
       data: {
         page: page,
         search: search,
-        per_page: 10
+        per_page: 10,
+        periode: periode,
+        kelas: kelas
       },
       success: function(response) {
         $('#loadingKotaUji').hide();
