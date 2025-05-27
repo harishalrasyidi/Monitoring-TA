@@ -23,58 +23,80 @@ class UserSeeder extends Seeder
             'password' => Hash::make('1234567890'),
         ]);
 
+        // Tambahkan dosen dummy
+        for ($i = 1; $i <= 43; $i++) {
+            User::create([
+                'role' => 2,
+                'nomor_induk' => 198600000000000000 + $i, // contoh nomor induk angka unik
+                'name' => 'Dosen ' . $i,
+                'email' => 'dosen' . $i . '@polban.ac.id',
+                'password' => Hash::make('1234567890'),
+            ]);
+        }
 
-        $dosenFilePath = 'json_data/dosen.json';
-
-        if (Storage::exists($dosenFilePath)) {
-            $dosenJson = Storage::get($dosenFilePath);
-            $dosen = json_decode($dosenJson, true);
-    
-            if ($dosen) {
-                foreach ($dosen as $dosen) {
-                    User::create([
-                        'role' => 2,
-                        'nomor_induk' => $dosen['nip'], // assuming nim is the student ID
-                        'name' => $dosen['nama'],
-                        'email' => $dosen['email'],
-                        'password' => Hash::make('1234567890'),
-                    ]);
-                }
-            } else {
-                // Handle JSON decode error if needed
-                echo "Failed to decode JSON file.";
-            }
-        } else {
-            // Handle file not found error if needed
-            echo "File dosen.json not found.";
+        // Tambahkan mahasiswa dummy
+        for ($i = 1; $i <= 88; $i++) {
+            User::create([
+                'role' => 3,
+                'nomor_induk' => 199900000000000000 + $i, // contoh nomor induk angka unik
+                'name' => 'Mahasiswa ' . $i,
+                'email' => 'mahasiswa' . $i . '@polban.ac.id',
+                'password' => Hash::make('1234567890'),
+            ]);
         }
 
 
+        // $dosenFilePath = 'json_data/dosen.json';
 
-        $mahasiswaFilePath = 'json_data/mahasiswa.json';
-
-        if (Storage::exists($mahasiswaFilePath)) {
-            $mahasiswaJson = Storage::get($mahasiswaFilePath);
-            $mahasiswa = json_decode($mahasiswaJson, true);
+        // if (Storage::exists($dosenFilePath)) {
+        //     $dosenJson = Storage::get($dosenFilePath);
+        //     $dosen = json_decode($dosenJson, true);
     
-            if ($mahasiswa) {
-                foreach ($mahasiswa as $mhs) {
-                    User::create([
-                        'role' => 3,
-                        'nomor_induk' => $mhs['nim'], // assuming nim is the student ID
-                        'name' => $mhs['nama'],
-                        'email' => $mhs['email'],
-                        'password' => Hash::make('1234567890'),
-                    ]);
-                }
-            } else {
-                // Handle JSON decode error if needed
-                echo "Failed to decode JSON file.";
-            }
-        } else {
-            // Handle file not found error if needed
-            echo "File mahasiswa.json not found.";
-        }
+        //     if ($dosen) {
+        //         foreach ($dosen as $dosen) {
+        //             User::create([
+        //                 'role' => 2,
+        //                 'nomor_induk' => $dosen['nip'], // assuming nim is the student ID
+        //                 'name' => $dosen['nama'],
+        //                 'email' => $dosen['email'],
+        //                 'password' => Hash::make('1234567890'),
+        //             ]);
+        //         }
+        //     } else {
+        //         // Handle JSON decode error if needed
+        //         echo "Failed to decode JSON file.";
+        //     }
+        // } else {
+        //     // Handle file not found error if needed
+        //     echo "File dosen.json not found.";
+        // }
+
+
+
+        // $mahasiswaFilePath = 'json_data/mahasiswa.json';
+
+        // if (Storage::exists($mahasiswaFilePath)) {
+        //     $mahasiswaJson = Storage::get($mahasiswaFilePath);
+        //     $mahasiswa = json_decode($mahasiswaJson, true);
+    
+        //     if ($mahasiswa) {
+        //         foreach ($mahasiswa as $mhs) {
+        //             User::create([
+        //                 'role' => 3,
+        //                 'nomor_induk' => $mhs['nim'], // assuming nim is the student ID
+        //                 'name' => $mhs['nama'],
+        //                 'email' => $mhs['email'],
+        //                 'password' => Hash::make('1234567890'),
+        //             ]);
+        //         }
+        //     } else {
+        //         // Handle JSON decode error if needed
+        //         echo "Failed to decode JSON file.";
+        //     }
+        // } else {
+        //     // Handle file not found error if needed
+        //     echo "File mahasiswa.json not found.";
+        // }
 
         User::create([
             'role' => 4,
