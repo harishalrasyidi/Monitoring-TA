@@ -158,13 +158,23 @@ class DashboardController extends Controller
                 // Ambil data untuk pagination (terpisah dari perhitungan)
                 $kotaList = $query->paginate(10);
                 
+                $periodes = Kota::whereIn('id_kota', $kotaIdsBimbingan)
+                    ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
+                $kelasList = Kota::whereIn('id_kota', $kotaIdsBimbingan)
+                    ->select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
+                
+                // Ambil data untuk pagination (terpisah dari perhitungan)
+                $kotaList = $query->paginate(10);
+                
                 return view('beranda.pembimbing.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'totalKotaUji' => $totalKotaUji,
                     'selesai' => $selesai,
                     'dalamProgres' => $dalamProgres,
-                    'chartData' => $chartData
+                    'chartData' => $chartData,
+                    'periodes' => $periodes,
+                    'kelasList' => $kelasList,
                 ]);
             }
             
