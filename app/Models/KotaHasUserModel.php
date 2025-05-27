@@ -15,6 +15,6 @@ class KotaHasUserModel extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'id_kota',
-        'id_user',
+        'id_user', 
     ];
 }

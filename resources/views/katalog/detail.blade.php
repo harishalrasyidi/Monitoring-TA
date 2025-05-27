@@ -86,7 +86,7 @@
                                 @endif
 
                                 <hr>
-                                <a href="#" class="btn btn-secondary btn-block" onclick="requestFullAccess()">
+                                <a href="{{ route('katalog.request-form',  $laporan['id_kota']) }}" class="btn btn-secondary btn-block">
                                     <i class="fas fa-download"></i> Request Full Akses TA
                                 </a>
                             </div>
@@ -610,15 +610,6 @@
             }
 
             console.log('PDF loading failed:', errorMessage);
-        }
-
-        function requestFullAccess() {
-            @if(auth()->user()->role == 3)
-                alert('Anda tidak memiliki akses penuh untuk mengunduh dokumen. Silakan hubungi administrator untuk mendapatkan akses lebih lanjut.');
-            @else
-                // Implementasi request full access untuk role lain
-                alert('Fitur request full access belum diimplementasikan.');
-            @endif
         }
     </script>
 

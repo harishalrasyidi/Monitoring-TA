@@ -183,6 +183,7 @@
                 </p>
               </a>
             </li>
+            <!-- Katalog TA Menu Item -->
             <li class="nav-item">
               <a href="{{ route('katalog') }}" class="nav-link">
                 <i class="nav-icon fas fa-boxes"></i>
@@ -367,6 +368,6 @@
           }
       });
   </script>
-
+@stack('scripts')
 </body>
 </html>
