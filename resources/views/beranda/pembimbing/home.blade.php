@@ -6,6 +6,39 @@
   <h3 class="mb-4">Dashboard Pembimbing TA</h3>
   <hr>
 
+  <!-- Filter Tahun & Kelas -->
+  <div class="mb-4">
+    <form method="GET" id="filterForm" class="form-inline">
+      <label class="mr-2">Tahun:</label>
+      <select name="periode" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="">Semua</option>
+        @foreach($periodes as $periode)
+          <option value="{{ $periode }}" {{ request('periode') == $periode ? 'selected' : '' }}>{{ $periode }}</option>
+        @endforeach
+      </select>
+      <label class="mr-2">Kelas:</label>
+      @php
+          $kelasLabels = [
+              1 => 'D3 - A',
+              2 => 'D3 - B',
+              3 => 'D4 - A',
+              4 => 'D4 - B',
+          ];
+      @endphp
+
+      <select name="kelas" class="form-control mr-2" onchange="this.form.submit()">
+          <option value="">Semua</option>
+          @foreach($kelasList as $kelas)
+              <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>
+                  {{ $kelasLabels[$kelas] ?? $kelas }}
+              </option>
+          @endforeach
+      </select>
+      <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+    </form>
+  </div>
+
+
   <!-- Kartu Ringkasan -->
   <div class="row text-center">
     <div class="col-md-3">
@@ -50,14 +83,6 @@
   <div class="card mt-4">
     <div class="card-header">
       <strong>Statistik Status Tahapan KoTA Bimbingan</strong>
-      <div class="float-right">
-        <select class="form-control d-inline w-auto mr-2">
-          <option>Tahun</option>
-        </select>
-        <select class="form-control d-inline w-auto">
-          <option>Kelas</option>
-        </select>
-      </div>
     </div>
     <div class="card-body">
       <div id="tahapanChart"></div>
@@ -84,7 +109,7 @@
             <th>Seminar 3</th>
             <th>Sidang</th>
             <th>Status</th>
-            <th>Aksi</th>
+            <th>Artefak</th>
           </tr>
         </thead>
         <tbody>
@@ -152,11 +177,9 @@
                 @endif
               </td>
               <td>
-                <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-sm btn-info" title="Lihat Artefak">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                </div>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                  Lihat Detail
+                </a> 
               </td>
             </tr>
           @empty
@@ -327,6 +350,9 @@
     $('#emptyKotaUji').hide();
     $('#kotaUjiPagination').hide();
 
+    const periode = $('select[name="periode"]').val();
+    const kelas = $('select[name="kelas"]').val();
+
     // Simulasi AJAX call - ganti dengan endpoint yang sebenarnya
     $.ajax({
       url: '{{ route("dashboard.kota-uji") }}', // Buat route ini di controller
@@ -334,7 +360,9 @@
       data: {
         page: page,
         search: search,
-        per_page: 10
+        per_page: 10,
+        periode: periode,
+        kelas: kelas
       },
       success: function(response) {
         $('#loadingKotaUji').hide();
