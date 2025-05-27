@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\MasterArterfakModel;
 use App\Models\ArtefakModel;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;

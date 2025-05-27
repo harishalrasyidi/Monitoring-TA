@@ -18,4 +18,15 @@ class KotaHasArtefakModel extends Model
         'file_pengumpulan',
         'waktu_pengumpulan'
     ];
+
+    public function artefak()
+    {
+        return $this->belongsTo(ArtefakModel::class, 'id_artefak', 'id_artefak');
+    }
+
+    public function master()
+    {
+        return $this->belongsTo(MasterArterfakModel::class, 'nama_artefak', 'id');
+    }
+
 }

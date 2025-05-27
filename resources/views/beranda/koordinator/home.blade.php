@@ -2,234 +2,288 @@
 
 @section('content')
 
-<!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper">
-  <!-- Content Header (Page header) -->
-  <div class="content-header">
-    <div class="container-fluid">
-      <div class="row mb-2">
-        <div class="col">
-          <h1 class="m-0">Dashboard Koordinator</h1>
-        </div><!-- /.col -->
-        <div class="col d-flex justify-content-end">
-        <div class="btn-group mr-2">
-          <!-- Messages Dropdown Menu -->
-          <div class="dropdown">
-              <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                  Periode
-              </button>
-              <ul class="dropdown-menu">
-                  <li><a href="#" class="dropdown-item">2024</a></li>
-                  <li><a href="#" class="dropdown-item">2023</a></li>
-                </ul>
+<div class="content-wrapper p-4">
+  <h3 class="mb-4">Dashboard Koordinator TA</h3>
+  <hr>
+
+  <!-- Filter Tahun & Kelas -->
+  <div class="mb-4">
+    <form method="GET" id="filterForm" class="form-inline">
+      <label class="mr-2">Tahun:</label>
+      <select name="periode" class="form-control mr-2" onchange="this.form.submit()">
+        <option value="">Semua</option>
+        @foreach($periodes as $periode)
+          <option value="{{ $periode }}" {{ request('periode') == $periode ? 'selected' : '' }}>{{ $periode }}</option>
+        @endforeach
+      </select>
+      <label class="mr-2">Kelas:</label>
+      @php
+          $kelasLabels = [
+              1 => 'D3 - A',
+              2 => 'D3 - B',
+              3 => 'D4 - A',
+              4 => 'D4 - B',
+          ];
+      @endphp
+
+      <select name="kelas" class="form-control mr-2" onchange="this.form.submit()">
+          <option value="">Semua</option>
+          @foreach($kelasList as $kelas)
+              <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>
+                  {{ $kelasLabels[$kelas] ?? $kelas }}
+              </option>
+          @endforeach
+      </select>
+
+      <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+    </form>
+  </div>
+
+  <!-- Kartu Ringkasan -->
+  <div class="row text-center align-items-stretch">
+    <!-- Card Total KoTA -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <i class="fas fa-users fa-2x text-primary mb-2"></i>
+          <h6>Total KoTA</h6>
+          <h3>{{ $totalKota }}</h3>
+        </div>
+      </div>
+    </div>  
+    <!-- Card Selesai Semua Tahapan -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+          <h6>Selesai Semua Tahapan</h6>
+          <h3>{{ $selesai }}</h3>
+        </div>
+      </div>
+    </div>
+    <!-- Card Dalam Progres -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-center">
+          <i class="fas fa-spinner fa-2x text-warning mb-2"></i>
+          <h6>Dalam Progres</h6>
+          <h3>{{ $dalamProgres }}</h3>
+        </div>
+      </div>
+    </div>
+    <!-- Card Yudisium -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body p-3 d-flex flex-column justify-content-center">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-success d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="1">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 1</div>
+                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium1 }}</div>
               </div>
             </div>
-        <div class="btn-group mr-2">   
-            <!-- Messages Dropdown Menu -->
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    Kelas
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="#" class="dropdown-item">D3-A</a></li>
-                    <li><a href="#" class="dropdown-item">D3-B</a></li>
-                    <li><a href="#" class="dropdown-item">D4-A</a></li>
-                    <li><a href="#" class="dropdown-item">D4-B</a></li>
-                </ul>
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-warning d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="2">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 2</div>
+                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium2 }}</div>
+              </div>
             </div>
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-danger d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="3">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 3</div>
+                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium3 }}</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="btn-group mr-2">
-            <!-- Notifications Dropdown Menu -->
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" href="#">
-                    Tahapan TA
-                </button>
-                <ul class="dropdown-menu dropdown-menu-lg">
-                    <li><a href="#" class="dropdown-item">Seminar 1</a></li>
-                    <li><a href="#" class="dropdown-item">Seminar 2</a></li>
-                    <li><a href="#" class="dropdown-item">Seminar 3</a></li>
-                    <li><a href="#" class="dropdown-item">Sidang</a></li>
-                </ul>
-            </div>
-                        </div>
-        </div><!-- /.col -->
-      </div><!-- /.row -->
-      <hr>
-    </div><!-- /.container-fluid -->
+      </div>
+    </div>  
   </div>
-  <!-- /.content-header -->
 
+  <!-- Statistik Tahapan KoTA -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <strong>Statistik Status Tahapan KoTA</strong>
+    </div>
+    <div class="card-body">
+      <div id="tahapanChart"></div>
+      {{-- <pre>{{ var_dump($chartData) }}</pre> --}}
+    </div>
+  </div>
 
-@push('scripts')
-<script>
-  $(function () {
-    //--------------
-    //- AREA CHART -
-    //--------------
-    var areaChartCanvas = $('#areaChart').get(0).getContext('2d')
-    var areaChartData = {
-      labels  : ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-      datasets: [
-        {
-          label               : 'Digital Goods',
-          backgroundColor     : 'rgba(60,141,188,0.9)',
-          borderColor         : 'rgba(60,141,188,0.8)',
-          pointRadius         : false,
-          pointColor          : '#3b8bba',
-          pointStrokeColor    : 'rgba(60,141,188,1)',
-          pointHighlightFill  : '#fff',
-          pointHighlightStroke: 'rgba(60,141,188,1)',
-          data                : [28, 48, 40, 19, 86, 27, 90]
-        },
-        {
-          label               : 'Electronics',
-          backgroundColor     : 'rgba(210, 214, 222, 1)',
-          borderColor         : 'rgba(210, 214, 222, 1)',
-          pointRadius         : false,
-          pointColor          : 'rgba(210, 214, 222, 1)',
-          pointStrokeColor    : '#c1c7d1',
-          pointHighlightFill  : '#fff',
-          pointHighlightStroke: 'rgba(220,220,220,1)',
-          data                : [65, 59, 80, 81, 56, 55, 40]
-        },
-      ]
-    }
+  <!-- List KoTA -->
+  <div class="card mt-4">
+    <div class="card-header">
+      <strong>List KoTA</strong>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-hover">
+        <thead class="thead-light">
+          <tr>
+            <th>No</th>
+            <th>Kelompok</th>
+            <th>Seminar 1</th>
+            <th>Seminar 2</th>
+            <th>Seminar 3</th>
+            <th>Sidang</th>
+            <th>Status</th>
+            <th>Artefak</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($kotaList as $no => $kota)
+            <tr>
+              <td>{{ $kotaList->firstItem() + $no }}</td>
+              <td>
+                <strong>{{ $kota->nama_kota }}</strong><br>
+                <small class="text-muted">{{ $kota->judul }}</small>
+              </td>
+              @php
+                $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                $status = [];
+                foreach($tahapan as $tp) {
+                  $status[] = $tp->status;
+                }
+                for($i = count($status); $i < 4; $i++) $status[] = '-';
+              @endphp
+              <td>
+                @if(($status[0] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[0] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[1] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[1] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[2] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[2] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[3] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Tuntas</span>
+                @elseif(($status[3] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @php
+                  $last = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+                @endphp
+                @if($last && $last->status === 'selesai' && optional($last->masterTahapan)->nama_progres === 'Sidang')
+                  <span class="badge badge-success">Selesai</span>
+                @else
+                  <span class="badge badge-warning">Dalam Progres</span>
+                @endif
+              </td>
+              <td>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                  Lihat Detail
+                </a> 
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="8" class="text-center">Data tidak ditemukan</td>
+            </tr>
+          @endforelse
+        </tbody>
+      </table>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex align-items-center">
+          <span class="mr-2">Tampilkan</span>
+          <select class="form-control form-control-sm" id="perPage" style="width: 70px">
+            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+          </select>
+          <span class="ml-2">data per halaman</span>
+        </div>
+        <div>
+          {{ $kotaList->appends(['per_page' => request('per_page')])->links() }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    var areaChartOptions = {
-      maintainAspectRatio : false,
-      responsive : true,
-      legend: {
-        display: false
-      },
-      scales: {
-        xAxes: [{
-          gridLines : {
-            display : false,
-          }
-        }],
-        yAxes: [{
-          gridLines : {
-            display : false,
-          }
-        }]
-      }
-    }
-
-    new Chart(areaChartCanvas, {
-      type: 'line',
-      data: areaChartData,
-      options: areaChartOptions
-    })
-
-    //-------------
-    //- LINE CHART -
-    //--------------
-    var lineChartCanvas = $('#lineChart').get(0).getContext('2d')
-    var lineChartOptions = $.extend(true, {}, areaChartOptions)
-    var lineChartData = $.extend(true, {}, areaChartData)
-    lineChartData.datasets[0].fill = false;
-    lineChartData.datasets[1].fill = false;
-    lineChartOptions.datasetFill = false
-
-    var lineChart = new Chart(lineChartCanvas, {
-      type: 'line',
-      data: lineChartData,
-      options: lineChartOptions
-    })
-
-    //-------------
-    //- DONUT CHART -
-    //-------------
-    var donutChartCanvas = $('#donutChart').get(0).getContext('2d')
-    var donutData        = {
-      labels: [
-          'Chrome',
-          'IE',
-          'FireFox',
-          'Safari',
-          'Opera',
-          'Navigator',
-      ],
-      datasets: [
-        {
-          data: [700,500,400,600,300,100],
-          backgroundColor : ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de'],
-        }
-      ]
-    }
-    var donutOptions     = {
-      maintainAspectRatio : false,
-      responsive : true,
-    }
-    new Chart(donutChartCanvas, {
-      type: 'doughnut',
-      data: donutData,
-      options: donutOptions
-    })
-
-    //-------------
-    //- PIE CHART -
-    //-------------
-    var pieChartCanvas = $('#pieChart').get(0).getContext('2d')
-    var pieData        = donutData;
-    var pieOptions     = {
-      maintainAspectRatio : false,
-      responsive : true,
-    }
-    new Chart(pieChartCanvas, {
-      type: 'pie',
-      data: pieData,
-      options: pieOptions
-    })
-
-    //-------------
-    //- BAR CHART -
-    //-------------
-    var barChartCanvas = $('#barChart').get(0).getContext('2d')
-    var barChartData = $.extend(true, {}, areaChartData)
-    var temp0 = areaChartData.datasets[0]
-    var temp1 = areaChartData.datasets[1]
-    barChartData.datasets[0] = temp1
-    barChartData.datasets[1] = temp0
-
-    var barChartOptions = {
-      responsive              : true,
-      maintainAspectRatio     : false,
-      datasetFill             : false
-    }
-
-    new Chart(barChartCanvas, {
-      type: 'bar',
-      data: barChartData,
-      options: barChartOptions
-    })
-
-    //---------------------
-    //- STACKED BAR CHART -
-    //---------------------
-    var stackedBarChartCanvas = $('#stackedBarChart').get(0).getContext('2d')
-    var stackedBarChartData = $.extend(true, {}, barChartData)
-
-    var stackedBarChartOptions = {
-      responsive              : true,
-      maintainAspectRatio     : false,
-      scales: {
-        xAxes: [{
-          stacked: true,
-        }],
-        yAxes: [{
-          stacked: true
-        }]
-      }
-    }
-
-    new Chart(stackedBarChartCanvas, {
-      type: 'bar',
-      data: stackedBarChartData,
-      options: stackedBarChartOptions
-    })
-  })
-</script>
-@endpush
+@include('beranda.koordinator.yudisium_modal')
 
 @endsection
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var options = {
+      chart: { type: 'bar', height: 350 },
+      series: [{
+        name: 'Jumlah Mahasiswa',
+        data: {!! json_encode(array_values($chartData)) !!}
+      }],
+      xaxis: {
+        categories: {!! json_encode(array_keys($chartData)) !!}
+      },
+      colors: ['#28a745', '#ffc107', '#dc3545', '#007bff']
+    };
+    var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
+    chart.render();
+
+    document.getElementById('perPage').addEventListener('change', function() {
+      var url = new URL(window.location.href);
+      url.searchParams.set('per_page', this.value);
+      window.location.href = url.toString();
+    });
+
+    document.querySelectorAll('.btn-yudisium').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var kategori = this.getAttribute('data-kategori');
+        var periode = "{{ request('periode') }}";
+        var kelas = "{{ request('kelas') }}";
+        document.getElementById('modalYudisiumType').innerText = kategori;
+
+        fetch(`/koordinator/yudisium-list?kategori=${kategori}&periode=${periode}&kelas=${kelas}`)
+          .then(response => response.json())
+          .then(data => {
+            var tbody = document.getElementById('modalYudisiumTableBody');
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="2" class="text-center">Tidak ada data</td></tr>';
+            } else {
+              data.forEach(function(item) {
+                var row = `<tr><td>${item.nama_kota}</td><td>${item.judul}</td></tr>`;
+                tbody.innerHTML += row;
+              });
+            }
+            $('#modalYudisiumList').modal('show');
+          });
+      });
+    });
+  });
+</script>
+
+
