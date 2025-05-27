@@ -84,7 +84,7 @@
             <th>Seminar 3</th>
             <th>Sidang</th>
             <th>Status</th>
-            <th>Aksi</th>
+            <th>Artefak</th>
           </tr>
         </thead>
         <tbody>
@@ -152,11 +152,9 @@
                 @endif
               </td>
               <td>
-                <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-sm btn-info" title="Lihat Artefak">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                </div>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                  Lihat Detail
+                </a> 
               </td>
             </tr>
           @empty

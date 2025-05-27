@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\Kota;
 
 class YudisiumModel extends Model
 {
@@ -77,32 +78,49 @@ class YudisiumModel extends Model
         return $query->get();
     }
 
-    public function getDistribusiYudisiumByKelas($periode = null, $kelasList = [])
+    public function getDistribusiYudisiumD3($periode = null, $kelas = null, $kotaIds = null)
     {
-        $query = DB::table('tbl_kota as k')
-            ->join('tbl_kota_has_tahapan_progres as ktp', 'k.id_kota', '=', 'ktp.id_kota')
-            ->join('tbl_kota_has_tahapan_progres as mtp', 'ktp.id_master_tahapan_progres', '=', 'mtp.id_master_tahapan_progres')
-            ->where('ktp.status', 'selesai')
-            ->where('mtp.nama_progres', 'Sidang');
-        
-        if (!empty($kelasList)) {
-            $query->whereIn('k.kelas', $kelasList);
-        }
+
+        $query = DB::table($this->table)
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->select('tbl_yudisium.kategori_yudisium', DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('tbl_yudisium.kategori_yudisium');
         
         if ($periode) {
-            $query->where('k.periode', $periode);
+            $query->where('tbl_kota.periode', $periode);
         }
         
-        return $query->select(
-                DB::raw('CASE 
-                    WHEN ktp.nilai_angka >= 3.51 THEN 1
-                    WHEN ktp.nilai_angka >= 2.76 AND ktp.nilai_angka <= 3.50 THEN 2
-                    WHEN ktp.nilai_angka <= 2.75 THEN 3
-                    ELSE 0
-                END as kategori_yudisium'),
-                DB::raw('COUNT(*) as jumlah')
-            )
-            ->groupBy('kategori_yudisium')
-            ->get();
+        if ($kelas) {
+            $query->where('tbl_kota.kelas', $kelas);
+        }
+
+        if ($kotaIds) {
+            $query->whereIn('tbl_kota.id_kota', $kotaIds);
+        }
+            
+        return $query->get();
+    }
+
+    public function getDistribusiYudisiumD4($periode = null, $kelas = null, $kotaIds = null)
+    {
+
+        $query = DB::table($this->table)
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->select('tbl_yudisium.kategori_yudisium', DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('tbl_yudisium.kategori_yudisium');
+        
+        if ($periode) {
+            $query->where('tbl_kota.periode', $periode);
+        }
+        
+        if ($kelas) {
+            $query->where('tbl_kota.kelas', $kelas);
+        }
+
+        if ($kotaIds) {
+            $query->whereIn('tbl_kota.id_kota', $kotaIds);
+        }
+            
+        return $query->get();
     }
 }
