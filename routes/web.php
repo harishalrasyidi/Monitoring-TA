@@ -130,3 +130,6 @@ Route::delete('/yudisium/{id}', [App\Http\Controllers\YudisiumController::class,
 Route::get('/yudisium/export/excel', [App\Http\Controllers\YudisiumController::class, 'export'])->middleware(['auth', 'role:1,4,5'])->name('yudisium.export');
 Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 'status'])->middleware(['auth', 'role:2,3'])->name('yudisium.status');
 Route::get('/koordinator/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
+
+// History
+Route::get('/history', [App\Http\Controllers\HistoryController::class,'index'])->middleware(['auth', 'role:2'])->name('history.index');
