@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 
-class TblKotaHasArtefakSeeder extends Seeder
+class KotaHasArtefakSeeder extends Seeder
 {
     public function run()
     {

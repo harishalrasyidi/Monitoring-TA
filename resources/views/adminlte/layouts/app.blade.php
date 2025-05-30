@@ -191,6 +191,17 @@
               </a>
             </li>
             @endif
+            @if (auth()->user()->role == "2")
+            <li class="nav-item">
+              <a href="{{ route('history.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-history"></i>
+                <p>
+                  History
+                  <!-- <span class="right badge badge-danger">New</span> -->
+                </p>
+              </a>
+            </li>
+            @endif
             @if (auth()->user()->role== "1")
             <li class="nav-item">
               <a href="{{ route('kota') }}" class="nav-link">
