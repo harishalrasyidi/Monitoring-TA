@@ -190,6 +190,15 @@
                 </p>
               </a>
             </li>
+            <!-- Katalog TA Menu Item -->
+            <li class="nav-item">
+              <a href="{{ route('katalog') }}" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>
+                  Katalog
+                </p>
+              </a>
+            </li>
             @endif
             @if (auth()->user()->role == "2")
             <li class="nav-item">

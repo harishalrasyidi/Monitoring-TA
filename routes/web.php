@@ -77,7 +77,7 @@ Route::post('/kegiatan/store', [App\Http\Controllers\JadwalKegiatanController::c
 Route::put('/kegiatan/update/{id}', [App\Http\Controllers\JadwalKegiatanController::class, 'update'])->middleware(['auth', 'role:2,3'])->name('kegiatan.update');
 
 
-Route::get('/kegiatans', [App\Http\Controllers\KegiatanController::class, 'index'])->middleware(['auth', 'role:2,3'])->name('kegiatans.index');
+// Route::get('/kegiatans', [App\Http\Controllers\KegiatanController::class, 'index'])->middleware(['auth', 'role:2,3'])->name('kegiatans.index');
 
 
 
@@ -132,4 +132,21 @@ Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 
 Route::get('/koordinator/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
 
 // History
-Route::get('/history', [App\Http\Controllers\HistoryController::class,'index'])->middleware(['auth', 'role:2'])->name('history.index');
+Route::get('/history', [App\Http\Controllers\HistoryController::class, 'index'])->middleware(['auth', 'role:2'])->name('history.index');
+
+//Katalog TA Routes
+Route::middleware(['auth'])->group(function () {
+    // Request form untuk mengakses informasi kota/TA
+    Route::get('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'showRequestForm'])
+        ->name('katalog.request-form');
+
+    // Send request untuk mengakses informasi kota/TA
+    Route::post('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'sendRequest'])
+        ->name('katalog.send-request');
+});
+
+Route::get('/laporan-ta', [App\Http\Controllers\DetailKatalogController::class, 'index'])->name('laporan.index');
+Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogController::class, 'show'])->name('laporan.show');
+// Route khusus untuk teks submission
+Route::put('/submissions/teks/{artefak_id}', [App\Http\Controllers\SubmissionController::class, 'updateTeks'])->name('submissions.updateTeks');
+Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
