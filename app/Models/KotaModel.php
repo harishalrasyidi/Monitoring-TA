@@ -16,8 +16,12 @@ class KotaModel extends Model
     protected $fillable = [
         'nama_kota',
         'judul',
-        'kelas', 
-        'periode', 
+        'abstrak',
+        'kelas',
+        'periode',
+        'prodi',
+        'kategori',
+        'metodologi'
     ];
 
     public function users()
@@ -71,4 +75,21 @@ class KotaModel extends Model
     // {
     //     return $this->hasMany(KotaHasResumeBimbinganModel::class, 'id_kota', 'id_kota');
     // }
+
+    public function dosen()
+    {
+        return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+                    ->where('role', 2);
+    }
+
+    public function mahasiswa()
+    {
+        return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+                    ->where('role', 3);
+    }
+    
+    public function artefak()
+    {
+        return $this->hasMany(KotaHasArtefakModel::class, 'id_kota', 'id_kota');
+    }
 }

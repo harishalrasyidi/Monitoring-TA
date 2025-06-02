@@ -1,6 +1,7 @@
 @extends('adminlte.layouts.app')
 
 @section('content')
+
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -33,7 +34,12 @@
                 </div>
                 <div class="form-group">
                     <label for="kategori_artefak">Kategori Artefak</label>
-                    <input type="text" class="form-control" id="kategori_artefak" name="kategori_artefak" value="{{ old('kategori_artefak', $artefak->kategori_artefak) }}" required>
+                    <select name="kategori_artefak" id="kategori_artefak" class="form-control" required>
+                        <option value="" disabled>Pilih Kategori Artefak</option>
+                        <option value="FTA" {{ old('kategori_artefak', $artefak->kategori_artefak) == 'FTA' ? 'selected' : '' }}>FTA</option>
+                        <option value="Dokumen" {{ old('kategori_artefak', $artefak->kategori_artefak) == 'Dokumen' ? 'selected' : '' }}>Dokumen</option>
+                        <option value="Abstrak TA" {{ old('kategori_artefak', $artefak->kategori_artefak) == 'Abstrak TA' ? 'selected' : '' }}>Abstrak TA</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="tenggat_waktu">Tenggat Waktu</label>

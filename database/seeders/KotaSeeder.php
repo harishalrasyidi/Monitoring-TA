@@ -28,6 +28,19 @@ class KotaSeeder extends Seeder
             'PENGEMBANGAN SISTEM INFORMASI AKADEMIK BERBASIS WEB'
         ];
 
+        $metodologiList = [
+            'Metode penelitian kuantitatif dengan pendekatan studi kasus',
+            'Metode penelitian kualitatif dengan analisis deskriptif',
+            'Metode penelitian dan pengembangan (Research and Development)',
+            'Metode eksperimen dengan pendekatan komparatif',
+            'Metode survei dengan analisis statistik deskriptif',
+            'Metode penelitian tindakan (Action Research)',
+            'Metode penelitian campuran (Mixed Methods)',
+            'Metode penelitian berbasis proyek (Project-Based Research)',
+            'Metode penelitian etnografis',
+            'Metode penelitian korelasional'
+        ];
+
         $classes = [
             '1' => 101, //Angka 1 mewakili kelas D3-A
             '2' => 201, //Angka 2 mewakili kelas D3-B
@@ -42,6 +55,9 @@ class KotaSeeder extends Seeder
                     'judul' => $judulList[$i % count($judulList)],
                     'kelas' => $class,
                     'periode' => 2024,
+                    'kategori' => $i % 2 + 1, // Bergantian antara 1 (Riset) dan 2 (Develop)
+                    'prodi' => $class <= 2 ? 1 : 2, // D3 atau D4
+                    'metodologi' => $i % 2 == 1 ? $metodologiList[$i % count($metodologiList)] : null
                 ]);
 
                 // Pastikan kota sudah dibuat
@@ -81,6 +97,6 @@ class KotaSeeder extends Seeder
                 }
             }
         }
-        
+
     }
 }
