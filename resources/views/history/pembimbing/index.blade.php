@@ -19,10 +19,10 @@
                                 Kelas
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 1]) }}" class="dropdown-item">D3-A</a></li>
-                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 2]) }}" class="dropdown-item">D3-B</a></li>
-                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 3]) }}" class="dropdown-item">D4-A</a></li>
-                                <li><a href="{{ route('home', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 4]) }}" class="dropdown-item">D4-B</a></li>
+                                <li><a href="{{ route('history.index', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 1]) }}" class="dropdown-item">D3-A</a></li>
+                                <li><a href="{{ route('history.index', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 2]) }}" class="dropdown-item">D3-B</a></li>
+                                <li><a href="{{ route('history.index', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 3]) }}" class="dropdown-item">D4-A</a></li>
+                                <li><a href="{{ route('history.index', ['sort' => 'kelas', 'direction' => 'asc', 'value' => 4]) }}" class="dropdown-item">D4-B</a></li>
                             </ul>
                         </div>
                     </div>
@@ -33,10 +33,14 @@
                                 Tahapan TA
                             </button>
                             <ul class="dropdown-menu dropdown-menu-lg">
-                                <li><a href="#" class="dropdown-item">Seminar 1</a></li>
-                                <li><a href="#" class="dropdown-item">Seminar 2</a></li>
-                                <li><a href="#" class="dropdown-item">Seminar 3</a></li>
-                                <li><a href="#" class="dropdown-item">Sidang</a></li>
+                                @foreach($tahapanProgres as $tahapan)
+                                    <li>
+                                        <a href="{{ route('history.index', ['sort' => 'id_master_tahapan_progres', 'direction' => 'asc', 'value' => $tahapan->id]) }}" 
+                                           class="dropdown-item {{ request('sort') == 'id_master_tahapan_progres' && request('value') == $tahapan->id ? 'active' : '' }}">
+                                            {{ $tahapan->nama_progres }}
+                                        </a>
+                                    </li>
+                                @endforeach
                             </ul>
                         </div>
                     </div>
@@ -48,7 +52,7 @@
                             </button>
                             <ul class="dropdown-menu">
                                 @foreach($availableYears as $year)
-                                    <li><a href="{{ route('home', ['sort' => 'periode', 'direction' => 'asc', 'value' => $year]) }}" class="dropdown-item">{{ $year }}</a></li>
+                                    <li><a href="{{ route('history.index', ['sort' => 'periode', 'direction' => 'asc', 'value' => $year]) }}" class="dropdown-item">{{ $year }}</a></li>
                                 @endforeach
                             </ul>
                         </div>
@@ -67,7 +71,7 @@
 <!-- DataTables Example -->
 <div class="card shadow mb-4">
 <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Di Bimbing</h6>
+        <h4 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Di Bimbing</h4>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -109,7 +113,7 @@
 <!-- Tabel KoTA yang Diuji -->
 <div class="card shadow mb-4">
     <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Diuji</h6>
+        <h4 class="m-0 font-weight-bold text-primary">Daftar KoTA yang Diuji</h4>
     </div>
     <div class="card-body">
         <div class="table-responsive">
