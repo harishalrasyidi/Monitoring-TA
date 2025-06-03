@@ -33,90 +33,90 @@ class YudisiumController extends Controller
      */
     public function index(Request $request)
     {
-        // Cek apakah user memiliki hak akses (koordinator TA atau kaprodi)
-        $user = Auth::user();
-        if (!in_array($user->role, [1, 4, 5])) { // 1=Koordinator, 4=Kaprodi D3, 5=Kaprodi D4
-            return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini');
-        }
+    // Cek apakah user memiliki hak akses (koordinator TA atau kaprodi)
+    $user = Auth::user();
+    if (!in_array($user->role, [1, 4, 5])) { // 1=Koordinator, 4=Kaprodi D3, 5=Kaprodi D4
+        return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini');
+    }
 
-        // Filter parameter
-        $periode = $request->get('periode', Carbon::now()->year);
-        $kelas = $request->get('kelas', null);
-        $kategori = $request->get('kategori', null);
-        $status = $request->get('status', null);
+    // Filter parameter
+    $periode = $request->get('periode');
+    $kelas = $request->get('kelas');
+    $kategori = $request->get('kategori');
+    $status = $request->get('status');
 
-        // Query data yudisium
-        $query = DB::table('tbl_yudisium')
-            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
-            ->leftJoin('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
-            ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
-            ->select(
-                'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota',
-                'tbl_yudisium.kategori_yudisium',
-                'tbl_yudisium.tanggal_yudisium',
-                'tbl_yudisium.nilai_akhir',
-                'tbl_yudisium.status',
-                'tbl_yudisium.keterangan',
-                'tbl_yudisium.created_at',
-                'tbl_yudisium.updated_at',
-                'tbl_kota.nama_kota',
-                'tbl_kota.judul',
-                'tbl_kota.kelas',
-                'tbl_kota.periode',
-                DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN users.role = 3 THEN users.name ELSE NULL END) as mahasiswa'),
-                DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN users.role = 2 THEN users.name ELSE NULL END) as dosen')
-            )
-            ->groupBy(
-                'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota',
-                'tbl_yudisium.kategori_yudisium',
-                'tbl_yudisium.tanggal_yudisium',
-                'tbl_yudisium.nilai_akhir',
-                'tbl_yudisium.status',
-                'tbl_yudisium.keterangan',
-                'tbl_yudisium.created_at',
-                'tbl_yudisium.updated_at',
-                'tbl_kota.nama_kota',
-                'tbl_kota.judul',
-                'tbl_kota.kelas',
-                'tbl_kota.periode'
-            );
+    // Query data yudisium
+    $query = DB::table('tbl_yudisium')
+        ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+        ->leftJoin('tbl_kota_has_user', 'tbl_kota.id_kota', '=', 'tbl_kota_has_user.id_kota')
+        ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
+        ->select(
+            'tbl_yudisium.id_yudisium',
+            'tbl_kota.nama_kota as kota_nama_kota',
+            'tbl_yudisium.kategori_yudisium',
+            'tbl_yudisium.tanggal_yudisium',
+            'tbl_yudisium.nilai_akhir',
+            'tbl_yudisium.status',
+            'tbl_yudisium.keterangan',
+            'tbl_yudisium.created_at',
+            'tbl_yudisium.updated_at',
+            'tbl_yudisium.id_kota as yudisium_id_kota',
+            'tbl_kota.judul',
+            'tbl_kota.kelas',
+            'tbl_kota.periode',
+            DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN users.role = 3 THEN users.name ELSE NULL END) as mahasiswa'),
+            DB::raw('GROUP_CONCAT(DISTINCT CASE WHEN users.role = 2 THEN users.name ELSE NULL END) as dosen')
+        )
+        ->groupBy(
+            'tbl_yudisium.id_yudisium',
+            'kota_nama_kota',
+            'tbl_yudisium.kategori_yudisium',
+            'tbl_yudisium.tanggal_yudisium',
+            'tbl_yudisium.nilai_akhir',
+            'tbl_yudisium.status',
+            'tbl_yudisium.keterangan',
+            'tbl_yudisium.created_at',
+            'tbl_yudisium.updated_at',
+            'yudisium_id_kota',
+            'tbl_kota.judul',
+            'tbl_kota.kelas',
+            'tbl_kota.periode'
+        );
 
-        // Terapkan filter
-        if ($periode) {
-            $query->where('tbl_kota.periode', $periode);
-        }
-        if ($kelas) {
-            $query->where('tbl_kota.kelas', $kelas);
-        }
-        if ($kategori) {
-            $query->where('tbl_yudisium.kategori_yudisium', $kategori);
-        }
-        if ($status) {
-            $query->where('tbl_yudisium.status', $status);
-        }
+    // Terapkan filter hanya jika ada parameter
+    if ($periode) {
+        $query->where('tbl_kota.periode', $periode);
+    }
+    if ($kelas) {
+        $query->where('tbl_kota.kelas', $kelas);
+    }
+    if ($kategori) {
+        $query->where('tbl_yudisium.kategori_yudisium', $kategori);
+    }
+    if ($status) {
+        $query->where('tbl_yudisium.status', $status);
+    }
 
-        // Jalankan query
-        $yudisium = $query->paginate(10);
+    // Jalankan query
+    $yudisium = $query->paginate(10);
 
-        // Data untuk filter dropdown
-        $periodeList = DB::table('tbl_kota')->distinct()->pluck('periode');
-        $kelasList = DB::table('tbl_kota')->distinct()->pluck('kelas');
+    // Data untuk filter dropdown
+    $periodeList = DB::table('tbl_kota')->distinct()->pluck('periode');
+    $kelasList = DB::table('tbl_kota')->distinct()->pluck('kelas');
 
-        // Data untuk chart distribusi
-        $distribusi = DB::table('tbl_yudisium')
-            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
-            ->select('tbl_yudisium.kategori_yudisium', DB::raw('COUNT(*) as jumlah'))
-            ->where('tbl_kota.periode', $periode)
-            ->when($kelas, function ($query, $kelas) {
-                return $query->where('tbl_kota.kelas', $kelas);
-            })
-            ->groupBy('tbl_yudisium.kategori_yudisium')
-            ->get();
+    // Data untuk chart distribusi (di-comment karena nggak dibutuhin di kelola)
+    // $distribusi = DB::table('tbl_yudisium')
+    //     ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+    //     ->select('tbl_yudisium.kategori_yudisium', DB::raw('COUNT(*) as jumlah'))
+    //     ->where('tbl_kota.periode', $periode)
+    //     ->when($kelas, function ($query, $kelas) {
+    //         return $query->where('tbl_kota.kelas', $kelas);
+    //     })
+    //     ->groupBy('tbl_yudisium.kategori_yudisium')
+    //     ->get();
 
-        // Mengembalikan view dengan data
-        return view('yudisium.index', compact('yudisium', 'periodeList', 'kelasList', 'distribusi', 'periode', 'kelas', 'kategori', 'status'));
+    // Mengembalikan view dengan data
+    return view('yudisium.kelola', compact('yudisium', 'periodeList', 'kelasList', 'periode', 'kelas', 'kategori', 'status'));
     }
 
     /**
@@ -184,7 +184,7 @@ class YudisiumController extends Controller
             'keterangan' => 'Penambahan data yudisium baru',
         ]);
 
-        return redirect()->route('yudisium.index')->with('success', 'Data yudisium berhasil ditambahkan');
+        return redirect()->route('yudisium.kelola')->with('success', 'Data yudisium berhasil ditambahkan');
     }
 
     /**
@@ -208,7 +208,7 @@ class YudisiumController extends Controller
             ->leftJoin('users', 'tbl_kota_has_user.id_user', '=', 'users.id')
             ->select(
                 'tbl_yudisium.id_yudisium',
-                'tbl_yudisium.id_kota',
+                'tbl_yudisium.id_kota as yudisium_id_kota',
                 'tbl_yudisium.kategori_yudisium',
                 'tbl_yudisium.tanggal_yudisium',
                 'tbl_yudisium.nilai_akhir',
@@ -242,10 +242,10 @@ class YudisiumController extends Controller
             ->first();
 
         if (!$yudisium) {
-            return redirect()->route('yudisium.index')->with('error', 'Data yudisium tidak ditemukan');
+            return redirect()->route('yudisium.kelola')->with('error', 'Data yudisium tidak ditemukan');
         }
 
-        // Ambil log perubahan
+        // Log
         $logs = DB::table('tbl_yudisium_log')
             ->join('users', 'tbl_yudisium_log.id_user', '=', 'users.id')
             ->where('tbl_yudisium_log.id_yudisium', $id)
@@ -253,7 +253,6 @@ class YudisiumController extends Controller
             ->orderBy('tbl_yudisium_log.waktu_perubahan', 'desc')
             ->get();
 
-        // Periksa apakah user adalah mahasiswa yang terkait dengan KoTA ini
         $isRelatedMahasiswa = false;
         if ($user->role == 3) {
             $isRelatedMahasiswa = DB::table('tbl_kota_has_user')
@@ -266,7 +265,6 @@ class YudisiumController extends Controller
             }
         }
 
-        // Periksa apakah user adalah dosen pembimbing yang terkait dengan KoTA ini
         $isRelatedDosen = false;
         if ($user->role == 2) {
             $isRelatedDosen = DB::table('tbl_kota_has_user')
@@ -279,7 +277,8 @@ class YudisiumController extends Controller
             }
         }
 
-        return view('yudisium.show', compact('yudisium', 'logs'));
+        // return view('yudisium.show', compact('yudisium', 'logs'));
+        return view('yudisium.detail', compact('yudisium', 'logs'));
     }
 
     /**
@@ -343,7 +342,7 @@ class YudisiumController extends Controller
             'keterangan' => 'Pembaruan data yudisium',
         ]);
 
-        return redirect()->route('yudisium.index')->with('success', 'Data yudisium berhasil diperbarui');
+        return redirect()->route('yudisium.kelola')->with('success', 'Data yudisium berhasil diperbarui');
     }
 
     /**
@@ -372,7 +371,7 @@ class YudisiumController extends Controller
             ->where('id_kota', $idKota)
             ->update(['status_yudisium' => null]);
 
-        return redirect()->route('yudisium.index')->with('success', 'Data yudisium berhasil dihapus');
+        return redirect()->route('yudisium.kelola')->with('success', 'Data yudisium berhasil dihapus');
     }
 
     /**
@@ -566,4 +565,83 @@ class YudisiumController extends Controller
             return redirect()->route('home')->with('error', 'Anda tidak memiliki akses ke halaman ini');
         }
     }
+
+    /**
+ * Generate yudisium categories automatically.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\Response
+ */
+// public function generate(Request $request) {
+//     // Cek akses
+//     $user = Auth::user();
+//     if (!in_array($user->role, [1, 4, 5])) {
+//         return redirect()->route('home')->with('error', 'Anda tidak memiliki akses untuk melakukan generate yudisium');
+//     }
+
+//     // Validasi input
+//     $request->validate([
+//         'periode_generate' => 'required'
+//     ]);
+
+//     $periode = $request->periode_generate;
+
+//     // Ambil semua KoTA yang belum memiliki yudisium pada periode ini
+//     $kotaList = DB::table('tbl_kota')
+//         ->leftJoin('tbl_yudisium', 'tbl_kota.id_kota', '=', 'tbl_yudisium.id_kota')
+//         ->where('tbl_kota.periode', $periode)
+//         ->whereNull('tbl_yudisium.id_yudisium')
+//         ->select('tbl_kota.*')
+//         ->get();
+
+//     // Kriteria yudisium (contoh, sesuaikan dengan kebijakan resmi)
+//     $batasYudisium = Carbon::parse('2025-05-30'); // Contoh tenggat yudisium
+//     $tanggalSekarang = Carbon::now();
+
+//     foreach ($kotaList as $kota) {
+//         // Simulasi nilai akhir (ganti dengan data sebenarnya jika ada)
+//         $nilaiAkhir = rand(60, 100); // Contoh nilai acak, ganti dengan data dari tabel lain jika ada
+//         $tanggalYudisium = $tanggalSekarang;
+
+//         // Tentukan kategori
+//         if ($nilaiAkhir >= 85 && $tanggalYudisium->lte($batasYudisium)) {
+//             $kategoriYudisium = 1; // Yudisium 1
+//         } elseif ($nilaiAkhir >= 75 && $tanggalYudisium->lte($batasYudisium->copy()->addDays(14))) {
+//             $kategoriYudisium = 2; // Yudisium 2
+//         } else {
+//             $kategoriYudisium = 3; // Yudisium 3
+//         }
+
+//         // Simpan data yudisium
+//         $yudisium = YudisiumModel::create([
+//             'id_kota' => $kota->id_kota,
+//             'kategori_yudisium' => $kategoriYudisium,
+//             'tanggal_yudisium' => $tanggalYudisium,
+//             'nilai_akhir' => $nilaiAkhir,
+//             'status' => 'pending',
+//             'keterangan' => 'Generated automatically',
+//         ]);
+
+//         // Update status_yudisium di tabel kota
+//         DB::table('tbl_kota')
+//             ->where('id_kota', $kota->id_kota)
+//             ->update(['status_yudisium' => 'pending']);
+
+//         // Buat log
+//         YudisiumLogModel::create([
+//             'id_yudisium' => $yudisium->id_yudisium,
+//             'id_user' => Auth::id(),
+//             'jenis_perubahan' => 'Generate Otomatis',
+//             'nilai_lama' => null,
+//             'nilai_baru' => json_encode([
+//                 'kategori_yudisium' => $kategoriYudisium,
+//                 'nilai_akhir' => $nilaiAkhir,
+//                 'tanggal_yudisium' => $tanggalYudisium->toDateString(),
+//             ]),
+//             'keterangan' => 'Generate kategori yudisium otomatis',
+//         ]);
+//     }
+
+//     return redirect()->route('yudisium.kelola')->with('success', 'Kategori yudisium berhasil di-generate.');
+//     }
 }

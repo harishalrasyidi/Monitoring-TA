@@ -12,7 +12,7 @@
         </div><!-- /.col -->
         <div class="col d-flex justify-content-end">
           <div class="btn-group mr-2">
-            <a href="{{ route('yudisium.index') }}" class="btn btn-secondary">Kembali ke Daftar</a>
+            <a href="{{ route('yudisium.kelola') }}" class="btn btn-secondary">Kembali ke Daftar</a>
           </div>
         </div><!-- /.col -->
       </div><!-- /.row -->
