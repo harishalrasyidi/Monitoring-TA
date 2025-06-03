@@ -73,16 +73,14 @@
                                 <p class="text-muted">{{ $laporan['kata_kunci'] }}</p>
                                 @endif
                                 {{-- Kondisi untuk download berdasarkan role --}}
-                                @if($laporan['file_path'])
-                                <hr>
-                                    @if(auth()->user()->role != 3)
-                                        <a href="{{ Storage::url($laporan['file_path']) }}" download class="btn btn-success btn-block">
-                                            <i class="fas fa-download"></i> Unduh Lembar Pengesahan
+                                @if(!empty($laporan['pengesahan_path']))
+                                    <hr>
+                                    @if(auth()->check() && (auth()->user()->role != 3))
+                                        <a href="{{ route('download.pengesahan', basename($laporan['pengesahan_path'])) }}" class="btn btn-success btn-block">
+                                            <i class="fas fa-download"></i> Lihat Lembar Pengesahan
                                         </a>
+
                                     @endif
-
-
-
                                 @endif
 
                                 <hr>
