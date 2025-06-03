@@ -16,8 +16,12 @@ class KotaModel extends Model
     protected $fillable = [
         'nama_kota',
         'judul',
-        'kelas', 
-        'periode', 
+        'abstrak',
+        'kelas',
+        'periode',
+        'prodi',
+        'kategori',
+        'metodologi'
     ];
 
     public function users()
@@ -40,5 +44,52 @@ class KotaModel extends Model
     public function yudisium()
     {
         return $this->hasOne(YudisiumModel::class, 'id_kota', 'id_kota');
+    }
+
+    public function resumeBimbingan()
+{
+    return $this->hasMany(KotaHasResumeBimbinganModel::class, 'id_kota');
+}
+
+
+    // Tambahan 
+    // public function users()
+    // {
+    //     return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+    //                 ->withPivot('role')
+    //                 ->wherePivot('role', 3); // Opsional, filter role mahasiswa
+    // }
+
+    // public function dosens()
+    // {
+    //     return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+    //         ->where('role', 1); // Dosen
+    // }
+
+    // public function tahapanProgress()
+    // {
+    //     return $this->hasMany(TahapanProgress::class, 'id_kota', 'id_kota');
+    // }
+
+    // public function resumeBimbingan()
+    // {
+    //     return $this->hasMany(KotaHasResumeBimbinganModel::class, 'id_kota', 'id_kota');
+    // }
+
+    public function dosen()
+    {
+        return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+                    ->where('role', 2);
+    }
+
+    public function mahasiswa()
+    {
+        return $this->belongsToMany(User::class, 'tbl_kota_has_user', 'id_kota', 'id_user')
+                    ->where('role', 3);
+    }
+    
+    public function artefak()
+    {
+        return $this->hasMany(KotaHasArtefakModel::class, 'id_kota', 'id_kota');
     }
 }

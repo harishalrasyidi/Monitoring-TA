@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Monitoring Tugas Akhir</title>
-  
+
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome Icons -->
@@ -20,11 +20,12 @@
   <!-- FullCalendar -->
   <link rel="stylesheet" href="{{ asset('assets/plugins/fullcalendar/main.css') }}">
   <!-- AdminLTE -->
-  <script src="{{ asset('assets/dist/css/adminlte.min.js') }}"></script>
   <!-- Manual CSS -->
-  <link rel="stylesheet" href="/resources/css/app.css">
+  {{-- <link rel="stylesheet" href="/resources/css/app.css"> --}}
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ asset('assets/dist/css/adminlte.min.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css">
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- Tempusdominus Bootstrap 4 -->
@@ -39,7 +40,9 @@
   <link rel="stylesheet" href="{{ asset('assets/AdminLTE-3.2.0/plugins/daterangepicker/daterangepicker.css') }}">
   <!-- summernote -->
   <link rel="stylesheet" href="{{ asset('assets/AdminLTE-3.2.0/plugins/summernote/summernote-bs4.min.css') }}">
-
+{{-- apexchart --}}
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  
 </head>
 <body class="hold-transition sidebar-mini">
   <div class="wrapper">
@@ -132,7 +135,11 @@
               <img src="{{ asset('assets/dist/img/user.jpg') }}" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
-              <a href="#" class="d-block">{{ auth()->user()->name }}</a>
+              @if(auth()->check())
+                  <a href="#" class="d-block">{{ auth()->user()->name }}</a>
+              @else
+                  <a href="#" class="d-block">Guest</a>
+              @endif
             </div>
           </div>
           <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
@@ -151,7 +158,7 @@
             </li>
           </ul>
         </li>
-        
+
         <li class="nav-item">
           <a class="nav-link" data-widget="fullscreen" data-slide="true" href="#" role="button">
             <i class="fas fa-expand-arrows-alt"></i>
@@ -179,6 +186,26 @@
                 <i class="nav-icon fas fa-home"></i>
                 <p>
                   Beranda
+                  <!-- <span class="right badge badge-danger">New</span> -->
+                </p>
+              </a>
+            </li>
+            <!-- Katalog TA Menu Item -->
+            <li class="nav-item">
+              <a href="{{ route('katalog') }}" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>
+                  Katalog
+                </p>
+              </a>
+            </li>
+            @endif
+            @if (auth()->user()->role == "2")
+            <li class="nav-item">
+              <a href="{{ route('history.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-history"></i>
+                <p>
+                  History
                   <!-- <span class="right badge badge-danger">New</span> -->
                 </p>
               </a>
@@ -383,6 +410,8 @@
   <script src="{{ asset('assets/plugins/fullcalendar/main.js') }}"></script>
   <!-- AdminLTE -->
   <script src="{{ asset('assets/dist/js/adminlte.js') }}"></script>
+  <script src="{{ asset('assets/dist/js/adminlte.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
   <!-- Tempusdominus Bootstrap 4 -->
   <script src="{{ asset('assets/AdminLTE-3.2.0/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
   <!-- overlayScrollbars -->
@@ -407,6 +436,6 @@
           }
       });
   </script>
-
+@stack('scripts')
 </body>
 </html>

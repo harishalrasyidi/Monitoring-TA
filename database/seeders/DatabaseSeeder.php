@@ -23,15 +23,16 @@ class DatabaseSeeder extends Seeder
             MasterArtefakSeeder::class,
             ArtefakSeeder::class,
             ResumeBimbinganSeeder::class,
-            KotaHasUserSeeder::class,
+            //KotaHasUserSeeder::class,
+            KotaHasArtefakSeeder::class,
             // JadwalKegiatanSeeder::class,
             TimelineSeeder::class,
             TimelineHasArtefakSeeder::class,
             MasterMetodologiSeeder::class,
             JadwalKesediaanPengujiSeeder::class,
+            KotaHasArtefakSeeder::class,
             YudisiumSeeder::class,
             YudisiumLogSeeder::class,
-
         ]);
     }
 }

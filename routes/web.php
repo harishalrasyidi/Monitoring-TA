@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
+// use App\Http\Controllers\Mahasiswa\DashboardController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,13 +23,16 @@ use Illuminate\Support\Facades\Route;
 
 
 //Home
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2,3,4,5'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
-
-
+Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
+Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('kota.artefak.detail');
+Route::middleware(['auth', 'role:5'])->group(function () {
+    Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getYudisiumListKaprodi'])->name('kaprodi.yudisium.list');
+});
 //Kota
-Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2'])->name('kota');
+Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
 Route::get('/kota/create', [App\Http\Controllers\KotaController::class, 'create'])->middleware(['auth', 'role:1,2'])->name('kota.create'); //menambahkan data
 Route::get('/kota/{id}', [App\Http\Controllers\KotaController::class, 'detail'])->middleware(['auth', 'role:1,2'])->name('kota.detail');
 Route::post('/kota/store', [App\Http\Controllers\KotaController::class, 'store'])->middleware(['auth', 'role:1,2'])->name('kota.store');
@@ -68,7 +75,8 @@ Route::delete('/delete-item', [App\Http\Controllers\JadwalKegiatanController::cl
 Route::get('/kegiatan/create', [App\Http\Controllers\JadwalKegiatanController::class, 'create'])->middleware(['auth', 'role:2,3'])->name('kegiatan.create');
 Route::post('/kegiatan/store', [App\Http\Controllers\JadwalKegiatanController::class, 'store'])->middleware(['auth', 'role:2,3'])->name('kegiatan.store');
 Route::put('/kegiatan/update/{id}', [App\Http\Controllers\JadwalKegiatanController::class, 'update'])->middleware(['auth', 'role:2,3'])->name('kegiatan.update');
-Route::get('/kegiatans', [App\Http\Controllers\JadwalKegiatanController::class, 'index'])->middleware(['auth', 'role:2,3'])->name('kegiatans.index');
+//nanti ubah kalau error
+// Route::get('/kegiatans', [App\Http\Controllers\KegiatanController::class, 'index'])->middleware(['auth', 'role:2,3'])->name('kegiatans.index');
 
 
 
@@ -123,3 +131,24 @@ Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 
 Route::get('/yudisium/kelola', [App\Http\Controllers\YudisiumController::class, 'index'])->name('yudisium.kelola');
 Route::get('/yudisium/detail/{id}', [App\Http\Controllers\YudisiumController::class, 'show'])->name('yudisium.detail');
 // Route::post('/yudisium/generate', [App\Http\Controllers\YudisiumController::class, 'generate'])->name('yudisium.generate');
+Route::get('/koordinator/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
+
+// History
+Route::get('/history', [App\Http\Controllers\HistoryController::class, 'index'])->middleware(['auth', 'role:2'])->name('history.index');
+
+//Katalog TA Routes
+Route::middleware(['auth'])->group(function () {
+    // Request form untuk mengakses informasi kota/TA
+    Route::get('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'showRequestForm'])
+        ->name('katalog.request-form');
+
+    // Send request untuk mengakses informasi kota/TA
+    Route::post('/laporan-ta/{id}/request', [App\Http\Controllers\KatalogController::class, 'sendRequest'])
+        ->name('katalog.send-request');
+});
+
+Route::get('/laporan-ta', [App\Http\Controllers\DetailKatalogController::class, 'index'])->name('laporan.index');
+Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogController::class, 'show'])->name('laporan.show');
+// Route khusus untuk teks submission
+Route::put('/submissions/teks/{artefak_id}', [App\Http\Controllers\SubmissionController::class, 'updateTeks'])->name('submissions.updateTeks');
+Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
