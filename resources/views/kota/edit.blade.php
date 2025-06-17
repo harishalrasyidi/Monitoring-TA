@@ -66,6 +66,25 @@
                                 </div>
                             </div>
 
+                            <div class="list-group-item p-3">
+                                <div class="row align-items-start">
+                                    <div class="col-md-2 mb-8pt mb-md-0">
+                                        <div class="media align-items-left">
+                                            <div class="d-flex flex-column media-body media-middle">
+                                                <span class="card-title" for="dosen">Dosen Penguji</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col mb-8pt mb-md-0">
+                                        <select multiple class="form-control" id="penguji" name="penguji[]" required>
+                                            @foreach($dosen as $d)
+                                                <option value="{{ $d->id }}" {{ in_array($d->id, $selectedPenguji) ? 'selected' : '' }}>{{ $d->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Mahasiswa -->
                             <div class="list-group-item p-3">
                                 <div class="row align-items-start">

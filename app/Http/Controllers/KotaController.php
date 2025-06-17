@@ -17,6 +17,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Illuminate\Support\Facades\Log;
 use App\Models\Kota;
+use App\Models\KotaHasPenguji;
 
 class KotaController extends Controller
 {
@@ -93,7 +94,7 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1|max:3',
             'dosen' => 'required|array|min:2|max:2',
-            'penguji' => 'required|array|min:1',
+            'penguji' => 'required|array|min:1|max:3',
             'kategori' => 'required|in:1,2',
             'prodi' => 'required|in:1,2',
             'metodologi' => $request->input('kategori') == 2 ? 'required|string' : 'nullable|string',
@@ -432,11 +433,14 @@ class KotaController extends Controller
         $dosen = User::where('role', 2)->get();
         $mahasiswa = User::where('role', 3)->get(); // Hanya mahasiswa dengan role 3
 
+        // Ambil penguji
+        $selectedPenguji = KotaHasPenguji::where('id_kota', $id)->get()->pluck('id_user')->toArray();
+
         // Lakukan pengecekan untuk opsi yang dipilih (selected)
         $selectedDosen = $kota->users()->where('role', 2)->pluck('users.id')->toArray();
         $selectedMahasiswa = $kota->users()->where('role', 3)->pluck('users.id')->toArray();
 
-        return view('kota.edit', compact('kota', 'dosen', 'mahasiswa', 'selectedDosen', 'selectedMahasiswa'));
+        return view('kota.edit', compact('kota', 'dosen', 'mahasiswa', 'selectedDosen', 'selectedMahasiswa', 'selectedPenguji'));
     }
 
 
@@ -472,6 +476,7 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1',
             'dosen' => 'required|array|min:2',
+            'penguji' => 'required|array|min:1|max:3',
             'kategori' => 'required|in:1,2',
             'prodi' => 'required|in:1,2',
             'metodologi' => $request->input('kategori') == 2 ? 'required|string' : 'nullable|string',
@@ -538,6 +543,16 @@ class KotaController extends Controller
         // Mengambil data kota berdasarkan id
         $kota = KotaModel::findOrFail($id);
         $kota->update($request->only('nama_kota', 'judul', 'kelas', 'periode', 'kategori', 'prodi', 'metodologi'));
+
+        $penguji = KotaHasPenguji::where('id_kota', $id);
+        $penguji->delete();
+
+        foreach ($request->penguji as $penguji) {
+            DB::table('tbl_kota_has_penguji')->insert([
+                'id_kota' => $id,
+                'id_user' => $penguji
+            ]);
+        }
 
         $userIds = array_merge($request->dosen, $request->mahasiswa);
         $kota->users()->sync($userIds);
