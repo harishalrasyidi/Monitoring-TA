@@ -82,7 +82,13 @@
               </div>
               <div>
                 <div class="font-weight-bold">Yudisium 1</div>
-                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium1 }}</div>
+                <div class="text-muted small">
+                  <div><i class="fas fa-users"></i> Total: {{ $totalYudisium1 }}</div>
+                  @if($totalKota > 0)
+                    <span class="text-success mr-2">{{ number_format(($totalYudisium1 / $totalKota) * 100, 1) }}%</span>
+                  @endif
+                  <span class="text-info">{{ $totalYudisium1 }}/{{ $totalKota - ($totalYudisium1 + $totalYudisium2 + $totalYudisium3) }} KoTA</span>
+                </div>
               </div>
             </div>
             <div class="list-group-item d-flex align-items-center border-0">
@@ -91,7 +97,13 @@
               </div>
               <div>
                 <div class="font-weight-bold">Yudisium 2</div>
-                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium2 }}</div>
+                <div class="text-muted small">
+                  <div><i class="fas fa-users"></i> Total: {{ $totalYudisium2 }}</div>
+                  @if($totalKota > 0)
+                    <span class="text-success mr-2">{{ number_format(($totalYudisium2 / $totalKota) * 100, 1) }}%</span>
+                  @endif
+                  <span class="text-info">{{ $totalYudisium2 }}/{{ $totalKota - ($totalYudisium1 + $totalYudisium2 + $totalYudisium3) }} KoTA</span>
+                </div>
               </div>
             </div>
             <div class="list-group-item d-flex align-items-center border-0">
@@ -100,7 +112,13 @@
               </div>
               <div>
                 <div class="font-weight-bold">Yudisium 3</div>
-                <div class="text-muted small"><i class="fas fa-users"></i> Total: {{ $totalYudisium3 }}</div>
+                <div class="text-muted small">
+                  <div><i class="fas fa-users"></i> Total: {{ $totalYudisium3 }}</div>
+                  @if($totalKota > 0)
+                    <span class="text-success mr-2">{{ number_format(($totalYudisium3 / $totalKota) * 100, 1) }}%</span>
+                  @endif
+                  <span class="text-info">{{ $totalYudisium3 }}/{{ $totalKota - ($totalYudisium1 + $totalYudisium2 + $totalYudisium3) }} KoTA</span>
+                </div>
               </div>
             </div>
           </div>
