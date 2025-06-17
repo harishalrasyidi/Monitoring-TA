@@ -199,6 +199,8 @@
                                             </option>
                                             <option value="2" {{ old('kelas', $kota->kelas) == 2 ? 'selected' : '' }}>D3-B
                                             </option>
+                                            <option value="5" {{ old('kelas', $kota->kelas) == 5 ? 'selected' : '' }}>D3-C
+                                            </option>
                                             <option value="3" {{ old('kelas', $kota->kelas) == 3 ? 'selected' : '' }}>D4-A
                                             </option>
                                             <option value="4" {{ old('kelas', $kota->kelas) == 4 ? 'selected' : '' }}>D4-B
