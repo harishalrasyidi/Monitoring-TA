@@ -55,32 +55,33 @@
                             <!-- Tambah Mahasiswa dan Dosen Pembimbing -->
                             <div class="row">
                                 @for ($i = 0; $i < 3; $i++)
-                                <div class="col-md-4">
-                                    <div class="list-group-item p-3">
-                                        <div class="row align-items-start">
-                                            <div class="col-md-4 mb-8pt mb-md-0">
-                                                <div class="media align-items-left">
-                                                    <div class="d-flex flex-column media-body media-middle">
-                                                        <span class="card-title">Mahasiswa {{ $i + 1 }}</span>
+                                    <div class="col-md-4">
+                                        <div class="list-group-item p-3">
+                                            <div class="row align-items-start">
+                                                <div class="col-md-4 mb-8pt mb-md-0">
+                                                    <div class="media align-items-left">
+                                                        <div class="d-flex flex-column media-body media-middle">
+                                                            <span class="card-title">Mahasiswa {{ $i + 1 }}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col">
-                                                <select class="form-control" name="mahasiswa[]" required>
-                                                    <option value="title" disabled {{ old('mahasiswa.' . $i) === null ? 'selected' : '' }}>Pilih Mahasiswa</option>
-                                                    @if($i > 0)
-                                                        <option value="" {{ old('mahasiswa.' . $i) === '' ? 'selected' : '' }}>Kosong</option>
-                                                    @endif
-                                                    @foreach($mahasiswa as $m)
-                                                        <option value="{{ $m->nomor_induk }}" {{ old('mahasiswa.' . $i) == $m->nomor_induk ? 'selected' : '' }}>
-                                                            {{ $m->nomor_induk }} - {{ $m->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                                <div class="col">
+                                                    <select class="form-control" name="mahasiswa[]" required>
+                                                        <option value="title" disabled {{ old('mahasiswa.' . $i) === null ? 'selected' : '' }}>Pilih Mahasiswa</option>
+                                                        @if($i > 0)
+                                                            <option value="" {{ old('mahasiswa.' . $i) === '' ? 'selected' : '' }}>
+                                                                Kosong</option>
+                                                        @endif
+                                                        @foreach($mahasiswa as $m)
+                                                            <option value="{{ $m->nomor_induk }}" {{ old('mahasiswa.' . $i) == $m->nomor_induk ? 'selected' : '' }}>
+                                                                {{ $m->nomor_induk }} - {{ $m->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                                 @endfor
 
                                 <div class="col-md-6">
@@ -239,7 +240,7 @@
                                             <option value="" disabled selected>Pilih Kelas</option>
                                             <option value="1" {{ old('kelas') == 1 ? 'selected' : '' }}>D3-A</option>
                                             <option value="2" {{ old('kelas') == 2 ? 'selected' : '' }}>D3-B</option>
-                                            <option value="5" {{ old('kelas') == 5 ? 'selected' : '' }}>D3-C</option>
+                                            <!-- <option value="5" {{ old('kelas') == 5 ? 'selected' : '' }}>D3-C</option> -->
                                             <option value="3" {{ old('kelas') == 3 ? 'selected' : '' }}>D4-A</option>
                                             <option value="4" {{ old('kelas') == 4 ? 'selected' : '' }}>D4-B</option>
                                         </select>
@@ -250,19 +251,19 @@
 
                             <!-- TAHAPAN PROGRES -->
                             <!-- <div class="list-group-item p-3">
-                                                                                <div class="row align-items-start">
-                                                                                    <div class="col-md-2 mb-8pt mb-md-0">
-                                                                                        <div class="media align-items-left">
-                                                                                            <div class="d-flex flex-column media-body media-middle">
-                                                                                                <span class="card-title">Tahapan Progres</span>
+                                                                                    <div class="row align-items-start">
+                                                                                        <div class="col-md-2 mb-8pt mb-md-0">
+                                                                                            <div class="media align-items-left">
+                                                                                                <div class="d-flex flex-column media-body media-middle">
+                                                                                                    <span class="card-title">Tahapan Progres</span>
+                                                                                                </div>
                                                                                             </div>
                                                                                         </div>
+                                                                                        <div class="col mb-8pt mb-md-0">
+                                                                                            <input name="tahapan_progres" value="{{ old('tahapan_progres') }}" type="text" class="form-control" placeholder="Masukan Tahapan Progres" required/>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="col mb-8pt mb-md-0">
-                                                                                        <input name="tahapan_progres" value="{{ old('tahapan_progres') }}" type="text" class="form-control" placeholder="Masukan Tahapan Progres" required/>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> -->
+                                                                                </div> -->
 
                         </div>
                     </div>
