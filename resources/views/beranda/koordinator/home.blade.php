@@ -3,7 +3,15 @@
 @section('content')
 
 <div class="content-wrapper p-4">
-  <h3 class="mb-4">Dashboard Koordinator TA</h3>
+  <h3 class="mb-4">
+    @if (auth()->user()->role == 1)
+      Dashboard Koordinator TA
+    @elseif (auth()->user()->role == 5)
+      Dashboard Kaprodi D3
+    @elseif (auth()->user()->role == 4)
+      Dashboard Kaprodi D4
+    @endif
+  </h3>
   <hr>
 
   <!-- Filter Tahun & Kelas -->
@@ -255,6 +263,7 @@
 
 @endsection
 
+@push('scripts')
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     var options = {
