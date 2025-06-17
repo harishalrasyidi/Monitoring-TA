@@ -64,9 +64,6 @@
                                     <a href="{{ route('yudisium.kelola') }}" class="btn btn-app">
                                         <i class="fas fa-graduation-cap"></i> Yudisium
                                     </a>
-                                    <a href="{{ route('yudisium.dashboard') }}" class="btn btn-app">
-                                        <i class="fas fa-chart-pie"></i> Dashboard Yudisium
-                                    </a>
                                 </div>
                             </div>
                         </div>
