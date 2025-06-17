@@ -13,3 +13,8 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+docker-compose.yml
+sonar-project.properties
+/.scannerwork
+composer.lock
+.history/

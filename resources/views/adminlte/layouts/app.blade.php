@@ -190,6 +190,26 @@
                 </p>
               </a>
             </li>
+            <!-- Katalog TA Menu Item -->
+            <li class="nav-item">
+              <a href="{{ route('katalog') }}" class="nav-link">
+                <i class="nav-icon fas fa-boxes"></i>
+                <p>
+                  Katalog
+                </p>
+              </a>
+            </li>
+            @endif
+            @if (auth()->user()->role == "2")
+            <li class="nav-item">
+              <a href="{{ route('history.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-history"></i>
+                <p>
+                  History
+                  <!-- <span class="right badge badge-danger">New</span> -->
+                </p>
+              </a>
+            </li>
             @endif
             @if (auth()->user()->role== "1")
             <li class="nav-item">
@@ -305,7 +325,7 @@
             <!-- Menu Yudisium untuk Koordinator dan Kaprodi -->
             @if (auth()->user()->role=="1" || auth()->user()->role=="4" || auth()->user()->role=="5")
             <li class="nav-item">
-                <a href="{{ route('yudisium.index') }}" class="nav-link">
+                <a href="{{ route('yudisium.kelola') }}" class="nav-link">
                     <i class="nav-icon fas fa-graduation-cap"></i>
                     <p>
                         Kelola Yudisium
@@ -313,15 +333,7 @@
                     </p>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="{{ route('yudisium.dashboard') }}" class="nav-link">
-                    <i class="nav-icon fas fa-chart-pie"></i>
-                    <p>
-                        Dashboard Yudisium
-                        <!-- <span class="right badge badge-success">Updated</span> -->
-                    </p>
-                </a>
-            </li>
+            
             @endif
 
             <!-- Menu Yudisium untuk Dosen -->

@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreign('id_kota')->references('id_kota')->on('tbl_kota')->onDelete('cascade');
             $table->unsignedBigInteger('id_artefak');
             $table->foreign('id_artefak')->references('id_artefak')->on('tbl_artefak')->onDelete('cascade');
-            $table->text('file_pengumpulan');
+            $table->text('file_pengumpulan'); // Kolom untuk menyimpan file pengumpulan
+            $table->text('abstract'); // Kolom baru untuk menyimpan abstrak, tidak nullable (wajib diisi)
             $table->timestamp('waktu_pengumpulan')->nullable();
             $table->timestamps();
         });

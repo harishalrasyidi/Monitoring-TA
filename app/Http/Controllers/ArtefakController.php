@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ArtefakModel;
+use App\Models\KotaHasArtefakModel;
+use App\Models\KotaModel;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -28,27 +30,56 @@ class ArtefakController extends Controller
      */
     public function index()
     {
+        // Mendapatkan data user yang sedang login
         $user = auth()->user();
+        
+        // Mendapatkan id_kota dari user yang sedang login
+        $id_kota = DB::table('tbl_kota_has_user')
+                    ->where('id_user', $user->id)
+                    ->value('id_kota');
+
+
+        // Ambil semua artefak
         $artefaks = ArtefakModel::all();
+        
+        // Untuk setiap artefak, cek apakah sudah dikumpulkan
         foreach ($artefaks as $artefak) {
-            $artefak->formatted_tenggat_waktu = Carbon::parse($artefak->tenggat_waktu)->format('l, d F Y H:i');
-
-            // Cek apakah artefak sudah dikumpulkan oleh user
-            $kumpul = DB::table('tbl_kota_has_artefak')
-                        ->where('id_artefak', $artefak->id_artefak)
-                        ->where('id_kota', function ($query) use ($user) {
-                            $query->select('id_kota')
-                                ->from('tbl_kota_has_user')
-                                ->where('id_user', $user->id)
-                                ->first();
-                        })
-                        ->first();
-
-            // Menyimpan informasi pengumpulan di dalam objek artefak
-            $artefak->kumpul = $kumpul;
+            if ($artefak->kategori_artefak == 'Teks') {
+                // Untuk kategori Teks, cek abstrak dari tbl_kota
+                $kota = KotaModel::find($id_kota);
+                if ($kota && !empty($kota->abstrak)) {
+                    // Buat objek pseudo submission untuk konsistensi dengan blade template
+                    $artefak->kumpul = (object) [
+                        'id' => $kota->id_kota, // Menggunakan id_kota sebagai identifier
+                        'teks_pengumpulan' => $kota->abstrak,
+                        'file_pengumpulan' => null,
+                        'waktu_pengumpulan' => $kota->updated_at ?? null
+                    ];
+                } else {
+                    $artefak->kumpul = null;
+                }
+            } else {
+                // Untuk kategori FTA/Dokumen, cek file_pengumpulan dari tbl_kota_has_artefak
+                $submission = KotaHasArtefakModel::where('id_kota', $id_kota)
+                    ->where('id_artefak', $artefak->id_artefak)
+                    ->first();
+                
+                if ($submission) {
+                    $artefak->kumpul = (object) [
+                        'id' => $submission->id,
+                        'teks_pengumpulan' => null,
+                        'file_pengumpulan' => $submission->file_pengumpulan,
+                        'waktu_pengumpulan' => $submission->waktu_pengumpulan
+                    ];
+                } else {
+                    $artefak->kumpul = null;
+                }
+            }
         }
 
-        $masterArtefaks = DB::table('tbl_master_artefak')->pluck('nama_artefak');
+        // Ambil master artefak jika diperlukan
+        $masterArtefaks = []; // Sesuaikan dengan kebutuhan Anda
+
         return view('artefak.index', compact('artefaks', 'masterArtefaks'));
     }
 
