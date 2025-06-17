@@ -17,6 +17,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Illuminate\Support\Facades\Log;
 use App\Models\Kota;
+use App\Models\KotaHasPenguji;
 
 class KotaController extends Controller
 {
@@ -93,7 +94,7 @@ class KotaController extends Controller
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1|max:3',
             'dosen' => 'required|array|min:2|max:2',
-            'penguji' => 'required|array|min:1',
+            'penguji' => 'required|array|min:1|max:3',
             'kategori' => 'required|in:1,2',
             'prodi' => 'required|in:1,2',
             'metodologi' => $request->input('kategori') == 2 ? 'required|string' : 'nullable|string',
@@ -453,11 +454,14 @@ class KotaController extends Controller
         $dosen = User::where('role', 2)->get();
         $mahasiswa = User::where('role', 3)->get(); // Hanya mahasiswa dengan role 3
 
+        // Ambil penguji
+        $selectedPenguji = KotaHasPenguji::where('id_kota', $id)->get()->pluck('id_user')->toArray();
+
         // Lakukan pengecekan untuk opsi yang dipilih (selected)
         $selectedDosen = $kota->users()->where('role', 2)->pluck('users.id')->toArray();
         $selectedMahasiswa = $kota->users()->where('role', 3)->pluck('users.id')->toArray();
 
-        return view('kota.edit', compact('kota', 'dosen', 'mahasiswa', 'selectedDosen', 'selectedMahasiswa'));
+        return view('kota.edit', compact('kota', 'dosen', 'mahasiswa', 'selectedDosen', 'selectedMahasiswa', 'selectedPenguji'));
     }
 
 
@@ -488,19 +492,88 @@ class KotaController extends Controller
     {
         $request->validate([
             'nama_kota' => '',
-            'judul' => 'required',
+            'judul' => 'required|max:255',
             'kelas' => 'required',
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1',
             'dosen' => 'required|array|min:2',
+            'penguji' => 'required|array|min:1|max:3',
             'kategori' => 'required|in:1,2',
             'prodi' => 'required|in:1,2',
             'metodologi' => $request->input('kategori') == 2 ? 'required|string' : 'nullable|string',
         ]);
 
+        // Check if user with role '3' already has a Kota other than current one
+        $userIds = array_merge($request->dosen, $request->mahasiswa);
+        foreach ($userIds as $userId) {
+            $userRole = DB::table('users')->where('id', $userId)->value('role');
+            $userid = DB::table('users')->where('id', $userId)->value('id');
+            if ($userRole == '3') {
+                $existingUserKota = DB::table('tbl_kota_has_user')
+                    ->where('id_user', $userid)
+                    ->where('id_kota', '!=', (string)$id)
+                    ->exists();
+                if ($existingUserKota) {
+                    session()->flash('error', 'Mahsiswa dengan ID ' . $userId . ' sudah memiliki kota.');
+                    return redirect()->back()->withInput();
+                }
+            }
+        }
+
+        // Check if periode is an integer
+        $periode = $request->input('periode');
+        if (!ctype_digit($periode)) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Periode harus berupa angka bulat.'])
+                ->withInput();
+        }
+
+        // Check if periode is in between 1998 and current year
+        $currentYear = (int) date('Y');
+        if (!($periode <= $currentYear && $periode >= 1989)) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Periode harus berada direntang tahun 1989 hingga '.$currentYear.' (Tahun Sekarang).'])
+                ->withInput();
+        }
+
+        // Check if kelas belongs to the correct prodi 
+        switch ($request->kelas) {
+            case 1:
+                $kelasProdi = 1;
+                break;
+            case 2:
+                $kelasProdi = 1;
+                break;
+            case 3:
+                $kelasProdi = 2;
+                break;
+            case 4:
+                $kelasProdi = 2;
+                break;
+            case 5:
+                $kelasProdi = 1;
+                break;
+        }
+        if ($kelasProdi !== (int)$request->prodi) {
+            return redirect()->back()
+                ->withErrors(['Kelas yang dipilih harus dari prodi yang sesuai'])
+                ->withInput();
+        }
+
+
         // Mengambil data kota berdasarkan id
         $kota = KotaModel::findOrFail($id);
         $kota->update($request->only('nama_kota', 'judul', 'kelas', 'periode', 'kategori', 'prodi', 'metodologi'));
+
+        $penguji = KotaHasPenguji::where('id_kota', $id);
+        $penguji->delete();
+
+        foreach ($request->penguji as $penguji) {
+            DB::table('tbl_kota_has_penguji')->insert([
+                'id_kota' => $id,
+                'id_user' => $penguji
+            ]);
+        }
 
         $userIds = array_merge($request->dosen, $request->mahasiswa);
         $kota->users()->sync($userIds);
