@@ -88,7 +88,7 @@ class KotaController extends Controller
     {
         $request->validate([
             'nama_kota' => 'required',
-            'judul' => 'required',
+            'judul' => 'required|max:255',
             'kelas' => 'required',
             'periode' => 'required',
             'mahasiswa' => 'required|array|min:1|max:3',
@@ -99,6 +99,25 @@ class KotaController extends Controller
             'metodologi' => $request->input('kategori') == 2 ? 'required|string' : 'nullable|string',
         ]);
 
+        // Filter empty element
+        $mahasiswa = array_filter($request->input('mahasiswa', []), function ($item) {
+            return !empty($item);
+        });
+
+        // Check mahasiswa count
+        if (count($mahasiswa) < 1 || count($mahasiswa) > 3) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Minimal 1, maksimal 3 mahasiswa.'])
+                ->withInput();
+        }
+
+        // Check for duplicate values in mahasiswa array
+        if (count($mahasiswa) !== count(array_unique($mahasiswa))) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Mahasiswa tidak boleh duplikat.'])
+                ->withInput();
+        }
+
         // Check if the Kota already exists
         $existingKota = DB::table('tbl_kota')->where('nama_kota', $request->nama_kota)->exists();
         if ($existingKota) {
@@ -107,7 +126,7 @@ class KotaController extends Controller
         }
 
         // Check if user with role '3' already has a Kota
-        $userIds = array_merge($request->dosen, $request->mahasiswa);
+        $userIds = array_merge($request->dosen, $mahasiswa);
         foreach ($userIds as $userId) {
             $userRole = DB::table('users')->where('nomor_induk', $userId)->value('role');
             $userid = DB::table('users')->where('nomor_induk', $userId)->value('id');
@@ -120,6 +139,46 @@ class KotaController extends Controller
                     return redirect()->back()->withInput();
                 }
             }
+        }
+
+        // Check if periode is an integer
+        $periode = $request->input('periode');
+        if (!ctype_digit($periode)) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Periode harus berupa angka bulat.'])
+                ->withInput();
+        }
+
+        // Check if periode is in between 1998 and current year
+        $currentYear = (int) date('Y');
+        if (!($periode <= $currentYear && $periode >= 1989)) {
+            return redirect()->back()
+                ->withErrors(['error' => 'Periode harus berada direntang tahun 1989 hingga '.$currentYear.' (Tahun Sekarang).'])
+                ->withInput();
+        }
+
+        // Check if kelas belongs to the correct prodi 
+        switch ($request->kelas) {
+            case 1:
+                $kelasProdi = 1;
+                break;
+            case 2:
+                $kelasProdi = 1;
+                break;
+            case 3:
+                $kelasProdi = 2;
+                break;
+            case 4:
+                $kelasProdi = 2;
+                break;
+            case 5:
+                $kelasProdi = 1;
+                break;
+        }
+        if ($kelasProdi !== (int)$request->prodi) {
+            return redirect()->back()
+                ->withErrors(['Kelas yang dipilih harus dari prodi yang sesuai'])
+                ->withInput();
         }
 
         // Create Kota
