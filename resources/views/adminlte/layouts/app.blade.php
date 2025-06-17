@@ -333,15 +333,7 @@
                     </p>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="{{ route('yudisium.dashboard') }}" class="nav-link">
-                    <i class="nav-icon fas fa-chart-pie"></i>
-                    <p>
-                        Dashboard Yudisium
-                        <!-- <span class="right badge badge-success">Updated</span> -->
-                    </p>
-                </a>
-            </li>
+            
             @endif
 
             <!-- Menu Yudisium untuk Dosen -->

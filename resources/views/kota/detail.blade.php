@@ -87,7 +87,7 @@
                     <div class="row">
                         <div class="col">{{ $tahapan->nama_progres }}</div>
                         <div class="col-5 d-md-flex justify-content-md-end">
-                            @if (auth()->user()->role == "3")
+                            @if (auth()->user()->role == "1")
                                 @foreach($tahapan_progres as $item)
                                     @if($item->id_master_tahapan_progres == 1)
                                         <form action="{{ route('store_status') }}" method="POST" id="statusForm_{{ $item->id }}">

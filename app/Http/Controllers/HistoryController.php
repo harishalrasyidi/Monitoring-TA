@@ -57,6 +57,27 @@ class HistoryController extends Controller
                     ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
             });
 
+        // Ambil data tahapan yang sesuai dengan role pembimbing dan penguji
+            $tahapanProgres = DB::table('tbl_master_tahapan_progres')
+                ->join('tbl_kota_has_tahapan_progres', 'tbl_master_tahapan_progres.id', '=', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres')
+                ->where(function($query) use ($user) {
+                    $query->whereExists(function($subquery) use ($user) {
+                        $subquery->select(DB::raw(1))
+                            ->from('tbl_kota_has_user')
+                            ->whereRaw('tbl_kota_has_user.id_kota = tbl_kota_has_tahapan_progres.id_kota')
+                            ->where('tbl_kota_has_user.id_user', $user->id);
+                    })
+                    ->orWhereExists(function($subquery) use ($user) {
+                        $subquery->select(DB::raw(1))
+                            ->from('tbl_kota_has_penguji')
+                            ->whereRaw('tbl_kota_has_penguji.id_kota = tbl_kota_has_tahapan_progres.id_kota')
+                            ->where('tbl_kota_has_penguji.id_user', $user->id);
+                    });
+                })
+                ->select('tbl_master_tahapan_progres.*')
+                ->distinct()
+                ->get();
+
         // Filter berdasarkan parameter
         if ($request->has('sort') && $request->has('value')) {
             $sort = $request->input('sort');
@@ -81,6 +102,6 @@ class HistoryController extends Controller
             ->orderBy('tbl_kota.periode', 'desc')
             ->pluck('tbl_kota.periode');
 
-        return view('history.pembimbing.index', compact('kotas', 'kotas_diuji', 'availableYears'));
+        return view('history.pembimbing.index', compact('kotas', 'kotas_diuji', 'availableYears', 'tahapanProgres'));
     }
 }
