@@ -120,19 +120,15 @@ class KatalogController extends Controller
         $mahasiswa = $kota->users->where('role', 3);
         $dosen = $kota->users->where('role', 2);
         
-        // ===== SOLUSI: Set koordinator info secara langsung =====
-        $koordinator = (object)[
-            'name' => 'Dr. Koordinator TA', // Ganti dengan nama sebenarnya
-            'email' => 'rindindriani@gmail.com', // Ganti dengan email koordinator sebenarnya
-            'status' => 'active'
-        ];
-        
-        // Atau dari environment
-        // $koordinator = (object)[
-        //     'name' => env('KOORDINATOR_TA_NAME', 'Koordinator TA Jurusan'),
-        //     'email' => env('KOORDINATOR_TA_EMAIL', 'koordinator@polban.ac.id'),
-        //     'status' => 'active'
-        // ];
+        try {
+            $koordinator = User::where('role', 4)->first();
+            if ($koordinator) {
+                $koordinatorEmail = $koordinator->email;
+                $koordinatorName = $koordinator->name;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Error fetching koordinator from database', ['error' => $e->getMessage()]);
+        }
         
         return view('katalog.request_form', compact('kota', 'mahasiswa', 'dosen', 'koordinator'));
     }
@@ -174,20 +170,9 @@ class KatalogController extends Controller
         $koordinatorEmail = null;
         $koordinatorName = 'Koordinator TA Jurusan';
         
-        // Option 1: Hardcode email koordinator (Paling mudah untuk testing)
-        $koordinatorEmail = 'rindindriani@gmail.com'; // Ganti dengan email koordinator yang sebenarnya
-        $koordinatorName = 'Koordinator TA'; // Ganti dengan nama yang sebenarnya
-        
-        // Option 2: Dari environment variable (.env)
-        // $koordinatorEmail = env('KOORDINATOR_TA_EMAIL', 'rindi.hafizh@gmail.com');
-        // $koordinatorName = env('KOORDINATOR_TA_NAME', 'Koordinator TA Jurusan');
-        
         // Option 3: Dari database (jika sudah ada user koordinator)
-        /*
         try {
             $koordinator = User::where('role', 4) // Role koordinator
-                            ->orWhere('email', 'koordinator@polban.ac.id')
-                            ->orWhere('jabatan', 'LIKE', '%koordinator%')
                             ->first();
             
             if ($koordinator) {
@@ -197,7 +182,7 @@ class KatalogController extends Controller
         } catch (\Exception $e) {
             Log::warning('Error fetching koordinator from database', ['error' => $e->getMessage()]);
         }
-        */
+        
         
         // Validasi email koordinator
         if (!$koordinatorEmail) {
