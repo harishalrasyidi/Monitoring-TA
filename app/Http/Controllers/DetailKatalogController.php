@@ -31,6 +31,11 @@ class DetailKatalogController extends Controller
         $posterTA = KotaHasArtefakModel::where('id_kota', $id_kota)
             ->where('id_artefak', 8) // Poster Laporan TA
             ->first();
+
+        // Get pengesahan file path (if needed)
+        $pengesahanTA = KotaHasArtefakModel::where('id_kota', $id_kota)
+            ->where('id_artefak', 10) // pengesahan Laporan TA
+            ->first();
             
         // Get student authors (role = 3)
         $penulis = User::join('tbl_kota_has_user', 'users.id', '=', 'tbl_kota_has_user.id_user')
@@ -47,6 +52,11 @@ class DetailKatalogController extends Controller
             ->where('users.role', 2)
             ->get(['users.name', 'users.nomor_induk']);
             
+        $idAkses = $penulis->pluck('id')
+        ->merge($pembimbing->pluck('id'))
+        ->unique()
+        ->toArray();
+
         // Combine supervisor names
         $namaPembimbing = $pembimbing->pluck('name')->implode(', ');
         
@@ -65,10 +75,11 @@ class DetailKatalogController extends Controller
             'kata_kunci' => null, // If you have keywords data, add it here
             'file_path' => $laporanTA ? $laporanTA->file_pengumpulan : null,
             'poster_path' => $posterTA ? $posterTA->file_pengumpulan : null,
+            'pengesahan_path' => $pengesahanTA ? $pengesahanTA->file_pengumpulan : null,
         ];
         
         // Pass data to the view
-        return view('katalog.detail', compact('laporan', 'penulis', 'pembimbing'));
+        return view('katalog.detail', compact('laporan', 'penulis', 'pembimbing', 'idAkses'));
     }
     
     /**

@@ -57,7 +57,6 @@ class HistoryController extends Controller
                     ->orWhere('tbl_kota_has_tahapan_progres.status', 'disetujui');
             });
 
-            // Ambil data tahapan yang sesuai dengan role pembimbing dan penguji
             $tahapanProgres = DB::table('tbl_master_tahapan_progres')
                 ->join('tbl_kota_has_tahapan_progres', 'tbl_master_tahapan_progres.id', '=', 'tbl_kota_has_tahapan_progres.id_master_tahapan_progres')
                 ->where(function($query) use ($user) {

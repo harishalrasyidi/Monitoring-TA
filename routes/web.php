@@ -5,7 +5,7 @@ use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Controllers\Mahasiswa\DashboardController;
 use App\Http\Controllers\DashboardController;
-
+use Illuminate\Support\Facades\Storage;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -152,3 +152,13 @@ Route::get('/laporan-ta/{id_kota}', [App\Http\Controllers\DetailKatalogControlle
 // Route khusus untuk teks submission
 Route::put('/submissions/teks/{artefak_id}', [App\Http\Controllers\SubmissionController::class, 'updateTeks'])->name('submissions.updateTeks');
 Route::get('/katalog', [App\Http\Controllers\KatalogController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('katalog');
+
+Route::get('/storage/submissions/{filename}', function ($filename) {
+    $path = storage_path('app/public/submissions' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404, 'File tidak ditemukan.');
+    }
+
+    return response()->download($path);
+})->name('download.pengesahan');
