@@ -280,7 +280,7 @@
                                             <option value="" disabled selected>Pilih Kelas</option>
                                             <option value="1" {{ old('kelas') == 1 ? 'selected' : '' }}>D3-A</option>
                                             <option value="2" {{ old('kelas') == 2 ? 'selected' : '' }}>D3-B</option>
-                                            <option value="3" {{ old('kelas') == 3 ? 'selected' : '' }}>D4-A</option>
+                                            <option value="3" {{ old('kelas') == 3 ? 'selected' : '' }}>D4-A</option> 
                                             <option value="4" {{ old('kelas') == 4 ? 'selected' : '' }}>D4-B</option>
                                         </select>
                                     </div>
