@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\Kota;
 
 class YudisiumModel extends Model
 {
@@ -74,6 +75,52 @@ class YudisiumModel extends Model
             $query->where('tbl_kota.kelas', $kelas);
         }
         
+        return $query->get();
+    }
+
+    public function getDistribusiYudisiumD3($periode = null, $kelas = null, $kotaIds = null)
+    {
+
+        $query = DB::table($this->table)
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->select('tbl_yudisium.kategori_yudisium', DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('tbl_yudisium.kategori_yudisium');
+        
+        if ($periode) {
+            $query->where('tbl_kota.periode', $periode);
+        }
+        
+        if ($kelas) {
+            $query->where('tbl_kota.kelas', $kelas);
+        }
+
+        if ($kotaIds) {
+            $query->whereIn('tbl_kota.id_kota', $kotaIds);
+        }
+            
+        return $query->get();
+    }
+
+    public function getDistribusiYudisiumD4($periode = null, $kelas = null, $kotaIds = null)
+    {
+
+        $query = DB::table($this->table)
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->select('tbl_yudisium.kategori_yudisium', DB::raw('COUNT(*) as jumlah'))
+            ->groupBy('tbl_yudisium.kategori_yudisium');
+        
+        if ($periode) {
+            $query->where('tbl_kota.periode', $periode);
+        }
+        
+        if ($kelas) {
+            $query->where('tbl_kota.kelas', $kelas);
+        }
+
+        if ($kotaIds) {
+            $query->whereIn('tbl_kota.id_kota', $kotaIds);
+        }
+            
         return $query->get();
     }
 }

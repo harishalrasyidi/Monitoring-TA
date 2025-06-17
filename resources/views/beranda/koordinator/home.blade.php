@@ -17,12 +17,24 @@
         @endforeach
       </select>
       <label class="mr-2">Kelas:</label>
+      @php
+          $kelasLabels = [
+              1 => 'D3 - A',
+              2 => 'D3 - B',
+              3 => 'D4 - A',
+              4 => 'D4 - B',
+          ];
+      @endphp
+
       <select name="kelas" class="form-control mr-2" onchange="this.form.submit()">
-        <option value="">Semua</option>
-        @foreach($kelasList as $kelas)
-          <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>{{ $kelas }}</option>
-        @endforeach
+          <option value="">Semua</option>
+          @foreach($kelasList as $kelas)
+              <option value="{{ $kelas }}" {{ request('kelas') == $kelas ? 'selected' : '' }}>
+                  {{ $kelasLabels[$kelas] ?? $kelas }}
+              </option>
+          @endforeach
       </select>
+
       <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
     </form>
   </div>
