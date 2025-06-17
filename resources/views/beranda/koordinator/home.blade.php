@@ -2,9 +2,17 @@
 
 @section('content')
 
-    <div class="content-wrapper p-4">
-        <h3 class="mb-4">Dashboard Koordinator TA</h3>
-        <hr>
+<div class="content-wrapper p-4">
+  <h3 class="mb-4">
+    @if (auth()->user()->role == 1)
+      Dashboard Koordinator TA
+    @elseif (auth()->user()->role == 5)
+      Dashboard Kaprodi D3
+    @elseif (auth()->user()->role == 4)
+      Dashboard Kaprodi D4
+    @endif
+  </h3>
+  <hr>
 
         <!-- Filter Tahun & Kelas -->
         <div class="mb-4">
@@ -39,6 +47,63 @@
                 <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
             </form>
         </div>
+      </div>
+    </div>
+    <!-- Card Yudisium -->
+    <div class="col-3 mb-3">
+      <div class="card h-100">
+        <div class="card-body p-3 d-flex flex-column justify-content-center">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-success d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="1">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 1</div>
+                <div class="text-muted small">
+                  <div><i class="fas fa-users"></i> Total: {{ $totalYudisium1 }}</div>
+                  @if($totalKota > 0)
+                    <span class="text-success mr-2">{{ number_format(($totalYudisium1 / $totalKota) * 100, 1) }}%</span>
+                  @endif
+                  <span class="text-info">{{ $totalYudisium1 }}/{{ $totalKota - ($totalYudisium1 + $totalYudisium2 + $totalYudisium3) }} KoTA</span>
+                </div>
+              </div>
+            </div>
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-warning d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="2">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 2</div>
+                <div class="text-muted small">
+                  <div><i class="fas fa-users"></i> Total: {{ $totalYudisium2 }}</div>
+                  @if($totalKota > 0)
+                    <span class="text-success mr-2">{{ number_format(($totalYudisium2 / $totalKota) * 100, 1) }}%</span>
+                  @endif
+                  <span class="text-info">{{ $totalYudisium2 }}/{{ $totalKota - ($totalYudisium1 + $totalYudisium2 + $totalYudisium3) }} KoTA</span>
+                </div>
+              </div>
+            </div>
+            <div class="list-group-item d-flex align-items-center border-0">
+              <div class="rounded bg-danger d-flex align-items-center justify-content-center mr-3 btn-yudisium" style="width:48px;height:48px; cursor:pointer;" data-kategori="3">
+                <i class="fas fa-graduation-cap fa-lg text-white"></i>
+              </div>
+              <div>
+                <div class="font-weight-bold">Yudisium 3</div>
+                <div class="text-muted small">
+                  <div><i class="fas fa-users"></i> Total: {{ $totalYudisium3 }}</div>
+                  @if($totalKota > 0)
+                    <span class="text-success mr-2">{{ number_format(($totalYudisium3 / $totalKota) * 100, 1) }}%</span>
+                  @endif
+                  <span class="text-info">{{ $totalYudisium3 }}/{{ $totalKota - ($totalYudisium1 + $totalYudisium2 + $totalYudisium3) }} KoTA</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>  
+  </div>
 
         <!-- Main content -->
         <section class="content">
@@ -260,6 +325,7 @@
                             </div>
                         </div>
 
+
                         <!-- Statistik Tahapan KoTA -->
                         <div class="card mt-4">
                             <div class="card-header">
@@ -391,22 +457,22 @@
                     @include('beranda.koordinator.yudisium_modal')
 
 @endsection
-
-                <script>
-                    document.addEventListener("DOMContentLoaded", function () {
-                        var options = {
-                            chart: { type: 'bar', height: 350 },
-                            series: [{
-                                name: 'Jumlah Mahasiswa',
-                                data: {!! json_encode(array_values($chartData)) !!}
-                            }],
-                            xaxis: {
-                                categories: {!! json_encode(array_keys($chartData)) !!}
-                            },
-                            colors: ['#28a745', '#ffc107', '#dc3545', '#007bff']
-                        };
-                        var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
-                        chart.render();
+@push('scripts')
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var options = {
+      chart: { type: 'bar', height: 350 },
+      series: [{
+        name: 'Jumlah Mahasiswa',
+        data: {!! json_encode(array_values($chartData)) !!}
+      }],
+      xaxis: {
+        categories: {!! json_encode(array_keys($chartData)) !!}
+      },
+      colors: ['#28a745', '#ffc107', '#dc3545', '#007bff']
+    };
+    var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
+    chart.render();
 
                         document.getElementById('perPage').addEventListener('change', function () {
                             var url = new URL(window.location.href);
