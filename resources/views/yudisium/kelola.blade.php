@@ -122,12 +122,6 @@
                             <a href="{{ route('yudisium.create') }}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-plus mr-2"></i> Tambah Data
                             </a>
-                            {{-- <button type="button" class="btn btn-success btn-sm" id="btnGenerateYudisium">
-                                <i class="fas fa-sync-alt mr-2"></i> Refresh
-                            </button> --}}
-                            <a href="{{ route('yudisium.export') }}" class="btn btn-success btn-sm">
-                                <i class="fas fa-file-excel mr-1"></i> Export Excel
-                            </a>
                         </div>
                     </div>
                 </div>

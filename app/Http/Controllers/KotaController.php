@@ -123,7 +123,7 @@ class KotaController extends Controller
         }
 
         // Create Kota
-        $kota = KotaModel::create($request->only('nama_kota', 'judul', 'kelas', 'periode', 'kategori', 'prodi', 'metodologi'));
+        $kota = KotaModel::create($request->only('nama_kota', 'judul', 'kelas', 'periode', 'kategori', 'prodi', 'metodologi','status_yudisium'));
         $id_kota = $kota->id_kota;
 
         // Save Mahasiswa and Dosen to tbl_kota_has_user
@@ -156,6 +156,27 @@ class KotaController extends Controller
             $tahapan['id_kota'] = $id_kota;
             DB::table('tbl_kota_has_tahapan_progres')->insert($tahapan);
         }
+
+        // Buat data yudisium default
+        $yudisium = new \App\Models\YudisiumModel([
+            'id_kota' => $id_kota,
+            'kategori_yudisium' => 1, // Default Yudisium 1
+            'tanggal_yudisium' => now()->addMonths(6),
+            'nilai_akhir' => null,
+            'status' => 'pending',
+            'keterangan' => 'Otomatis dibuat saat KoTA dibuat'
+        ]);
+        $yudisium->save();
+        
+        // Buat log untuk yudisium
+        \App\Models\YudisiumLogModel::create([
+            'id_yudisium' => $yudisium->id_yudisium,
+            'id_user' => auth()->id(),
+            'jenis_perubahan' => 'Penambahan Data',
+            'nilai_lama' => null,
+            'nilai_baru' => json_encode($yudisium->toArray()),
+            'keterangan' => 'Otomatis dibuat saat KoTA dibuat',
+        ]);
 
         session()->flash('success', 'Data KoTA berhasil ditambahkan');
         return redirect()->route('kota');
