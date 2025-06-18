@@ -26,5 +26,10 @@ class Kota extends Model
     {
         return $this->hasMany(KotaHasArtefakModel::class, 'id_kota', 'id_kota');
     }
+
+    public function timelineTahapan()
+    {
+        return $this->hasMany(TimelineModel::class, 'id_kota', 'id_kota');
+    }
     
 } 

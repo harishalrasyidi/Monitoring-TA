@@ -323,6 +323,89 @@ class DashboardController extends Controller
             }
 
             // DOSBING DAN PENGUJI
+            // if ($user->role == 2) {
+            //     $kotaIdsBimbingan = KotaHasUserModel::where('id_user', $user->id)
+            //         ->pluck('id_kota')
+            //         ->toArray();
+                
+            //     $totalKota = count($kotaIdsBimbingan);
+
+            //     $kotaIdsUji = KotaHasPenguji::where('id_user', $user->id)
+            //         ->pluck('id_kota')
+            //         ->toArray();
+                
+            //     $queryUji = Kota::whereIn('id_kota', $kotaIdsUji);
+            //     if ($request->filled('periode')) {
+            //         $queryUji->where('periode', $request->periode);
+            //     }
+            //     if ($request->filled('kelas')) {
+            //         $queryUji->where('kelas', $request->kelas);
+            //     }
+            //     $totalKotaUji = $queryUji->count();
+                
+            //     // Query dasar untuk KoTA yang dibimbing
+            //     $query = Kota::with(['tahapanProgress.masterTahapan'])
+            //         ->whereIn('id_kota', $kotaIdsBimbingan);
+
+            //     // Ambil semua KoTA yang dibimbing
+            //     $allKota = $query->get();
+
+            //     $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+            //     $chartData = array_fill_keys($tahapanNames, 0);
+
+            //     // Hitung statistik dan status selesai/dalam progres
+            //     $selesai = 0;
+            //     $dalamProgres = 0;
+
+            //     foreach ($allKota as $kota) {
+            //         $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    
+            //         // Hitung statistik berdasarkan tahapan terakhir yang selesai
+            //         $lastTahapan = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+            //         if ($lastTahapan && $lastTahapan->status === 'selesai') {
+            //             $namaTahapan = optional($lastTahapan->masterTahapan)->nama_progres;
+            //             if (isset($chartData[$namaTahapan])) {
+            //                 $chartData[$namaTahapan]++;
+            //             }
+            //         }
+
+            //         // Hitung status selesai/dalam progres
+            //         if ($tahapanProgress->isEmpty()) {
+            //             $dalamProgres++;
+            //             continue;
+            //         }
+                    
+            //         $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
+            //         if ($sidangProgress && $sidangProgress->status === 'selesai') {
+            //             $selesai++;
+            //         } else {
+            //             $dalamProgres++;
+            //         }
+            //     }
+
+            //     // Ambil data untuk pagination (terpisah dari perhitungan)
+            //     $kotaList = $query->paginate(10);
+                
+            //     $periodes = Kota::whereIn('id_kota', $kotaIdsBimbingan)
+            //         ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
+            //     $kelasList = Kota::whereIn('id_kota', $kotaIdsBimbingan)
+            //         ->select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
+                
+            //     // Ambil data untuk pagination (terpisah dari perhitungan)
+            //     $kotaList = $query->paginate(10);
+                
+            //     return view('beranda.pembimbing.home', [
+            //         'kotaList' => $kotaList,
+            //         'totalKota' => $totalKota,
+            //         'totalKotaUji' => $totalKotaUji,
+            //         'selesai' => $selesai,
+            //         'dalamProgres' => $dalamProgres,
+            //         'chartData' => $chartData,
+            //         'periodes' => $periodes,
+            //         'kelasList' => $kelasList,
+            //     ]);
+            // }
+
             if ($user->role == 2) {
                 $kotaIdsBimbingan = KotaHasUserModel::where('id_user', $user->id)
                     ->pluck('id_kota')

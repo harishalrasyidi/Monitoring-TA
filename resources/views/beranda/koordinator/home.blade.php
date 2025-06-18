@@ -340,119 +340,187 @@
 
                         <!-- List KoTA -->
                         <div class="card mt-4">
-                            <div class="card-header">
-                                <strong>List KoTA</strong>
+                          <div class="card-header">
+                            <strong>List KoTA</strong>
+                          </div>
+                          <div class="card-body table-responsive">
+                            <table class="table table-bordered table-hover">
+                              <thead class="thead-light">
+                                <tr>
+                                  <th>No</th>
+                                  <th>Kelompok</th>
+                                  <th>Seminar 1</th>
+                                  <th>Seminar 2</th>
+                                  <th>Seminar 3</th>
+                                  <th>Sidang</th>
+                                  <th>Status</th>
+                                  <th>Lihat Detail</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @forelse($kotaList as $no => $kota)
+                                  <tr>
+                                    <td>{{ $kotaList->firstItem() + $no }}</td>
+                                    <td>
+                                      <strong>{{ $kota->nama_kota }}</strong><br>
+                                      <small class="text-muted">{{ $kota->judul }}</small>
+                                    </td>
+
+                                    <!-- Versi Relasi ke tbl_timeline -->
+                                    @php
+                                      $timeline = [];
+                                      for ($i = 1; $i <= 4; $i++) {
+                                          $timeline[$i] = $kota->timelineTahapan->firstWhere('id_master_tahapan_progress', $i);
+                                      }
+                                      $tahapanProgress = $kota->tahapanProgress->keyBy('id_master_tahapan_progres');
+                                    @endphp
+
+                                    @for($i = 1; $i <= 4; $i++)
+                                    @php
+                                      $tl = $timeline[$i] ?? null;
+                                      $tp = $tahapanProgress[$i] ?? null;
+                                      $tenggatWaktu = $tl->tanggal_selesai ?? null;
+                                      $aktualSelesai = $tp->updated_at ?? null;
+                                      $statusTahapan = $tp->status ?? null;
+                                    @endphp
+                                    <td>
+                                      @if(!$tl || empty($tenggatWaktu))
+                                        <span class="badge badge-secondary">Belum dapat jadwal</span>
+                                      @elseif(empty($tl->tanggal_mulai) || $tl->tanggal_mulai == '0000-00-00')
+                                        <span class="badge badge-warning">Belum mulai</span>
+                                      @elseif($statusTahapan === 'progress')
+                                        <span class="badge badge-warning">Progress</span>
+                                      @elseif(!empty($tenggatWaktu) && !empty($aktualSelesai) && $statusTahapan === 'selesai')
+                                        @if(\Carbon\Carbon::parse($aktualSelesai)->gt(\Carbon\Carbon::parse($tenggatWaktu)))
+                                          <span class="badge badge-danger">Selesai Terlambat</span>
+                                        @else
+                                          <span class="badge badge-success">Selesai Tepat Waktu</span>
+                                        @endif
+                                      @else
+                                        <span class="badge badge-warning">Belum mulai</span>
+                                      @endif
+                                    </td>
+                                  @endfor
+
+                                    <td>
+                                      @php
+                                        $last = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+                                      @endphp
+                                      @if($last && $last->status === 'selesai' && $last->id_master_tahapan_progres == 4)
+                                        <span class="badge badge-success">Selesai</span>
+                                      @else
+                                        <span class="badge badge-warning">Dalam Progres</span>
+                                      @endif
+                                    </td>
+                                    <td>
+                                    <button type="button"
+                                      class="btn btn-sm btn-info mr-1"
+                                      data-toggle="modal"
+                                      data-target="#jadwalModal-{{ $kota->id_kota }}">
+                                      Jadwal
+                                    </button>
+                                    <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                                      Artefak
+                                    </a>
+                                  </td>
+                                  </tr>
+                                @empty
+                                  <tr>
+                                    <td colspan="8" class="text-center">Data tidak ditemukan</td>
+                                  </tr>
+                                @endforelse
+                              </tbody>
+                            </table>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                              <div class="d-flex align-items-center">
+                                <span class="mr-2">Tampilkan</span>
+                                <select class="form-control form-control-sm" id="perPage" style="width: 70px">
+                                  <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                  <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                                  <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                  <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                </select>
+                                <span class="ml-2">data per halaman</span>
+                              </div>
+                              <div>
+                                {{ $kotaList->appends(['per_page' => request('per_page')])->links() }}
+                              </div>
                             </div>
-                            <div class="card-body table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Kelompok</th>
-                                            <th>Seminar 1</th>
-                                            <th>Seminar 2</th>
-                                            <th>Seminar 3</th>
-                                            <th>Sidang</th>
-                                            <th>Status</th>
-                                            <th>Artefak</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($kotaList as $no => $kota)
-                                            <tr>
-                                                <td>{{ $kotaList->firstItem() + $no }}</td>
-                                                <td>
-                                                    <strong>{{ $kota->nama_kota }}</strong><br>
-                                                    <small class="text-muted">{{ $kota->judul }}</small>
-                                                </td>
-                                                @php
-                                                    $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
-                                                    $status = [];
-                                                    foreach ($tahapan as $tp) {
-                                                        $status[] = $tp->status;
-                                                    }
-                                                    for ($i = count($status); $i < 4; $i++)
-                                                        $status[] = '-';
-                                                  @endphp
-                                                <td>
-                                                    @if(($status[0] ?? '-') === 'selesai')
-                                                        <span class="badge badge-success">Tuntas</span>
-                                                    @elseif(($status[0] ?? '-') === 'progress')
-                                                        <span class="badge badge-warning">Progress</span>
-                                                    @else
-                                                        <span class="badge badge-secondary">Belum</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if(($status[1] ?? '-') === 'selesai')
-                                                        <span class="badge badge-success">Tuntas</span>
-                                                    @elseif(($status[1] ?? '-') === 'progress')
-                                                        <span class="badge badge-warning">Progress</span>
-                                                    @else
-                                                        <span class="badge badge-secondary">Belum</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if(($status[2] ?? '-') === 'selesai')
-                                                        <span class="badge badge-success">Tuntas</span>
-                                                    @elseif(($status[2] ?? '-') === 'progress')
-                                                        <span class="badge badge-warning">Progress</span>
-                                                    @else
-                                                        <span class="badge badge-secondary">Belum</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if(($status[3] ?? '-') === 'selesai')
-                                                        <span class="badge badge-success">Tuntas</span>
-                                                    @elseif(($status[3] ?? '-') === 'progress')
-                                                        <span class="badge badge-warning">Progress</span>
-                                                    @else
-                                                        <span class="badge badge-secondary">Belum</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @php
-                                                        $last = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
-                                                    @endphp
-                                                    @if($last && $last->status === 'selesai' && optional($last->masterTahapan)->nama_progres === 'Sidang')
-                                                        <span class="badge badge-success">Selesai</span>
-                                                    @else
-                                                        <span class="badge badge-warning">Dalam Progres</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}"
-                                                        class="btn btn-sm btn-primary">
-                                                        Lihat Detail
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="8" class="text-center">Data tidak ditemukan</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <div class="d-flex align-items-center">
-                                        <span class="mr-2">Tampilkan</span>
-                                        <select class="form-control form-control-sm" id="perPage" style="width: 70px">
-                                            <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100
-                                            </option>
-                                        </select>
-                                        <span class="ml-2">data per halaman</span>
-                                    </div>
-                                    <div>
-                                        {{ $kotaList->appends(['per_page' => request('per_page')])->links() }}
-                                    </div>
-                                </div>
-                            </div>
+                          </div>
                         </div>
-                    </div>
+                      </div>
+
+
+                      <!-- Modal Jadwal -->
+                      <div class="modal fade" id="jadwalModal-{{ $kota->id_kota }}" tabindex="-1" role="dialog" aria-labelledby="jadwalModalLabel-{{ $kota->id_kota }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header bg-info text-white">
+                              <h5 class="modal-title" id="jadwalModalLabel-{{ $kota->id_kota }}">
+                                Jadwal KoTA
+                              </h5>
+                              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                              <strong>{{ $kota->nama_kota }}</strong><br>
+                              <small class="text-muted">{{ $kota->judul }}</small>
+                              <hr>
+                              @php
+                                $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+                                $timeline = [];
+                                for ($i = 1; $i <= 4; $i++) {
+                                    $timeline[$i] = $kota->timelineTahapan->firstWhere('id_master_tahapan_progress', $i);
+                                }
+                                $tahapanProgress = $kota->tahapanProgress->keyBy('id_master_tahapan_progres');
+                              @endphp
+                              <table class="table table-sm">
+                                <thead>
+                                  <tr>
+                                    <th>Tahapan</th>
+                                    <th>Status</th>
+                                    <th>Mulai</th>
+                                    <th>Tenggat Waktu</th>
+                                    <th>Aktual Selesai</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for($i = 1; $i <= 4; $i++)
+                                    @php
+                                      $tl = $timeline[$i] ?? null;
+                                      $tp = $tahapanProgress[$i] ?? null;
+                                      $tenggatWaktu = $tl->tanggal_selesai ?? null;
+                                      $aktualSelesai = $tp->updated_at ?? null;
+                                    @endphp
+                                    <tr>
+                                      <td>{{ $tahapanNames[$i-1] }}</td>
+                                      <td>
+                                        @if(!$tl || empty($tenggatWaktu))
+                                          <span class="badge badge-secondary">Belum dapat jadwal</span>
+                                        @elseif(empty($tl->tanggal_mulai) || $tl->tanggal_mulai == '0000-00-00')
+                                          <span class="badge badge-warning">Belum mulai</span>
+                                        @elseif(!empty($tenggatWaktu) && !empty($aktualSelesai))
+                                          @if(\Carbon\Carbon::parse($aktualSelesai)->gt(\Carbon\Carbon::parse($tenggatWaktu)))
+                                            <span class="badge badge-danger">Selesai Terlambat</span>
+                                          @else
+                                            <span class="badge badge-success">Selesai Tepat Waktu</span>
+                                          @endif
+                                        @else
+                                          <span class="badge badge-warning">Belum mulai</span>
+                                        @endif
+                                      </td>
+                                      <td>{{ $tl->tanggal_mulai ?? '-' }}</td>
+                                      <td>{{ $tl->tanggal_selesai ?? '-' }}</td>
+                                      <td>{{ $tp->updated_at ?? '-' }}</td>
+                                    </tr>
+                                  @endfor
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
                     @include('beranda.koordinator.yudisium_modal')
 
