@@ -517,7 +517,6 @@
                     @include('beranda.koordinator.yudisium_modal')
 
 @endsection
-@push('scripts')
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
