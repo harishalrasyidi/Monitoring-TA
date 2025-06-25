@@ -13,9 +13,7 @@ class KotaTahapanProgress extends Model
     protected $fillable = [
         'id_kota',
         'id_master_tahapan_progres',
-        'status',
-        'created_at',
-        'updated_at'
+        'status'
     ];
 
     public function kota()

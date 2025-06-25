@@ -1,5 +1,4 @@
 @extends('adminlte.layouts.app')
-
 @section('content')
 
 <div class="content-wrapper">
@@ -109,7 +108,7 @@
             <th>Seminar 3</th>
             <th>Sidang</th>
             <th>Status</th>
-            <th>Lihat Detail</th>
+            <th>Artefak</th>
           </tr>
         </thead>
         <tbody>
@@ -121,41 +120,68 @@
                 <small class="text-muted">{{ $kota->judul }}</small>
               </td>
 
-              <!-- Versi Relasi ke tbl_timeline -->
-              @php
-                $timeline = [];
-                for ($i = 1; $i <= 4; $i++) {
-                    $timeline[$i] = $kota->timelineTahapan->firstWhere('id_master_tahapan_progress', $i);
-                }
-                $tahapanProgress = $kota->tahapanProgress->keyBy('id_master_tahapan_progres');
-              @endphp
 
-              @for($i = 1; $i <= 4; $i++)
               @php
-                $tl = $timeline[$i] ?? null;
-                $tp = $tahapanProgress[$i] ?? null;
-                $tenggatWaktu = $tl->tanggal_selesai ?? null;
-                $aktualSelesai = $tp->updated_at ?? null;
-                $statusTahapan = $tp->status ?? null;
+                // Urutkan progres berdasarkan id_master_tahapan_progres
+                $tahapan = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                $status = [];
+                foreach($tahapan as $tp) {
+                  $status[] = $tp->status;
+                }
+                // Jika tahapan kurang dari 4, tambahkan '-'
+                for($i = count($status); $i < 4; $i++) $status[] = '-';
+
+
+
+
+
+
+
+
               @endphp
               <td>
-                @if(!$tl || empty($tenggatWaktu))
-                  <span class="badge badge-secondary">Belum dapat jadwal</span>
-                @elseif(empty($tl->tanggal_mulai) || $tl->tanggal_mulai == '0000-00-00')
-                  <span class="badge badge-warning">Belum mulai</span>
-                @elseif($statusTahapan === 'progress')
+                @if(($status[0] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Selesai</span>
+                @elseif(($status[0] ?? '-') === 'progress')
                   <span class="badge badge-warning">Progress</span>
-                @elseif(!empty($tenggatWaktu) && !empty($aktualSelesai) && $statusTahapan === 'selesai')
-                  @if(\Carbon\Carbon::parse($aktualSelesai)->gt(\Carbon\Carbon::parse($tenggatWaktu)))
-                    <span class="badge badge-danger">Selesai Terlambat</span>
-                  @else
-                    <span class="badge badge-success">Selesai Tepat Waktu</span>
-                  @endif
                 @else
-                  <span class="badge badge-warning">Belum mulai</span>
+                  <span class="badge badge-secondary">Belum</span>
                 @endif
               </td>
-            @endfor
+              <td>
+                @if(($status[1] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Selesai</span>
+                @elseif(($status[1] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[2] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Selesai</span>
+                @elseif(($status[2] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+              <td>
+                @if(($status[3] ?? '-') === 'selesai')
+                  <span class="badge badge-success">Selesai</span>
+                @elseif(($status[3] ?? '-') === 'progress')
+                  <span class="badge badge-warning">Progress</span>
+
+
+
+
+
+
+                @else
+                  <span class="badge badge-secondary">Belum</span>
+                @endif
+              </td>
+
 
               <td>
                 @php
@@ -167,18 +193,18 @@
                   <span class="badge badge-warning">Dalam Progres</span>
                 @endif
               </td>
-              
+
               <td>
-              <button type="button"
-                class="btn btn-sm btn-info mr-1"
-                data-toggle="modal"
-                data-target="#jadwalModal-{{ $kota->id_kota }}">
-                Jadwal
-              </button>
-              <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
-                Artefak
-              </a>
-            </td>
+                <a href="{{ route('kota.artefak.detail', $kota->id_kota) }}" class="btn btn-sm btn-primary">
+                  Lihat Detail
+                </a> 
+              </td>
+
+
+
+
+
+
             </tr>
           @empty
             <tr>
@@ -200,72 +226,56 @@
   </div>
 </div>
 
-<!-- Modal Jadwal -->
-<div class="modal fade" id="jadwalModal-{{ $kota->id_kota }}" tabindex="-1" role="dialog" aria-labelledby="jadwalModalLabel-{{ $kota->id_kota }}" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+<!-- Modal KoTA yang Diuji -->
+<div class="modal fade" id="kotaUjiModal" tabindex="-1" role="dialog" aria-labelledby="kotaUjiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
       <div class="modal-header bg-info text-white">
-        <h5 class="modal-title" id="jadwalModalLabel-{{ $kota->id_kota }}">
-          Jadwal KoTA
+        <h5 class="modal-title" id="kotaUjiModalLabel">
+          <i class="fas fa-tasks mr-2"></i>
+          List KoTA yang Diuji
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body">
-        <strong>{{ $kota->nama_kota }}</strong><br>
-        <small class="text-muted">{{ $kota->judul }}</small>
-        <hr>
-        @php
-          $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
-          $timeline = [];
-          for ($i = 1; $i <= 4; $i++) {
-              $timeline[$i] = $kota->timelineTahapan->firstWhere('id_master_tahapan_progress', $i);
-          }
-          $tahapanProgress = $kota->tahapanProgress->keyBy('id_master_tahapan_progres');
-        @endphp
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Tahapan</th>
-              <th>Status</th>
-              <th>Mulai</th>
-              <th>Tenggat Waktu</th>
-              <th>Aktual Selesai</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for($i = 1; $i <= 4; $i++)
-              @php
-                $tl = $timeline[$i] ?? null;
-                $tp = $tahapanProgress[$i] ?? null;
-                $tenggatWaktu = $tl->tanggal_selesai ?? null;
-                $aktualSelesai = $tp->updated_at ?? null;
-              @endphp
+      
+        
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover" id="kotaUjiTable">
+            <thead class="thead-light">
               <tr>
-                <td>{{ $tahapanNames[$i-1] }}</td>
-                <td>
-                  @if(!$tl || empty($tenggatWaktu))
-                    <span class="badge badge-secondary">Belum dapat jadwal</span>
-                  @elseif(empty($tl->tanggal_mulai) || $tl->tanggal_mulai == '0000-00-00')
-                    <span class="badge badge-warning">Belum mulai</span>
-                  @elseif(!empty($tenggatWaktu) && !empty($aktualSelesai))
-                    @if(\Carbon\Carbon::parse($aktualSelesai)->gt(\Carbon\Carbon::parse($tenggatWaktu)))
-                      <span class="badge badge-danger">Selesai Terlambat</span>
-                    @else
-                      <span class="badge badge-success">Selesai Tepat Waktu</span>
-                    @endif
-                  @else
-                    <span class="badge badge-warning">Belum mulai</span>
-                  @endif
-                </td>
-                <td>{{ $tl->tanggal_mulai ?? '-' }}</td>
-                <td>{{ $tl->tanggal_selesai ?? '-' }}</td>
-                <td>{{ $tp->updated_at ?? '-' }}</td>
+                <th width="5%">No</th>
+                <th width="25%">Nama Kelompok</th>
+                <th width="35%">Judul</th>
+                <th width="15%">Tahapan Terakhir</th>
+                <th width="10%">Status</th>
               </tr>
-            @endfor
-          </tbody>
-        </table>
+            </thead>
+            <tbody id="kotaUjiTableBody">
+              <!-- Data akan dimuat via AJAX -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="d-flex justify-content-center mt-3">
+          <nav aria-label="Page navigation">
+            <ul class="pagination" id="kotaUjiPagination">
+              <!-- Pagination akan dimuat via AJAX -->
+            </ul>
+          </nav>
+        </div>
+        
+        <div class="text-center" id="loadingKotaUji" style="display: none;">
+          <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+          <p class="mt-2">Memuat data...</p>
+        </div>
+        
+        <div class="text-center" id="emptyKotaUji" style="display: none;">
+          <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">Tidak Ada KoTA yang Diuji</h5>
+          <p class="text-muted">Anda belum memiliki KoTA yang diuji</p>
+        </div>
       </div>
     </div>
   </div>
@@ -286,7 +296,7 @@
       }
     },
     series: [{
-      name: 'Jumlah KoTA Tuntas',
+      name: 'Jumlah KoTA Selesai',
       data: {!! json_encode(array_values($chartData)) !!}
     }],
     xaxis: {
@@ -413,17 +423,17 @@
         let lastCompletedStage = 0;
         
         kota.tahapan_progress.forEach(progress => {
-            if (progress.status === 'tuntas' && progress.id_master_tahapan_progres > lastCompletedStage) {
+            if (progress.status === 'selesai' && progress.id_master_tahapan_progres > lastCompletedStage) {
             lastCompletedStage = progress.id_master_tahapan_progres;
             }
         });
         
-        // Jika ada tahapan yang tuntas, tampilkan tahapan terakhir yang tuntas
+        // Jika ada tahapan yang selesai, tampilkan tahapan terakhir yang selesai
         if (lastCompletedStage > 0) {
             tahapanTerakhir = tahapanNames[lastCompletedStage] || 'Unknown';
-            statusBadge = 'success'; // Tahapan yang sudah tuntas
+            statusBadge = 'success'; // Tahapan yang sudah selesai
         } else {
-            // Jika tidak ada yang tuntas, cek apakah ada yang progress
+            // Jika tidak ada yang selesai, cek apakah ada yang progress
             const hasProgress = kota.tahapan_progress.some(progress => progress.status === 'progress');
             if (hasProgress) {
             // Cari tahapan terendah yang sedang progress
@@ -445,7 +455,7 @@
         
         if (kota.tahapan_progress) {
         const sidangProgress = kota.tahapan_progress.find(tp => tp.id_master_tahapan_progres === 4);
-        if (sidangProgress && sidangProgress.status === 'tuntas') {
+        if (sidangProgress && sidangProgress.status === 'selesai') {
             overallStatus = 'Selesai';
             overallBadge = 'success';
         }
