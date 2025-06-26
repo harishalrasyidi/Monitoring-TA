@@ -58,9 +58,10 @@ class YudisiumModel extends Model
      *
      * @param int|null $periode
      * @param string|null $kelas
+     * @param array|null $kotaIds
      * @return \Illuminate\Support\Collection
      */
-    public function getDistribusiYudisium($periode = null, $kelas = null)
+    public function getDistribusiYudisium($periode = null, $kelas = null, $kotaIds = null)
     {
         $query = DB::table($this->table)
             ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
@@ -73,6 +74,10 @@ class YudisiumModel extends Model
         
         if ($kelas) {
             $query->where('tbl_kota.kelas', $kelas);
+        }
+
+        if ($kotaIds) {
+            $query->whereIn('tbl_kota.id_kota', $kotaIds);
         }
         
         return $query->get();

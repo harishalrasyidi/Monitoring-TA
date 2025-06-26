@@ -24,7 +24,14 @@ class KoordinatorDashboardController extends Controller
         $sidangArtefak = [
             'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
         ];
-        $query = Kota::with(['tahapanProgress']);
+
+        // Ambil id_kota yang dipegang koordinator ini
+        $kotaIds = \DB::table('tbl_koor_has_kota')
+            ->where('id_user', $user->id)
+            ->pluck('id_kota')
+            ->toArray();
+
+        $query = Kota::with(['tahapanProgress'])->whereIn('id_kota', $kotaIds);
         if ($request->filled('periode')) {
             $query->where('periode', $request->periode);
         }
@@ -52,11 +59,11 @@ class KoordinatorDashboardController extends Controller
         $perPage = $request->get('per_page', 10);
         $kotaList = $query->paginate($perPage);
         $yudisiumModel = new YudisiumModel();
-        $totalYudisium1 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+        $totalYudisium1 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas, $kotaIds)
             ->where('kategori_yudisium', 1)->first()->jumlah ?? 0;
-        $totalYudisium2 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+        $totalYudisium2 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas, $kotaIds)
             ->where('kategori_yudisium', 2)->first()->jumlah ?? 0;
-        $totalYudisium3 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas)
+        $totalYudisium3 = $yudisiumModel->getDistribusiYudisium($request->periode, $request->kelas, $kotaIds)
             ->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
         $selesai = $query->whereHas('tahapanProgress', function($q) {
             $q->where('status', 'selesai');
