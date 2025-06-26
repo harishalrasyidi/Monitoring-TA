@@ -35,15 +35,14 @@ class DosbingDashboardController extends Controller
         $dalamProgres = 0;
         foreach ($allKota as $kota) {
             $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
-            $maxTahapan = 0;
-            foreach ($kota->tahapanProgress as $tp) {
-                if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapan) {
-                    $maxTahapan = $tp->id_master_tahapan_progres;
-                }
-            }
-            for ($i = 1; $i <= $maxTahapan; $i++) {
-                if (isset($tahapanNames[$i - 1])) {
-                    $chartData[$tahapanNames[$i - 1]]++;
+            $lastSelesaiTahapan = $kota->tahapanProgress
+                ->where('status', 'selesai')
+                ->sortByDesc('id_master_tahapan_progres')
+                ->first();
+            if ($lastSelesaiTahapan) {
+                $namaTahapan = optional($lastSelesaiTahapan->masterTahapan)->nama_progres;
+                if (isset($chartData[$namaTahapan])) {
+                    $chartData[$namaTahapan]++;
                 }
             }
             if ($tahapanProgress->isEmpty()) {
@@ -62,11 +61,6 @@ class DosbingDashboardController extends Controller
             ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
         $kelasList = Kota::whereIn('id_kota', $kotaIdsBimbingan)
             ->select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
-        $chartDataJumlah = array_values($chartData);
-        $chartDataPersen = [];
-        foreach ($chartData as $key => $val) {
-            $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
-        }
         return view('beranda.pembimbing.home', [
             'kotaList' => $kotaList,
             'totalKota' => $totalKota,
@@ -74,8 +68,6 @@ class DosbingDashboardController extends Controller
             'selesai' => $selesai,
             'dalamProgres' => $dalamProgres,
             'chartData' => $chartData,
-            'chartDataJumlah' => $chartDataJumlah,
-            'chartDataPersen' => $chartDataPersen,
             'periodes' => $periodes,
             'kelasList' => $kelasList,
         ]);
