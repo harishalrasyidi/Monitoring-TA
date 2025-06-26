@@ -1,7 +1,7 @@
 @extends('adminlte.layouts.app')
 @section('content')
 
-<div class="content-wrapper">
+<div class="content-wrapper p-4">
   <h3 class="mb-4">Dashboard Pembimbing TA</h3>
   <hr>
 

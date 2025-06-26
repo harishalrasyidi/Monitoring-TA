@@ -23,7 +23,20 @@ use Illuminate\Support\Facades\Storage;
 
 
 //Home
-Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2,3,4,5'])->name('home');
+Route::get('/', function() {
+    $user = auth()->user();
+    if ($user->role == 1) {
+        return app(\App\Http\Controllers\KoordinatorDashboardController::class)->index(request());
+    } elseif ($user->role == 2) {
+        return app(\App\Http\Controllers\DosbingDashboardController::class)->index(request());
+    } elseif ($user->role == 3) {
+        return app(\App\Http\Controllers\MahasiswaDashboardController::class)->index(request());
+    } elseif ($user->role == 4 || $user->role == 5) {
+        return app(\App\Http\Controllers\KaprodiDashboardController::class)->index(request());
+    } else {
+        abort(403, 'Akses tidak diizinkan.');
+    }
+})->middleware(['auth', 'role:1,2,3,4,5'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
 Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
