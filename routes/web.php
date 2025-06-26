@@ -41,8 +41,8 @@ Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_s
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
 Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
 Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('kota.artefak.detail');
-Route::middleware(['auth', 'role:5'])->group(function () {
-    Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getYudisiumListKaprodi'])->name('kaprodi.yudisium.list');
+Route::middleware(['auth', 'role:4,5'])->group(function () {
+    Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\KaprodiDashboardController::class, 'getKotaByYudisium'])->name('kaprodi.yudisium.list');
 });
 //Kota
 Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');

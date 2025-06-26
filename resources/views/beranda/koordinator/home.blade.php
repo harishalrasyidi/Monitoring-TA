@@ -296,7 +296,11 @@
         var kelas = "{{ request('kelas') }}";
         document.getElementById('modalYudisiumType').innerText = kategori;
 
-        fetch(`/koordinator/yudisium-list?kategori=${kategori}&periode=${periode}&kelas=${kelas}`)
+        let yudisiumUrl = '/koordinator/yudisium-list';
+        @if(auth()->user()->role == 4 || auth()->user()->role == 5)
+          yudisiumUrl = '/kaprodi/yudisium-list';
+        @endif
+        fetch(`${yudisiumUrl}?kategori=${kategori}&periode=${periode}&kelas=${kelas}`)
           .then(response => response.json())
           .then(data => {
             var tbody = document.getElementById('modalYudisiumTableBody');

@@ -25,15 +25,17 @@ class KaprodiDashboardController extends Controller
             'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
         ];
         if ($user->role == 5) {
-            $kotaIds = Kota::whereIn('kelas', [1, 2])
+            $kelasKaprodi = [1, 2]; // D3
+            $kotaIds = Kota::whereIn('kelas', $kelasKaprodi)
                 ->pluck('id_kota')
                 ->toArray();
-            $getYudisium = (new YudisiumModel())->getDistribusiYudisiumD3($request->periode, $request->kelas, $kotaIds);
+            $getYudisium = (new YudisiumModel())->getDistribusiYudisiumD3($request->periode, $request->kelas, $kotaIds, $kelasKaprodi);
         } else {
-            $kotaIds = Kota::whereIn('kelas', [3, 4])
+            $kelasKaprodi = [3, 4]; // D4
+            $kotaIds = Kota::whereIn('kelas', $kelasKaprodi)
                 ->pluck('id_kota')
                 ->toArray();
-            $getYudisium = (new YudisiumModel())->getDistribusiYudisiumD4($request->periode, $request->kelas, $kotaIds);
+            $getYudisium = (new YudisiumModel())->getDistribusiYudisiumD4($request->periode, $request->kelas, $kotaIds, $kelasKaprodi);
         }
         $query = Kota::with(['tahapanProgress'])->whereIn('id_kota', $kotaIds);
         if ($request->filled('periode')) {
@@ -118,5 +120,36 @@ class KaprodiDashboardController extends Controller
             'seminar3' => $seminar3,
             'sidang' => $sidang,
         ]);
+    }
+
+    public function getKotaByYudisium(Request $request)
+    {
+        $user = auth()->user();
+        $kategori = $request->kategori;
+        $periode = $request->periode;
+        $kelas = $request->kelas;
+
+        // Tentukan kelas yang dipegang kaprodi
+        if ($user->role == 5) {
+            $kelasKaprodi = [1, 2]; // D3
+        } else {
+            $kelasKaprodi = [3, 4]; // D4
+        }
+
+        $kotaList = \DB::table('tbl_yudisium')
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->where('tbl_yudisium.kategori_yudisium', $kategori)
+            ->whereIn('tbl_kota.kelas', $kelasKaprodi);
+
+        if ($periode) {
+            $kotaList->where('tbl_kota.periode', $periode);
+        }
+        if ($kelas) {
+            $kotaList->where('tbl_kota.kelas', $kelas);
+        }
+
+        $kotaList = $kotaList->select('tbl_kota.nama_kota', 'tbl_kota.judul')->get();
+
+        return response()->json($kotaList);
     }
 } 
