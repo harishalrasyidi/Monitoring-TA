@@ -332,10 +332,13 @@
     },
     dataLabels: {
       enabled: true,
-      formatter: function (val, opts) {
-        var totalKota = {{ $totalKota }};
-        var persen = {!! json_encode($chartDataPersen) !!}[opts.dataPointIndex];
-        return val + '/' + totalKota + '<br>(' + persen + '%)';
+      offsetY: -20,
+      style: {
+        fontSize: '12px',
+        colors: ["#304758"]
+      },
+      formatter: function (val) {
+        return Math.floor(val); // Tampilkan data label sebagai integer
       }
     },
     title: {

@@ -284,7 +284,7 @@
         formatter: function (val, opts) {
           var totalKota = {{ $totalKota }};
           var persen = {!! json_encode($chartDataPersen) !!}[opts.dataPointIndex];
-          return val + '/' + totalKota + '<br>(' + persen + '%)';
+          return val + '/' + totalKota + '\n(' + persen + '%)';
         }
       },
       tooltip: {
