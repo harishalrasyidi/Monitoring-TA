@@ -6,6 +6,9 @@
   <h3 class="mb-4">
     @if (auth()->user()->role == 1)
       Dashboard Koordinator TA
+      @if(isset($kelasList) && isset($kelasLabels) && count($kelasList))
+        <span class="h6 text-muted">(Kelas: {{ collect($kelasList)->map(fn($k)=>($kelasLabels[$k]??$k))->implode(', ') }})</span>
+      @endif
     @elseif (auth()->user()->role == 5)
       Dashboard Kaprodi D3
     @elseif (auth()->user()->role == 4)
@@ -15,7 +18,7 @@
   <hr>
 
   <!-- Filter Tahun & Kelas -->
-  <div class="mb-4">
+  {{--   <div class="mb-4">
     <form method="GET" id="filterForm" class="form-inline">
       <label class="mr-2">Tahun:</label>
       <select name="periode" class="form-control mr-2" onchange="this.form.submit()">
@@ -45,7 +48,7 @@
 
       <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
     </form>
-  </div>
+  </div> --}}
 
   <!-- Kartu Ringkasan -->
   <div class="row text-center align-items-stretch">

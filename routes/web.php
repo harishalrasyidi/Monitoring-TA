@@ -144,7 +144,7 @@ Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 
 Route::get('/yudisium/kelola', [App\Http\Controllers\YudisiumController::class, 'index'])->name('yudisium.kelola');
 Route::get('/yudisium/detail/{id}', [App\Http\Controllers\YudisiumController::class, 'show'])->name('yudisium.detail');
 // Route::post('/yudisium/generate', [App\Http\Controllers\YudisiumController::class, 'generate'])->name('yudisium.generate');
-Route::get('/koordinator/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
+Route::get('/koordinator/yudisium-list', [App\Http\Controllers\KoordinatorDashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
 
 // History
 Route::get('/history', [App\Http\Controllers\HistoryController::class, 'index'])->middleware(['auth', 'role:2'])->name('history.index');
