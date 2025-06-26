@@ -272,28 +272,13 @@
     var options = {
       chart: { type: 'bar', height: 350 },
       series: [{
-        name: 'Jumlah KoTA',
-        data: {!! json_encode($chartDataJumlah) !!}
+        name: 'Jumlah Mahasiswa',
+        data: {!! json_encode(array_values($chartData)) !!}
       }],
       xaxis: {
         categories: {!! json_encode(array_keys($chartData)) !!}
       },
-      colors: ['#28a745'],
-      dataLabels: {
-        enabled: true,
-        formatter: function (val, opts) {
-          var totalKota = {{ $totalKota }};
-          var persen = {!! json_encode($chartDataPersen) !!}[opts.dataPointIndex];
-          return val + '/' + totalKota + '\n(' + persen + '%)';
-        }
-      },
-      tooltip: {
-        y: {
-          formatter: function (val, opts) {
-            return val + ' KoTA';
-          }
-        }
-      }
+      colors: ['#28a745', '#ffc107', '#dc3545', '#007bff']
     };
     var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
     chart.render();
