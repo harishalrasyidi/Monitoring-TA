@@ -326,19 +326,21 @@
         borderRadius: 4,
         horizontal: false,
         dataLabels: {
-          position: 'top'
+          position: 'center'
         }
       }
     },
     dataLabels: {
       enabled: true,
-      offsetY: -20,
       style: {
-        fontSize: '12px',
-        colors: ["#304758"]
+        colors: ['#fff'],
+        fontWeight: 'bold'
       },
-      formatter: function (val) {
-        return Math.floor(val); // Tampilkan data label sebagai integer
+      formatter: function (val, opts) {
+        var totalKota = {{ $totalKota }};
+        var persen = {!! json_encode($chartDataPersen) !!}[opts.dataPointIndex];
+        var persenStr = persen.toString().replace('.', ',');
+        return val + '/' + totalKota + '(' + persenStr + '%)';
       }
     },
     title: {

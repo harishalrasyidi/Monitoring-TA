@@ -52,14 +52,15 @@ class KoordinatorDashboardController extends Controller
         $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
         $chartData = array_fill_keys($tahapanNames, 0);
         foreach ($allKota as $kota) {
-            $lastSelesaiTahapan = $kota->tahapanProgress
-                ->where('status', 'selesai')
-                ->sortByDesc('id_master_tahapan_progres')
-                ->first();
-            if ($lastSelesaiTahapan) {
-                $namaTahapan = optional($lastSelesaiTahapan->masterTahapan)->nama_progres;
-                if (isset($chartData[$namaTahapan])) {
-                    $chartData[$namaTahapan]++;
+            $maxTahapan = 0;
+            foreach ($kota->tahapanProgress as $tp) {
+                if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapan) {
+                    $maxTahapan = $tp->id_master_tahapan_progres;
+                }
+            }
+            for ($i = 1; $i <= $maxTahapan; $i++) {
+                if (isset($tahapanNames[$i - 1])) {
+                    $chartData[$tahapanNames[$i - 1]]++;
                 }
             }
         }
@@ -101,10 +102,17 @@ class KoordinatorDashboardController extends Controller
             ->whereIn('a.nama_artefak', $sidangArtefak)
             ->select('a.nama_artefak', 'kha.*')
             ->get();
+        $chartDataJumlah = array_values($chartData);
+        $chartDataPersen = [];
+        foreach ($chartData as $key => $val) {
+            $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
+        }
         return view('beranda.koordinator.home', [
             'kotaList' => $kotaList,
             'totalKota' => $totalKota,
             'chartData' => $chartData,
+            'chartDataJumlah' => $chartDataJumlah,
+            'chartDataPersen' => $chartDataPersen,
             'periodes' => $periodes,
             'kelasList' => $kelasList,
             'kelasLabels' => $kelasLabels,
@@ -117,7 +125,6 @@ class KoordinatorDashboardController extends Controller
         ]);
     }
 
-    //
     public function getKotaByYudisium(Request $request)
     {
         $user = auth()->user();
