@@ -46,7 +46,7 @@ Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('
 Route::middleware(['auth', 'role:4,5'])->group(function () {
     Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\KaprodiDashboardController::class, 'getKotaByYudisium'])->name('kaprodi.yudisium.list');
 });
-Route::get('/koordinator/dashboard', [KaprodiDashboardController::class, 'index'])->name('kaprodi.dashboard');
+Route::get('/kaprodi/dashboard', [KaprodiDashboardController::class, 'index'])->name('kaprodi.dashboard');
 Route::get('/koordinator/dashboard', [KoordinatorDashboardController::class, 'index'])->name('koordinator.dashboard');
 //Kota
 Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
