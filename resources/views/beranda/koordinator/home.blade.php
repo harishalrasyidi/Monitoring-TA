@@ -157,23 +157,29 @@
         <strong class="mb-2 mb-md-0">List KoTA</strong>
 
         <!-- Search Form -->
-        <form method="GET" 
-          action="{{ auth()->user()->role == 1 ? route('koordinator.dashboard') : route('kaprodi.dashboard') }}" 
-          class="d-flex align-items-center w-100" 
-          style="max-width: 400px;">
-          <input 
-            type="text" 
-            name="search" 
-            class="form-control form-control-lg mr-2" 
-            placeholder="Cari nama kota atau judul..." 
-            value="{{ request('search') }}" 
-            style="flex: 1;"
-          >
-          <button type="submit" class="btn btn-lg btn-primary">
-            <i class="fas fa-search"></i>
-          </button>
-          <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
-        </form>
+       <form method="GET" 
+      action="{{ auth()->user()->role == 1 ? route('koordinator.dashboard') : route('kaprodi.dashboard') }}" 
+      class="d-flex align-items-center w-100" 
+      style="max-width: 400px;">
+    
+    <input 
+      type="text" 
+      name="search" 
+      class="form-control form-control-lg mr-2" 
+      placeholder="Cari nama kota atau judul..." 
+      value="{{ request('search') }}" 
+      style="flex: 1;"
+    >
+    <button type="submit" class="btn btn-lg btn-primary">
+      <i class="fas fa-search"></i>
+    </button>
+
+    <!-- 🔁 Tambahkan hidden input agar filter tidak hilang -->
+    <input type="hidden" name="periode" value="{{ request('periode') }}">
+    <input type="hidden" name="kelas" value="{{ request('kelas') }}">
+    <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+</form>
+
       </div>
     </div>
 
