@@ -90,14 +90,46 @@
   </div>
 
   <!-- List KoTA Bimbingan -->
-  <div class="card mt-4">
+    <div class="card mt-4">
     <div class="card-header">
-      <strong>List KoTA Bimbingan</strong>
-      <div class="float-right">
-        <small class="text-muted">Total: {{ $totalKota }} KoTA</small>
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <strong class="mb-2 mb-md-0">List KoTA</strong>
+
+        <!-- Search Form -->
+       <form method="GET" action="{{ route('dosbing.dashboard') }}" class="d-flex align-items-center w-100" style="max-width: 400px;">
+    
+    <input 
+      type="text" 
+      name="search" 
+      class="form-control form-control-lg mr-2" 
+      placeholder="Cari nama kota atau judul..." 
+      value="{{ request('search') }}" 
+      style="flex: 1;"
+    >
+    <button type="submit" class="btn btn-lg btn-primary">
+      <i class="fas fa-search"></i>
+    </button>
+
+    <!-- 🔁 Tambahkan hidden input agar filter tidak hilang -->
+    <input type="hidden" name="periode" value="{{ request('periode') }}">
+    <input type="hidden" name="kelas" value="{{ request('kelas') }}">
+    <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+</form>
+
       </div>
     </div>
+
     <div class="card-body table-responsive">
+      @if(request('search'))
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+          <i class="fas fa-info-circle"></i>
+          Menampilkan hasil pencarian untuk: <strong>"{{ request('search') }}"</strong>
+          <small class="ml-2 text-muted">({{ $kotaList->total() }} hasil ditemukan)</small>
+          <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+          </button>
+        </div>
+      @endif
       <table class="table table-bordered table-hover">
         <thead class="thead-light">
           <tr>
