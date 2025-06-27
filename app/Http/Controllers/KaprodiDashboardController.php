@@ -81,9 +81,19 @@ class KaprodiDashboardController extends Controller
         foreach ($chartData as $val) {
             $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
         }
-
-        // Hitung statistik cards lainnya (TANPA SEARCH)
-        $selesai = $statistikQuery->whereHas('tahapanProgress', function ($q) {
+        // Timeline data untuk chart tooltip
+        $timelineData = DB::table('tbl_timeline')
+            ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+            ->orderBy('tanggal_mulai')
+            ->get()
+            ->toArray();
+            
+        $perPage = $request->get('per_page', 10);
+        $kotaList = $query->paginate($perPage);
+        $totalYudisium1 = $getYudisium->where('kategori_yudisium', 1)->first()->jumlah ?? 0;
+        $totalYudisium2 = $getYudisium->where('kategori_yudisium', 2)->first()->jumlah ?? 0;
+        $totalYudisium3 = $getYudisium->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
+        $selesai = $query->whereHas('tahapanProgress', function ($q) {
             $q->where('status', 'selesai');
         }, '=', 4)->count();
         

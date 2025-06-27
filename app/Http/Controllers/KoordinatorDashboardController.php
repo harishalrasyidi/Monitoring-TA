@@ -64,6 +64,14 @@ class KoordinatorDashboardController extends Controller
                 }
             }
         }
+
+        // Timeline data untuk chart tooltip
+        $timelineData = DB::table('tbl_timeline')
+            ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+            ->orderBy('tanggal_mulai')
+            ->get()
+            ->toArray();
+
         $perPage = $request->get('per_page', 10);
         $kotaList = $query->paginate($perPage);
         $yudisiumModel = new YudisiumModel();
@@ -122,6 +130,7 @@ class KoordinatorDashboardController extends Controller
             'selesai' => $selesai,
             'dalamProgres' => $dalamProgres,
             'totalKotaUji' => $totalKotaUji,
+            'timelineData' => $timelineData,
         ]);
     }
 

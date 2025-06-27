@@ -57,6 +57,14 @@ class DosbingDashboardController extends Controller
                 $dalamProgres++;
             }
         }
+
+        // Timeline data untuk chart tooltip
+        $timelineData = \Illuminate\Support\Facades\DB::table('tbl_timeline')
+            ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+            ->orderBy('tanggal_mulai')
+            ->get()
+            ->toArray();
+
         $kotaList = $query->paginate(10);
         $periodes = Kota::whereIn('id_kota', $kotaIdsBimbingan)
             ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
@@ -78,6 +86,7 @@ class DosbingDashboardController extends Controller
             'chartDataPersen' => $chartDataPersen,
             'periodes' => $periodes,
             'kelasList' => $kelasList,
+            'timelineData' => $timelineData,
         ]);
     }
 } 
