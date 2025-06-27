@@ -123,4 +123,24 @@ class KoordinatorDashboardController extends Controller
         ]);
     }
 
+    public function getKotaByYudisium(Request $request)
+    {
+        $user = auth()->user();
+        $kategori = $request->kategori;
+
+        // Ambil kelas yang dipegang koordinator
+        $kelasKoordinator = \DB::table('tbl_koor_has_kelas')
+            ->where('id_user', $user->id)
+            ->pluck('kelas')
+            ->toArray();
+
+        $kotaList = \DB::table('tbl_yudisium')
+            ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
+            ->where('tbl_yudisium.kategori_yudisium', $kategori)
+            ->whereIn('tbl_kota.kelas', $kelasKoordinator)
+            ->select('tbl_kota.nama_kota', 'tbl_kota.judul')
+            ->get();
+
+        return response()->json($kotaList);
+    }
 } 
