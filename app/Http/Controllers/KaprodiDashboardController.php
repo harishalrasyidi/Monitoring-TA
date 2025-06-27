@@ -70,6 +70,14 @@ class KaprodiDashboardController extends Controller
         foreach ($chartData as $key => $val) {
             $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
         }
+
+        // Timeline data untuk chart tooltip
+        $timelineData = DB::table('tbl_timeline')
+            ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+            ->orderBy('tanggal_mulai')
+            ->get()
+            ->toArray();
+
         $perPage = $request->get('per_page', 10);
         $kotaList = $query->paginate($perPage);
         $totalYudisium1 = $getYudisium->where('kategori_yudisium', 1)->first()->jumlah ?? 0;
@@ -127,6 +135,7 @@ class KaprodiDashboardController extends Controller
             'seminar2' => $seminar2,
             'seminar3' => $seminar3,
             'sidang' => $sidang,
+            'timelineData' => $timelineData
         ]);
     }
 

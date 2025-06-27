@@ -270,6 +270,9 @@
 @push('scripts')
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    
+    const timelineData = @json($timelineData);
+
     var options = {
       chart: { type: 'bar', height: 350 },
       series: [{
@@ -289,13 +292,59 @@
           return val + '/' + totalKota + '(' + persenStr + '%)';
         }
       },
+      // tooltip: {
+      //   y: {
+      //     formatter: function (val, opts) {
+      //       return val + ' KoTA';
+      //     }
+      //   }
+      // }
+
       tooltip: {
-        y: {
-          formatter: function (val, opts) {
-            return val + ' KoTA';
-          }
+      custom: function({series, seriesIndex, dataPointIndex, w}) {
+        const tahapanName = w.globals.labels[dataPointIndex];
+        const kotaCount = series[seriesIndex][dataPointIndex];
+        const timeline = timelineData.find(item => item.name === tahapanName);
+        let timelineInfo = '';
+        if (timeline) {
+          const startDate = new Date(timeline.start).toLocaleDateString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric'
+          });
+          const endDate = new Date(timeline.end).toLocaleDateString('id-ID', {
+            day: '2-digit', month: 'short', year: 'numeric'
+          });
+          timelineInfo = `
+            <div style="border-top: 1px solid #e0e0e0; margin-top: 8px; padding-top: 8px;">
+              <div style="font-size: 11px; color: #666; margin-bottom: 2px;">
+                <strong>📅 Timeline:</strong>
+              </div>
+              <div style="font-size: 10px; color: #888;">
+                <div>🟢 Mulai: ${startDate}</div>
+                <div>🔴 Selesai: ${endDate}</div>
+              </div>
+            </div>
+          `;
         }
+        return `
+          <div style="
+            background: #fff; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 6px; 
+            padding: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 180px;
+          ">
+            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">
+              ${tahapanName}
+            </div>
+            <div style="color: #28a745; font-size: 14px; font-weight: 500;">
+              ${Math.floor(kotaCount)} KoTA Selesai
+            </div>
+            ${timelineInfo}
+          </div>
+        `;
       }
+    }
     };
     var chart = new ApexCharts(document.querySelector("#tahapanChart"), options);
     chart.render();
