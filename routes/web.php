@@ -5,6 +5,8 @@ use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Controllers\Mahasiswa\DashboardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KaprodiDashboardController;
+use App\Http\Controllers\KoordinatorDashboardController;
 use Illuminate\Support\Facades\Storage;
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +46,8 @@ Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('
 Route::middleware(['auth', 'role:4,5'])->group(function () {
     Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\KaprodiDashboardController::class, 'getKotaByYudisium'])->name('kaprodi.yudisium.list');
 });
+Route::get('/koordinator/dashboard', [KaprodiDashboardController::class, 'index'])->name('kaprodi.dashboard');
+Route::get('/koordinator/dashboard', [KoordinatorDashboardController::class, 'index'])->name('koordinator.dashboard');
 //Kota
 Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
 Route::get('/kota/create', [App\Http\Controllers\KotaController::class, 'create'])->middleware(['auth', 'role:1,2'])->name('kota.create'); //menambahkan data

@@ -11,6 +11,8 @@ class KaprodiDashboardController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $search = $request->get('search');
+        
         $seminar1Artefak = [
             'FTA 01', 'FTA 02', 'FTA 03', 'FTA 04', 'FTA 05a', 'Proposal Tugas Akhir'
         ];
@@ -24,6 +26,8 @@ class KaprodiDashboardController extends Controller
         $sidangArtefak = [
             'FTA 13', 'FTA 14', 'FTA 15', 'FTA 16', 'FTA 17', 'FTA 18', 'FTA 19'
         ];
+
+        // Tentukan kelas yang dipegang kaprodi
         if ($user->role == 5) {
             $kelasKaprodi = [1, 2]; // D3
             $kotaIds = Kota::whereIn('kelas', $kelasKaprodi)
@@ -37,96 +41,162 @@ class KaprodiDashboardController extends Controller
                 ->toArray();
             $getYudisium = (new YudisiumModel())->getDistribusiYudisiumD4($request->periode, $request->kelas, $kotaIds, $kelasKaprodi);
         }
-        $query = Kota::with(['tahapanProgress'])->whereIn('id_kota', $kotaIds);
+
+        // ========================================
+        // QUERY UNTUK STATISTIK DAN GRAFIK (TANPA SEARCH)
+        // ========================================
+        $statistikQuery = Kota::with(['tahapanProgress.masterTahapan'])->whereIn('id_kota', $kotaIds);
+        
+        // Apply filter periode dan kelas untuk statistik
         if ($request->filled('periode')) {
-            $query->where('periode', $request->periode);
+            $statistikQuery->where('periode', $request->periode);
         }
         if ($request->filled('kelas')) {
-            $query->where('kelas', $request->kelas);
+            $statistikQuery->where('kelas', $request->kelas);
         }
-        $totalKota = $query->count();
+
+        // Hitung statistik untuk cards (TANPA SEARCH)
+        $totalKota = $statistikQuery->count();
+        $allKotaForStats = $statistikQuery->get();
+
+        // Generate chart data (TANPA SEARCH)
+        $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+        $chartData = array_fill_keys($tahapanNames, 0);
+        foreach ($allKotaForStats as $kota) {
+            $lastSelesaiTahapan = $kota->tahapanProgress
+                ->where('status', 'selesai')
+                ->sortByDesc('id_master_tahapan_progres')
+                ->first();
+            if ($lastSelesaiTahapan) {
+                $namaTahapan = optional($lastSelesaiTahapan->masterTahapan)->nama_progres;
+                if (isset($chartData[$namaTahapan])) {
+                    $chartData[$namaTahapan]++;
+                }
+            }
+        }
+
+        // Hitung persentase untuk chart (TANPA SEARCH)
+        $chartDataJumlah = array_values($chartData);
+        $chartDataPersen = [];
+        foreach ($chartData as $val) {
+            $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
+        }
+
+        // Hitung statistik cards lainnya (TANPA SEARCH)
+        $selesai = $statistikQuery->whereHas('tahapanProgress', function ($q) {
+            $q->where('status', 'selesai');
+        }, '=', 4)->count();
+        
+        $dalamProgres = $totalKota - $selesai;
+        
+        $totalKotaUji = $statistikQuery->whereHas('tahapanProgress', function ($q) {
+            $q->where('status', 'selesai')
+              ->whereHas('masterTahapan', function ($q) {
+                  $q->where('nama_progres', 'Sidang');
+              });
+        })->count();
+
+        // ========================================
+        // QUERY UNTUK TABEL LIST KOTA (DENGAN SEARCH)
+        // ========================================
+        $tabelQuery = Kota::with(['tahapanProgress.masterTahapan'])->whereIn('id_kota', $kotaIds);
+        
+        // Apply filter periode dan kelas untuk tabel
+        if ($request->filled('periode')) {
+            $tabelQuery->where('periode', $request->periode);
+        }
+        if ($request->filled('kelas')) {
+            $tabelQuery->where('kelas', $request->kelas);
+        }
+
+        // Apply SEARCH hanya untuk tabel
+        if ($search) {
+            $tabelQuery->where(function ($q) use ($search) {
+                $q->where('nama_kota', 'LIKE', '%' . $search . '%')
+                  ->orWhere('judul', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        // ========================================
+        // DATA LAINNYA (TIDAK TERPENGARUH SEARCH)
+        // ========================================
+        
+        // Timeline data untuk chart tooltip
+        $timelineData = DB::table('tbl_timeline')
+            ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+            ->orderBy('tanggal_mulai')
+            ->get()
+            ->toArray();
+
+        // Data filter options
         $periodes = Kota::whereIn('id_kota', $kotaIds)
             ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
         $kelasList = Kota::whereIn('id_kota', $kotaIds)
             ->select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
-        $allKota = $query->with(['tahapanProgress.masterTahapan'])->get();
-        $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
-        $chartData = array_fill_keys($tahapanNames, 0);
-        foreach ($allKota as $kota) {
-            $maxTahapan = 0;
-            foreach ($kota->tahapanProgress as $tp) {
-                if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapan) {
-                    $maxTahapan = $tp->id_master_tahapan_progres;
-                }
-            }
-            for ($i = 1; $i <= $maxTahapan; $i++) {
-                if (isset($tahapanNames[$i - 1])) {
-                    $chartData[$tahapanNames[$i - 1]]++;
-                }
-            }
-        }
-        $chartDataJumlah = array_values($chartData);
-        $chartDataPersen = [];
-        foreach ($chartData as $key => $val) {
-            $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
-        }
-        $perPage = $request->get('per_page', 10);
-        $kotaList = $query->paginate($perPage);
+
+        // Data yudisium (TANPA SEARCH)
         $totalYudisium1 = $getYudisium->where('kategori_yudisium', 1)->first()->jumlah ?? 0;
         $totalYudisium2 = $getYudisium->where('kategori_yudisium', 2)->first()->jumlah ?? 0;
         $totalYudisium3 = $getYudisium->where('kategori_yudisium', 3)->first()->jumlah ?? 0;
-        $selesai = $query->whereHas('tahapanProgress', function ($q) {
-            $q->where('status', 'selesai');
-        }, '=', 4)->count();
-        $dalamProgres = $totalKota - $selesai;
-        $totalKotaUji = $query->whereHas('tahapanProgress', function ($q) {
-            $q->where('status', 'selesai')
-            ->whereHas('masterTahapan', function ($q) {
-                $q->where('nama_progres', 'Sidang');
-            });
-        })->count();
+
+        // Data artefak (TANPA SEARCH)
         $seminar1 = DB::table('tbl_kota_has_artefak as kha')
             ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
             ->whereIn('a.nama_artefak', $seminar1Artefak)
             ->whereIn('kha.id_kota', $kotaIds)
             ->select('a.nama_artefak', 'kha.*')
             ->get();
+
         $seminar2 = DB::table('tbl_kota_has_artefak as kha')
             ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
             ->whereIn('a.nama_artefak', $seminar2Artefak)
             ->whereIn('kha.id_kota', $kotaIds)
             ->select('a.nama_artefak', 'kha.*')
             ->get();
+
         $seminar3 = DB::table('tbl_kota_has_artefak as kha')
             ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
             ->whereIn('a.nama_artefak', $seminar3Artefak)
             ->whereIn('kha.id_kota', $kotaIds)
             ->select('a.nama_artefak', 'kha.*')
             ->get();
+
         $sidang = DB::table('tbl_kota_has_artefak as kha')
             ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
             ->whereIn('a.nama_artefak', $sidangArtefak)
             ->whereIn('kha.id_kota', $kotaIds)
             ->select('a.nama_artefak', 'kha.*')
             ->get();
+
+        // ========================================
+        // PAGINATION UNTUK TABEL (DENGAN SEARCH)
+        // ========================================
+        $perPage = $request->get('per_page', 10);
+        $kotaList = $tabelQuery->paginate($perPage)->appends($request->query());
+
         return view('beranda.koordinator.home', [
-            'kotaList' => $kotaList,
+            'kotaList' => $kotaList, // HANYA INI YANG TERPENGARUH SEARCH
+            
+            // DATA STATISTIK DAN GRAFIK (TIDAK TERPENGARUH SEARCH)
             'totalKota' => $totalKota,
             'chartData' => $chartData,
             'chartDataJumlah' => $chartDataJumlah,
             'chartDataPersen' => $chartDataPersen,
-            'periodes' => $periodes,
-            'kelasList' => $kelasList,
-            'totalYudisium1' => $totalYudisium1,
-            'totalYudisium2' => $totalYudisium2,
-            'totalYudisium3' => $totalYudisium3,
             'selesai' => $selesai,
             'dalamProgres' => $dalamProgres,
             'totalKotaUji' => $totalKotaUji,
+            'totalYudisium1' => $totalYudisium1,
+            'totalYudisium2' => $totalYudisium2,
+            'totalYudisium3' => $totalYudisium3,
+            
+            // DATA LAINNYA
+            'periodes' => $periodes,
+            'kelasList' => $kelasList,
             'seminar1' => $seminar1,
             'seminar2' => $seminar2,
             'seminar3' => $seminar3,
             'sidang' => $sidang,
+            'timelineData' => $timelineData
         ]);
     }
 
@@ -144,7 +214,7 @@ class KaprodiDashboardController extends Controller
             $kelasKaprodi = [3, 4]; // D4
         }
 
-        $kotaList = \DB::table('tbl_yudisium')
+        $kotaList = DB::table('tbl_yudisium')
             ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
             ->where('tbl_yudisium.kategori_yudisium', $kategori)
             ->whereIn('tbl_kota.kelas', $kelasKaprodi);
@@ -160,4 +230,4 @@ class KaprodiDashboardController extends Controller
 
         return response()->json($kotaList);
     }
-} 
+}
