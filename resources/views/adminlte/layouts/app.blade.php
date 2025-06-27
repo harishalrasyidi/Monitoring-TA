@@ -44,8 +44,136 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
   <style>
-
-</style>
+    /* Custom CSS untuk sidebar hitam sampai bawah */
+    body {
+      min-height: 100vh;
+    }
+    
+    .wrapper {
+      min-height: 100vh;
+    }
+    
+    .main-sidebar {
+      background-color: #343a40 !important;
+      min-height: 100vh !important;
+      height: 100vh !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      bottom: 0 !important;
+      z-index: 1038 !important;
+      width: 250px !important;
+    }
+    
+    .sidebar {
+      background-color: #343a40 !important;
+      min-height: calc(100vh - 60px) !important;
+      height: calc(100vh - 60px) !important;
+      overflow-y: auto !important;
+    }
+    
+    .brand-link {
+      background-color: #343a40 !important;
+      border-bottom: 1px solid #4b545c !important;
+      height: 60px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    /* Memastikan content area tidak tumpang tindih dengan sidebar */
+    .content-wrapper {
+      margin-left: 250px !important;
+      min-height: calc(100vh - 60px);
+      background-color: #f4f6f9;
+    }
+    
+    /* Memastikan navbar tetap di atas */
+    .main-header {
+      margin-left: 250px !important;
+      position: fixed !important;
+      top: 0 !important;
+      right: 0 !important;
+      left: 250px !important;
+      z-index: 1030 !important;
+    }
+    
+    /* Responsive untuk mobile */
+    @media (max-width: 768px) {
+      .content-wrapper {
+        margin-left: 0 !important;
+      }
+      
+      .main-header {
+        margin-left: 0 !important;
+        left: 0 !important;
+      }
+      
+      .main-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+      }
+      
+      .sidebar-open .main-sidebar {
+        transform: translateX(0);
+      }
+    }
+    
+    /* Override AdminLTE default styles */
+    .sidebar-dark-primary {
+      background-color: #343a40 !important;
+    }
+    
+    .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link {
+      color: #c2c7d0 !important;
+    }
+    
+    .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover {
+      background-color: #494e53 !important;
+      color: #fff !important;
+    }
+    
+    .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+      background-color: #007bff !important;
+      color: #fff !important;
+    }
+    
+    /* Override untuk collapse menu */
+    .nav-sidebar .nav-treeview {
+      background-color: #2c3136 !important;
+    }
+    
+    .nav-sidebar .nav-treeview .nav-link {
+      color: #c2c7d0 !important;
+    }
+    
+    .nav-sidebar .nav-treeview .nav-link:hover {
+      background-color: #494e53 !important;
+      color: #fff !important;
+    }
+    
+    /* Override yang lebih spesifik untuk memastikan sidebar hitam */
+    .wrapper .main-sidebar.sidebar-dark-primary {
+      background-color: #343a40 !important;
+    }
+    
+    .wrapper .main-sidebar.sidebar-dark-primary .sidebar {
+      background-color: #343a40 !important;
+    }
+    
+    .wrapper .main-sidebar.sidebar-dark-primary .brand-link {
+      background-color: #343a40 !important;
+    }
+    
+    /* Memastikan tidak ada background putih yang muncul */
+    .main-sidebar * {
+      background-color: inherit !important;
+    }
+    
+    .sidebar * {
+      background-color: inherit !important;
+    }
+  </style>
 
 </head>
 <body class="hold-transition sidebar-mini">
