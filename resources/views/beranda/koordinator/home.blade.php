@@ -318,7 +318,7 @@
               <div style="font-size: 11px; color: #666; margin-bottom: 2px;">
                 <strong>📅 Timeline:</strong>
               </div>
-              <div style="font-size: 10px; color: #888;">
+              <div style="font-size: 15px; color: #888;">
                 <div>🟢 Mulai: ${startDate}</div>
                 <div>🔴 Selesai: ${endDate}</div>
               </div>
