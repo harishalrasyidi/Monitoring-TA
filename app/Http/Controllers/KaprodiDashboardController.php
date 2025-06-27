@@ -63,14 +63,21 @@ class KaprodiDashboardController extends Controller
         $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
         $chartData = array_fill_keys($tahapanNames, 0);
         foreach ($allKotaForStats as $kota) {
-            $lastSelesaiTahapan = $kota->tahapanProgress
-                ->where('status', 'selesai')
-                ->sortByDesc('id_master_tahapan_progres')
-                ->first();
-            if ($lastSelesaiTahapan) {
-                $namaTahapan = optional($lastSelesaiTahapan->masterTahapan)->nama_progres;
-                if (isset($chartData[$namaTahapan])) {
-                    $chartData[$namaTahapan]++;
+            // Hitung kumulatif - setiap tahapan menghitung semua KoTA yang sudah melewati tahapan tersebut
+            $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+            
+            // Hitung tahapan tertinggi yang sudah selesai
+            $maxTahapanSelesai = 0;
+            foreach ($tahapanProgress as $tp) {
+                if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapanSelesai) {
+                    $maxTahapanSelesai = $tp->id_master_tahapan_progres;
+                }
+            }
+            
+            // Tambahkan ke semua tahapan yang sudah dilewati (kumulatif)
+            for ($i = 1; $i <= $maxTahapanSelesai; $i++) {
+                if (isset($tahapanNames[$i - 1])) {
+                    $chartData[$tahapanNames[$i - 1]]++;
                 }
             }
         }

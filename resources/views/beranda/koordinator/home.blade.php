@@ -327,7 +327,7 @@
           var totalKota = {{ $totalKota }};
           var persen = {!! json_encode($chartDataPersen) !!}[opts.dataPointIndex];
           var persenStr = persen.toString().replace('.', ',');
-          return val + '/' + totalKota + '(' + persenStr + '%)';
+          return val + '/' + totalKota + ' KoTA (' + persenStr + '%)';
         }
       },
       // tooltip: {

@@ -45,17 +45,22 @@ class DosbingDashboardController extends Controller
 
     foreach ($allFilteredKota as $kota) {
         $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
-        $maxTahapan = 0;
+        
+        // Hitung tahapan tertinggi yang sudah selesai
+        $maxTahapanSelesai = 0;
         foreach ($tahapanProgress as $tp) {
-            if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapan) {
-                $maxTahapan = $tp->id_master_tahapan_progres;
+            if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapanSelesai) {
+                $maxTahapanSelesai = $tp->id_master_tahapan_progres;
             }
         }
-        for ($i = 1; $i <= $maxTahapan; $i++) {
+        
+        // Tambahkan ke semua tahapan yang sudah dilewati (kumulatif)
+        for ($i = 1; $i <= $maxTahapanSelesai; $i++) {
             if (isset($tahapanNames[$i - 1])) {
                 $chartData[$tahapanNames[$i - 1]]++;
             }
         }
+        
         if ($tahapanProgress->isEmpty()) {
             $dalamProgres++;
             continue;
