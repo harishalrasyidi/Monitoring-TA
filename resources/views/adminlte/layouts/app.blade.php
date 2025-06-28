@@ -43,6 +43,10 @@
 {{-- apexchart --}}
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   
+  <style>
+
+</style>
+
 </head>
 <body class="hold-transition sidebar-mini">
   <div class="wrapper">

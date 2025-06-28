@@ -36,7 +36,7 @@
                 <td>{{ $item->nama_artefak ?? '-' }}</td>
                 <td>
                   @if($item->file_pengumpulan)
-                    <a href="{{ asset('storage/' . $item->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">Lihat File</a>
+                    <a href="{{ asset('/storage/submissions/' . $item->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">Lihat File</a>
                   @else
                     <span class="text-muted">Belum Ada</span>
                   @endif

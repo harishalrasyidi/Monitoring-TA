@@ -5,6 +5,9 @@ use App\Http\Controllers\KotaController;
 use Illuminate\Support\Facades\Route;
 // use App\Http\Controllers\Mahasiswa\DashboardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DosbingDashboardController;
+use App\Http\Controllers\KaprodiDashboardController;
+use App\Http\Controllers\KoordinatorDashboardController;
 use Illuminate\Support\Facades\Storage;
 /*
 |--------------------------------------------------------------------------
@@ -23,14 +26,30 @@ use Illuminate\Support\Facades\Storage;
 
 
 //Home
-Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'role:1,2,3,4,5'])->name('home');
+Route::get('/', function() {
+    $user = auth()->user();
+    if ($user->role == 1) {
+        return app(\App\Http\Controllers\KoordinatorDashboardController::class)->index(request());
+    } elseif ($user->role == 2) {
+        return app(\App\Http\Controllers\DosbingDashboardController::class)->index(request());
+    } elseif ($user->role == 3) {
+        return app(\App\Http\Controllers\MahasiswaDashboardController::class)->index(request());
+    } elseif ($user->role == 4 || $user->role == 5) {
+        return app(\App\Http\Controllers\KaprodiDashboardController::class)->index(request());
+    } else {
+        abort(403, 'Akses tidak diizinkan.');
+    }
+})->middleware(['auth', 'role:1,2,3,4,5'])->name('home');
 Route::post('/kota-status', [App\Http\Controllers\HomeController::class, 'kota_status'])->middleware(['auth', 'role:3'])->name('kota.status');
 Route::get('/{id}/file', [App\Http\Controllers\HomeController::class, 'showFile'])->name('home.showFile');
 Route::get('/dashboard/kota-uji', [App\Http\Controllers\DashboardController::class, 'getKotaUji'])->name('dashboard.kota-uji');
 Route::get('/kota/{id}/artefak', [KotaController::class, 'showArtefak'])->name('kota.artefak.detail');
-Route::middleware(['auth', 'role:5'])->group(function () {
-    Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getYudisiumListKaprodi'])->name('kaprodi.yudisium.list');
+Route::middleware(['auth', 'role:4,5'])->group(function () {
+    Route::get('/kaprodi/yudisium-list', [App\Http\Controllers\KaprodiDashboardController::class, 'getKotaByYudisium'])->name('kaprodi.yudisium.list');
 });
+Route::get('/kaprodi/dashboard', [KaprodiDashboardController::class, 'index'])->name('kaprodi.dashboard');
+Route::get('/koordinator/dashboard', [KoordinatorDashboardController::class, 'index'])->name('koordinator.dashboard');
+Route::get('/dosbing/dashboard', [DosbingDashboardController::class, 'index'])->name('dosbing.dashboard');
 //Kota
 Route::get('/kota', [App\Http\Controllers\KotaController::class, 'index'])->middleware(['auth', 'role:1,2,3'])->name('kota');
 Route::get('/kota/create', [App\Http\Controllers\KotaController::class, 'create'])->middleware(['auth', 'role:1,2'])->name('kota.create'); //menambahkan data
@@ -131,7 +150,7 @@ Route::get('/status-yudisium', [App\Http\Controllers\YudisiumController::class, 
 Route::get('/yudisium/kelola', [App\Http\Controllers\YudisiumController::class, 'index'])->name('yudisium.kelola');
 Route::get('/yudisium/detail/{id}', [App\Http\Controllers\YudisiumController::class, 'show'])->name('yudisium.detail');
 // Route::post('/yudisium/generate', [App\Http\Controllers\YudisiumController::class, 'generate'])->name('yudisium.generate');
-Route::get('/koordinator/yudisium-list', [App\Http\Controllers\DashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
+Route::get('/koordinator/yudisium-list', [App\Http\Controllers\KoordinatorDashboardController::class, 'getKotaByYudisium'])->name('koordinator.yudisium-list');
 
 // History
 Route::get('/history', [App\Http\Controllers\HistoryController::class, 'index'])->middleware(['auth', 'role:2'])->name('history.index');

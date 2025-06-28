@@ -226,9 +226,9 @@
                                                         <!-- Form untuk upload file (FTA/Dokumen) -->
                                                         @if (isset($artefak->kumpul) && !empty($artefak->kumpul->file_pengumpulan))
                                                             <div class="mb-3">
-                                                                <a href="{{ Storage::url($artefak->kumpul->file_pengumpulan) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                                                    <i class="fas fa-file-pdf"></i> {{ basename($artefak->kumpul->file_pengumpulan) }}
-                                                                </a>
+                                                                <a href="{{ Storage::url('submissions/' . $artefak->kumpul->file_pengumpulan) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                                            <i class="fas fa-file-pdf"></i> {{ basename($artefak->kumpul->file_pengumpulan) }}
+                                                                        </a>
                                                             </div>
                                                             <form action="{{ route('submissions.destroy', $artefak->kumpul->id) }}" method="POST" class="mt-2">
                                                                 @csrf

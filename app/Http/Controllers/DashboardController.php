@@ -66,13 +66,30 @@ class DashboardController extends Controller
                 $chartData = array_fill_keys($tahapanNames, 0);
 
                 foreach ($allKota as $kota) {
-                    $lastTahapan = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
-                    if ($lastTahapan && $lastTahapan->status === 'selesai') {
-                        $namaTahapan = optional($lastTahapan->masterTahapan)->nama_progres;
-                        if (isset($chartData[$namaTahapan])) {
-                            $chartData[$namaTahapan]++;
+                    // Hitung kumulatif - setiap tahapan menghitung semua KoTA yang sudah melewati tahapan tersebut
+                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    
+                    // Hitung tahapan tertinggi yang sudah selesai
+                    $maxTahapanSelesai = 0;
+                    foreach ($tahapanProgress as $tp) {
+                        if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapanSelesai) {
+                            $maxTahapanSelesai = $tp->id_master_tahapan_progres;
                         }
                     }
+                    
+                    // Tambahkan ke semua tahapan yang sudah dilewati (kumulatif)
+                    for ($i = 1; $i <= $maxTahapanSelesai; $i++) {
+                        if (isset($tahapanNames[$i - 1])) {
+                            $chartData[$tahapanNames[$i - 1]]++;
+                        }
+                    }
+                }
+
+                // Hitung data untuk chart
+                $chartDataJumlah = array_values($chartData);
+                $chartDataPersen = [];
+                foreach ($chartData as $val) {
+                    $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
                 }
 
                 $perPage = $request->get('per_page', 10);
@@ -126,10 +143,19 @@ class DashboardController extends Controller
                     ->select('a.nama_artefak', 'kha.*')
                     ->get();
 
+                // Timeline data untuk chart tooltip
+                $timelineData = DB::table('tbl_timeline')
+                    ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+                    ->orderBy('tanggal_mulai')
+                    ->get()
+                    ->toArray();
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'chartData' => $chartData,
+                    'chartDataJumlah' => $chartDataJumlah,
+                    'chartDataPersen' => $chartDataPersen,
                     'periodes' => $periodes,
                     'kelasList' => $kelasList,
                     'totalYudisium1' => $totalYudisium1,
@@ -142,6 +168,7 @@ class DashboardController extends Controller
                     'seminar2' => $seminar2,
                     'seminar3' => $seminar3,
                     'sidang' => $sidang,
+                    'timelineData' => $timelineData,
                 ]);
             }
 
@@ -175,13 +202,30 @@ class DashboardController extends Controller
                 $chartData = array_fill_keys($tahapanNames, 0);
 
                 foreach ($allKota as $kota) {
-                    $lastTahapan = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
-                    if ($lastTahapan && $lastTahapan->status === 'selesai') {
-                        $namaTahapan = optional($lastTahapan->masterTahapan)->nama_progres;
-                        if (isset($chartData[$namaTahapan])) {
-                            $chartData[$namaTahapan]++;
+                    // Hitung kumulatif - setiap tahapan menghitung semua KoTA yang sudah melewati tahapan tersebut
+                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    
+                    // Hitung tahapan tertinggi yang sudah selesai
+                    $maxTahapanSelesai = 0;
+                    foreach ($tahapanProgress as $tp) {
+                        if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapanSelesai) {
+                            $maxTahapanSelesai = $tp->id_master_tahapan_progres;
                         }
                     }
+                    
+                    // Tambahkan ke semua tahapan yang sudah dilewati (kumulatif)
+                    for ($i = 1; $i <= $maxTahapanSelesai; $i++) {
+                        if (isset($tahapanNames[$i - 1])) {
+                            $chartData[$tahapanNames[$i - 1]]++;
+                        }
+                    }
+                }
+
+                // Hitung data untuk chart
+                $chartDataJumlah = array_values($chartData);
+                $chartDataPersen = [];
+                foreach ($chartData as $val) {
+                    $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
                 }
 
                 $perPage = $request->get('per_page', 10);
@@ -235,10 +279,19 @@ class DashboardController extends Controller
                     ->select('a.nama_artefak', 'kha.*')
                     ->get();
 
+                // Timeline data untuk chart tooltip
+                $timelineData = DB::table('tbl_timeline')
+                    ->select('nama_kegiatan as name', 'tanggal_mulai as start', 'tanggal_selesai as end')
+                    ->orderBy('tanggal_mulai')
+                    ->get()
+                    ->toArray();
+
                 return view('beranda.koordinator.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'chartData' => $chartData,
+                    'chartDataJumlah' => $chartDataJumlah,
+                    'chartDataPersen' => $chartDataPersen,
                     'periodes' => $periodes,
                     'kelasList' => $kelasList,
                     'totalYudisium1' => $totalYudisium1,
@@ -251,6 +304,7 @@ class DashboardController extends Controller
                     'seminar2' => $seminar2,
                     'seminar3' => $seminar3,
                     'sidang' => $sidang,
+                    'timelineData' => $timelineData,
                 ]);
             }
 
@@ -322,7 +376,90 @@ class DashboardController extends Controller
 
             }
 
-            // DOSBING DAN PENGUJI
+           // DOSBING DAN PENGUJI
+            // if ($user->role == 2) {
+            //     $kotaIdsBimbingan = KotaHasUserModel::where('id_user', $user->id)
+            //         ->pluck('id_kota')
+            //         ->toArray();
+                
+            //     $totalKota = count($kotaIdsBimbingan);
+
+            //     $kotaIdsUji = KotaHasPenguji::where('id_user', $user->id)
+            //         ->pluck('id_kota')
+            //         ->toArray();
+                
+            //     $queryUji = Kota::whereIn('id_kota', $kotaIdsUji);
+            //     if ($request->filled('periode')) {
+            //         $queryUji->where('periode', $request->periode);
+            //     }
+            //     if ($request->filled('kelas')) {
+            //         $queryUji->where('kelas', $request->kelas);
+            //     }
+            //     $totalKotaUji = $queryUji->count();
+                
+            //     // Query dasar untuk KoTA yang dibimbing
+            //     $query = Kota::with(['tahapanProgress.masterTahapan'])
+            //         ->whereIn('id_kota', $kotaIdsBimbingan);
+
+            //     // Ambil semua KoTA yang dibimbing
+            //     $allKota = $query->get();
+
+            //     $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
+            //     $chartData = array_fill_keys($tahapanNames, 0);
+
+            //     // Hitung statistik dan status selesai/dalam progres
+            //     $selesai = 0;
+            //     $dalamProgres = 0;
+
+            //     foreach ($allKota as $kota) {
+            //         $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    
+            //         // Hitung statistik berdasarkan tahapan terakhir yang selesai
+            //         $lastTahapan = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
+            //         if ($lastTahapan && $lastTahapan->status === 'selesai') {
+            //             $namaTahapan = optional($lastTahapan->masterTahapan)->nama_progres;
+            //             if (isset($chartData[$namaTahapan])) {
+            //                 $chartData[$namaTahapan]++;
+            //             }
+            //         }
+
+            //         // Hitung status selesai/dalam progres
+            //         if ($tahapanProgress->isEmpty()) {
+            //             $dalamProgres++;
+            //             continue;
+            //         }
+                    
+            //         $sidangProgress = $tahapanProgress->firstWhere('id_master_tahapan_progres', 4);
+            //         if ($sidangProgress && $sidangProgress->status === 'selesai') {
+            //             $selesai++;
+            //         } else {
+            //             $dalamProgres++;
+            //         }
+            //     }
+
+            //     // Ambil data untuk pagination (terpisah dari perhitungan)
+            //     $kotaList = $query->paginate(10);
+                
+            //     $periodes = Kota::whereIn('id_kota', $kotaIdsBimbingan)
+            //         ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
+            //     $kelasList = Kota::whereIn('id_kota', $kotaIdsBimbingan)
+            //         ->select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
+                
+            //     // Ambil data untuk pagination (terpisah dari perhitungan)
+            //     $kotaList = $query->paginate(10);
+                
+            //     return view('beranda.pembimbing.home', [
+            //         'kotaList' => $kotaList,
+            //         'totalKota' => $totalKota,
+            //         'totalKotaUji' => $totalKotaUji,
+            //         'selesai' => $selesai,
+            //         'dalamProgres' => $dalamProgres,
+            //         'chartData' => $chartData,
+            //         'periodes' => $periodes,
+            //         'kelasList' => $kelasList,
+            //     ]);
+            // }
+
             if ($user->role == 2) {
                 $kotaIdsBimbingan = KotaHasUserModel::where('id_user', $user->id)
                     ->pluck('id_kota')
@@ -333,7 +470,7 @@ class DashboardController extends Controller
                 $kotaIdsUji = KotaHasPenguji::where('id_user', $user->id)
                     ->pluck('id_kota')
                     ->toArray();
-                
+
                 $queryUji = Kota::whereIn('id_kota', $kotaIdsUji);
                 if ($request->filled('periode')) {
                     $queryUji->where('periode', $request->periode);
@@ -342,7 +479,7 @@ class DashboardController extends Controller
                     $queryUji->where('kelas', $request->kelas);
                 }
                 $totalKotaUji = $queryUji->count();
-                
+
                 // Query dasar untuk KoTA yang dibimbing
                 $query = Kota::with(['tahapanProgress.masterTahapan'])
                     ->whereIn('id_kota', $kotaIdsBimbingan);
@@ -351,28 +488,31 @@ class DashboardController extends Controller
                 $allKota = $query->get();
 
                 $tahapanNames = ['Seminar 1', 'Seminar 2', 'Seminar 3', 'Sidang'];
-                $tahapanIds = [1, 2, 3, 4];
-                $chartData = [];
+                $chartData = array_fill_keys($tahapanNames, 0);
 
-                foreach ($tahapanIds as $index => $tahapanId) {
-                    $count = KotaTahapanProgress::where('id_master_tahapan_progres', $tahapanId)
-                        ->where('status', 'selesai')
-                        ->whereIn('id_kota', $kotaIdsBimbingan)
-                        ->distinct('id_kota')
-                        ->count('id_kota');
-                    $chartData[$tahapanNames[$index]] = $count;
-                }
+                // Hitung statistik dan status selesai/dalam progres
+                $selesai = 0;
+                $dalamProgres = 0;
 
-                // Hitung selesai dan dalam progres dari SEMUA data (tidak tergantung pagination)
-            $selesai = 0;
-            $dalamProgres = 0;
-
-                $allKotaForCount = Kota::with(['tahapanProgress'])
-                    ->whereIn('id_kota', $kotaIdsBimbingan)
-                    ->get(); // Ambil semua data untuk perhitungan
-
-                foreach ($allKotaForCount as $kota) {
+                foreach ($allKota as $kota) {
                     $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+
+                    // Hitung kumulatif - setiap tahapan menghitung semua KoTA yang sudah melewati tahapan tersebut
+                    $maxTahapanSelesai = 0;
+                    foreach ($tahapanProgress as $tp) {
+                        if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapanSelesai) {
+                            $maxTahapanSelesai = $tp->id_master_tahapan_progres;
+                        }
+                    }
+                    
+                    // Tambahkan ke semua tahapan yang sudah dilewati (kumulatif)
+                    for ($i = 1; $i <= $maxTahapanSelesai; $i++) {
+                        if (isset($tahapanNames[$i - 1])) {
+                            $chartData[$tahapanNames[$i - 1]]++;
+                        }
+                    }
+
+                    // Hitung status selesai/dalam progres
                     if ($tahapanProgress->isEmpty()) {
                         $dalamProgres++;
                         continue;
@@ -386,17 +526,25 @@ class DashboardController extends Controller
                     }
                 }
 
+                // Hitung data untuk chart
+                $chartDataJumlah = array_values($chartData);
+                $chartDataPersen = [];
+                foreach ($chartData as $val) {
+                    $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
+                }
+
                 // Ambil data untuk pagination (terpisah dari perhitungan)
-                $kotaList = $query->paginate(10);
-                
+                $perPage = $request->get('per_page', 10);
+                $kotaList = $query->paginate($perPage);
+
                 $periodes = Kota::whereIn('id_kota', $kotaIdsBimbingan)
                     ->select('periode')->distinct()->orderBy('periode', 'desc')->pluck('periode');
                 $kelasList = Kota::whereIn('id_kota', $kotaIdsBimbingan)
                     ->select('kelas')->distinct()->orderBy('kelas')->pluck('kelas');
-                
+
                 // Ambil data untuk pagination (terpisah dari perhitungan)
                 $kotaList = $query->paginate(10);
-                
+
                 return view('beranda.pembimbing.home', [
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
@@ -404,6 +552,8 @@ class DashboardController extends Controller
                     'selesai' => $selesai,
                     'dalamProgres' => $dalamProgres,
                     'chartData' => $chartData,
+                    'chartDataJumlah' => $chartDataJumlah,
+                    'chartDataPersen' => $chartDataPersen,
                     'periodes' => $periodes,
                     'kelasList' => $kelasList,
                 ]);
@@ -434,14 +584,30 @@ class DashboardController extends Controller
                 $chartData = array_fill_keys($tahapanNames, 0);
 
                 foreach ($allKota as $kota) {
-                    // Ambil tahapan terakhir (id terbesar)
-                    $lastTahapan = $kota->tahapanProgress->sortByDesc('id_master_tahapan_progres')->first();
-                    if ($lastTahapan && $lastTahapan->status === 'selesai') {
-                        $namaTahapan = optional($lastTahapan->masterTahapan)->nama_progres;
-                        if (isset($chartData[$namaTahapan])) {
-                            $chartData[$namaTahapan]++;
+                    // Hitung kumulatif - setiap tahapan menghitung semua KoTA yang sudah melewati tahapan tersebut
+                    $tahapanProgress = $kota->tahapanProgress->sortBy('id_master_tahapan_progres');
+                    
+                    // Hitung tahapan tertinggi yang sudah selesai
+                    $maxTahapanSelesai = 0;
+                    foreach ($tahapanProgress as $tp) {
+                        if ($tp->status === 'selesai' && $tp->id_master_tahapan_progres > $maxTahapanSelesai) {
+                            $maxTahapanSelesai = $tp->id_master_tahapan_progres;
                         }
                     }
+                    
+                    // Tambahkan ke semua tahapan yang sudah dilewati (kumulatif)
+                    for ($i = 1; $i <= $maxTahapanSelesai; $i++) {
+                        if (isset($tahapanNames[$i - 1])) {
+                            $chartData[$tahapanNames[$i - 1]]++;
+                        }
+                    }
+                }
+
+                // Hitung data untuk chart
+                $chartDataJumlah = array_values($chartData);
+                $chartDataPersen = [];
+                foreach ($chartData as $val) {
+                    $chartDataPersen[] = $totalKota > 0 ? round(($val / $totalKota) * 100, 1) : 0;
                 }
 
                 // Ambil data untuk pagination (terpisah dari perhitungan)
@@ -493,6 +659,7 @@ class DashboardController extends Controller
                 $sidang = DB::table('tbl_kota_has_artefak as kha')
                     ->join('tbl_artefak as a', 'kha.id_artefak', '=', 'a.id_artefak')
                     ->whereIn('a.nama_artefak', $sidangArtefak)
+                    ->whereIn('kha.id_kota', $kotaIds)
                     ->select('a.nama_artefak', 'kha.*')
                     ->get(); 
                 
@@ -501,6 +668,8 @@ class DashboardController extends Controller
                     'kotaList' => $kotaList,
                     'totalKota' => $totalKota,
                     'chartData' => $chartData,
+                    'chartDataJumlah' => $chartDataJumlah,
+                    'chartDataPersen' => $chartDataPersen,
                     'periodes' => $periodes,
                     'kelasList' => $kelasList,
                     'totalYudisium1' => $totalYudisium1,
@@ -588,22 +757,21 @@ class DashboardController extends Controller
 
     public function getKotaByYudisium(Request $request)
     {
+        $user = auth()->user();
         $kategori = $request->kategori;
-        $periode = $request->periode;
-        $kelas = $request->kelas;
 
-        $kotaList = DB::table('tbl_yudisium')
+        // Ambil kelas yang dipegang koordinator
+        $kelasKoordinator = \DB::table('tbl_koor_has_kelas')
+            ->where('id_user', $user->id)
+            ->pluck('kelas')
+            ->toArray();
+
+        $kotaList = \DB::table('tbl_yudisium')
             ->join('tbl_kota', 'tbl_yudisium.id_kota', '=', 'tbl_kota.id_kota')
-            ->where('tbl_yudisium.kategori_yudisium', $kategori);
-
-        if ($periode) {
-            $kotaList->where('tbl_kota.periode', $periode);
-        }
-        if ($kelas) {
-            $kotaList->where('tbl_kota.kelas', $kelas);
-        }
-
-        $kotaList = $kotaList->select('tbl_kota.nama_kota', 'tbl_kota.judul')->get();
+            ->where('tbl_yudisium.kategori_yudisium', $kategori)
+            ->whereIn('tbl_kota.kelas', $kelasKoordinator)
+            ->select('tbl_kota.nama_kota', 'tbl_kota.judul')
+            ->get();
 
         return response()->json($kotaList);
     }
