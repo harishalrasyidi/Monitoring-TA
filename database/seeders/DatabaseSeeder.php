@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             KotaHasArtefakSeeder::class,
             YudisiumSeeder::class,
             YudisiumLogSeeder::class,
+            KoorHasKelasSeeder::class,
         ]);
     }
 }

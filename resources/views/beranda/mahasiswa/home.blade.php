@@ -78,7 +78,7 @@
                   </td>
                   <td>
                     @if($artefak->file_pengumpulan)
-                        <a href="{{ asset('storage/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
+                        <a href="{{ asset('/storage/submissions/' . $artefak->file_pengumpulan) }}" target="_blank" class="btn btn-sm btn-primary">                        
                             <i class="fas fa-eye"></i> Lihat
                       </a>
                     @else
